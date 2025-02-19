@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 18 February 2025
+## Last updated: 19 February 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 
@@ -47,8 +47,8 @@ popStats <- lavInspect(fit, "implied") # use to generate new data
 # generate training and test datasets
 # FIXME, can also put in `testrule()` function with `n` argument if necessary. but for now, this works
 set.seed(123)
-traindat <- mvrnorm(n = 250, mu = popStats$mean, Sigma = popStats$cov)
-testdat <- mvrnorm(n = 250, mu = popStats$mean, Sigma = popStats$cov) 
+traindat <- mvrnorm(n = 10000, mu = popStats$mean, Sigma = popStats$cov)
+testdat <- mvrnorm(n = 10000, mu = popStats$mean, Sigma = popStats$cov) 
 
 fit <- sem(mod, traindat, meanstructure = T) # for `lavpredictY()`
 
@@ -57,7 +57,7 @@ testrule <- function(train, test, regSxy, alpha1, alpha2 = NULL,
                      ynames = paste0("y", 5:8), misspecify = F) {
   
   # sample statistics of the training dataset
-  S <- cov(train)
+  S <- cov(train) #FIXME nrow(train)
   S_xx <- S[xnames, xnames]
   S_xy <- S[xnames, ynames]
   
@@ -108,6 +108,7 @@ testrule <- function(train, test, regSxy, alpha1, alpha2 = NULL,
                                           alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
                                           misspecify = misspecify, 
                                           meanBias = colMeans(Ypred - Ytest),
+                                          RMSE = sqrt(mean((Ypred - Ytest)^2)),
                                           yname = ynames)))) 
   # save `final` in long format for `ggplot()`
 }
@@ -142,10 +143,13 @@ diff <- difftime(t1, t0, units = "sec")
 res_final <- as.data.frame(do.call("rbind", 
                      lapply(1:length(res_list), function(i) res_list[[i]]$final)))
 res_final$meanBias <- as.numeric(res_final$meanBias) # convert to numeric
+res_final$RMSE <- as.numeric(res_final$RMSE) # convert to numeric
 
 
 library(ggplot2)
 
+
+## mean 
 # for regSxy == F
 ggplot(data = res_final[res_final$regSxy == F & is.na(res_final$alpha2), ], 
        mapping = aes(x = alpha1, y = meanBias)) +
@@ -154,12 +158,30 @@ ggplot(data = res_final[res_final$regSxy == F & is.na(res_final$alpha2), ],
 # for regSxy == T & misspecify == F
 ggplot(data = res_final[res_final$regSxy == T & res_final$misspecify == F & !is.na(res_final$alpha2), ], 
        mapping = aes(x = alpha2, y = meanBias)) +
-  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + geom_hline(yintercept = 0) 
+  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + geom_hline(yintercept = 0) + ggtitle("regSxy = T and misspecify = F")
 
 # for regSxy == T & misspecify == T
 ggplot(data = res_final[res_final$regSxy == T & res_final$misspecify == T & !is.na(res_final$alpha2), ], 
        mapping = aes(x = alpha2, y = meanBias)) +
-  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + geom_hline(yintercept = 0) 
+  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + geom_hline(yintercept = 0) + ggtitle("regSxy = T and misspecify = F") 
+
+
+## RMSE 
+# for regSxy == F
+ggplot(data = res_final[res_final$regSxy == F & is.na(res_final$alpha2), ], 
+       mapping = aes(x = alpha1, y = RMSE)) +
+  geom_point() + facet_wrap(~ yname + misspecify, ncol = 2) 
+
+# for regSxy == T & misspecify == F
+ggplot(data = res_final[res_final$regSxy == T & res_final$misspecify == F & !is.na(res_final$alpha2), ], 
+       mapping = aes(x = alpha2, y = RMSE)) +
+  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + ggtitle("regSxy = T and misspecify = F")
+
+# for regSxy == T & misspecify == T
+ggplot(data = res_final[res_final$regSxy == T & res_final$misspecify == T & !is.na(res_final$alpha2), ], 
+       mapping = aes(x = alpha2, y = RMSE)) +
+  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + ggtitle("regSxy = T and misspecify = T") 
+
 
 
 testrule_CV <- function() {
