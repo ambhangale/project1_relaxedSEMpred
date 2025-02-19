@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 18 February 2025
+## Last updated: 19 February 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 
@@ -154,12 +154,12 @@ ggplot(data = res_final[res_final$regSxy == F & is.na(res_final$alpha2), ],
 # for regSxy == T & misspecify == F
 ggplot(data = res_final[res_final$regSxy == T & res_final$misspecify == F & !is.na(res_final$alpha2), ], 
        mapping = aes(x = alpha2, y = meanBias)) +
-  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + geom_hline(yintercept = 0) 
+  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + geom_hline(yintercept = 0) + ggtitle("regSxy = T and misspecify = F")
 
 # for regSxy == T & misspecify == T
 ggplot(data = res_final[res_final$regSxy == T & res_final$misspecify == T & !is.na(res_final$alpha2), ], 
        mapping = aes(x = alpha2, y = meanBias)) +
-  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + geom_hline(yintercept = 0) 
+  geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + geom_hline(yintercept = 0) + ggtitle("regSxy = T and misspecify = F") 
 
 
 testrule_CV <- function() {
