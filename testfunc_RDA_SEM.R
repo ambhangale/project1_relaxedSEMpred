@@ -183,7 +183,6 @@ ggplot(data = res_final[res_final$regSxy == T & res_final$misspecify == T & !is.
   geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) + ggtitle("regSxy = T and misspecify = T") 
 
 
-
 testrule_CV <- function() {
   # TODO maybe try (nested) CV for the above formulae
   
