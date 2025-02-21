@@ -8,6 +8,7 @@
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_SEM")
 
 source("func_RDA_SEM.R")
+library(ggplot2)
 
 dat <- gendat(ntrain = 250, ntest = 250, misspecify = F) # for comparison with `lavaan()` and `lm()`
 
@@ -79,3 +80,30 @@ round(Ypred.A3$Ypred,10) == round(Ypred.A4$Ypred,10)
 # the three are comparable
 
 #----
+
+## preliminary check of results from function----
+conds1 <- rbind(expand.grid(regXY = F, XYtype = c("S.xy", "Sigma.xy"), 
+                            alpha1 = seq(0,1,0.1), alpha2 = NA, misspecify = c(F,T)),
+                expand.grid(regXY = T, XYtype = NA, alpha1 = seq(0,1,0.1), 
+                            alpha2 = seq(0,1,0.1), misspecify = c(F,T)))
+# dim(conds) should be (11*2*2) + (11*11*2) = 286
+
+# results
+t0 <- Sys.time()
+resList1 <- mapply(testrule, ntrain = 250, ntest = 250, 
+                  misspecify = conds1$misspecify, regXY = conds1$regXY, 
+                  XYtype = conds1$XYtype, alpha1 = conds1$alpha1, 
+                  alpha2 = conds1$alpha2, SIMPLIFY = F)
+t1 <- Sys.time()
+diff <- difftime(t1, t0, units = "sec")
+
+RMSEpr <- as.data.frame(do.call("rbind", 
+                                lapply(1:length(resList1), function(x) resList1[[x]]$RMSEpr.result)))
+RMSEpr$meanBias <- as.numeric(RMSEpr$meanBias)
+RMSEpr$RMSEpr <- as.numeric(RMSEpr$RMSEpr)
+  
+RMSEp <- as.data.frame(do.call("rbind", 
+                               lapply(1:length(resList1), function(x) resList1[[x]]$RMSEp.result)))
+
+##----
+
