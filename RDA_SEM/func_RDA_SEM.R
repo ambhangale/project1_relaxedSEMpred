@@ -106,21 +106,21 @@ testrule <- function(ntrain, ntest, misspecify,
   
   bias <- Ypred - Ytest
   
-  RMSEpr.result <- as.data.frame(cbind(regXY = as.character(regXY), 
-                                       XYtype = as.character(ifelse(!is.null(XYtype), XYtype, NA)),
+  RMSEpr.result <- as.data.frame(cbind(regXY = regXY, 
+                                       XYtype = ifelse(!is.null(XYtype), XYtype, NA),
                                        alpha1 = alpha1, 
                                        alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
-                                       misspecify = as.character(misspecify),
-                                       meanBias = as.numeric(colMeans(bias)),
-                                       RMSEpr = as.numeric(sqrt(colMeans((bias)^2))),
+                                       misspecify = misspecify,
+                                       meanBias = colMeans(bias),
+                                       RMSEpr = sqrt(colMeans((bias)^2)),
                                        yname = ynames))
   
-  RMSEp.result <- as.data.frame(cbind(regXY = as.character(regXY), 
-                                      XYtype = as.character(ifelse(!is.null(XYtype), XYtype, NA)),
+  RMSEp.result <- as.data.frame(cbind(regXY = regXY, 
+                                      XYtype = ifelse(!is.null(XYtype), XYtype, NA),
                                       alpha1 = alpha1, 
                                       alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
-                                      misspecify = as.character(misspecify),
-                                      RMSEp = as.numeric(sqrt(sum((bias)^2)/(length(ynames)*ntest)))))
+                                      misspecify = misspecify,
+                                      RMSEp = sqrt(sum((bias)^2)/(length(ynames)*ntest))))
   
   final <- list(Ypred = Ypred, Ytest = Ytest, bias = bias,
                 RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
@@ -142,7 +142,7 @@ testrule <- function(ntrain, ntest, misspecify,
 # test `testrule()`
 # foo <- testrule(ntrain = 100, ntest = 250, misspecify = F, regXY = F, 
 #                 XYtype = "Sigma.xy", alpha1 = 0)
-# bar <- testrule(ntrain = 100, ntest = 250, misspecify = T, regXY = T,
+# bar <- testrule(ntrain = 100, ntest = 250, misspecify = T, regXY = T, 
 #                 alpha1 = 0.4, alpha2 = 0.3)
 
 
