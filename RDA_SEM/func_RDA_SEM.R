@@ -71,22 +71,34 @@ testrule <- function(ntrain, ntest, misspecify,
   
   if(!regXY) {
     if (XYtype == "S.xy") {
+      if (0L <= alpha1 && alpha1 <= 1L) {
       Ypred <- t(Mu_y + t(S_xy) %*% 
                    solve((1-alpha1)*Sigma_xx + alpha1*S_xx) %*% 
                    (t(X0) - Mu_x)) 
       # t(X0) to make compatible with Mu_x and t(Mu_y + ...) to change to long format. also below.
+      } else {
+        stop("specify value between 0 and 1 for `alpha1`")
+      }
     } else if (XYtype == "Sigma.xy") { # if alpha = 0, result will match De Rooij et al. (2022) prediction rule
+      if (0L <= alpha1 && alpha1 <= 1L) {
       Ypred <- t(Mu_y + t(Sigma_xy) %*% 
                    solve((1-alpha1)*Sigma_xx + alpha1*S_xx) %*% 
                    (t(X0) - Mu_x)) 
+      } else {
+        stop("specify value between 0 and 1 for `alpha1`")
+      }
     } else {
       stop("specify valid type for XY covariance matrix")
     }
   } else {
     if(!is.null(alpha2)) {
+      if (0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
       Ypred <- t(Mu_y + ((1-alpha2)*t(Sigma_xy) + alpha2*t(S_xy)) %*% 
                    solve((1-alpha1)*Sigma_xx + alpha1*S_xx) %*% 
                    (t(X0) - Mu_x))
+      } else {
+        stop("specify values between 0 and 1 for `alpha1` and `alpha2`")
+      }
     } else {
       stop("specify value for `alpha2`")
     }
