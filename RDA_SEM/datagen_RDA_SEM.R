@@ -39,8 +39,8 @@ gendat <- function(ntrain, ntest, misspecify) {
   popStats <- lavInspect(fit, "implied") # use to generate new data
   
   set.seed(10824)
-  train <- mvrnorm(n = ntrain, mu = popStats$mean, Sigma = popStats$cov)
-  test <-  mvrnorm(n = ntest , mu = popStats$mean, Sigma = popStats$cov)
+  train <- as.data.frame(mvrnorm(n = ntrain, mu = popStats$mean, Sigma = popStats$cov))
+  test <-  as.data.frame(mvrnorm(n = ntest , mu = popStats$mean, Sigma = popStats$cov))
   
   datlist <- list(train = train, test = test)
   attr(datlist, "misspecify") <- misspecify
