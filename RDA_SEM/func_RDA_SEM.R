@@ -6,3 +6,136 @@
 
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_SEM")
+
+source("datagen_RDA_SEM.R")
+
+
+# function to fit model
+fitmod <- function(train) {
+  
+  # model
+  mod <- ' 
+  # latent variable definitions
+    ind60 =~ x1 + x2 + x3
+    dem60 =~ y1 + y2 + y3 + y4 
+    dem65 =~ y5 + y6 + y7 + y8
+    
+  # regressions
+    dem60 ~ ind60
+    dem65 ~ ind60 + dem60
+    
+  # residual correlations
+    y1 ~~ y5
+    y2 ~~ y4 + y6
+    y3 ~~ y7
+    y4 ~~ y8
+    y6 ~~ y8
+'
+  
+  fit <- sem(mod, data = train, meanstructure = T) # mean structure saturated for now
+  
+  return(fit)
+    
+}
+
+# test `fitmod()`
+# fitmod(ntrain = 250, ntest = 250, misspecify = F)
+
+
+# function to apply formulae
+testrule <- function(ntrain, ntest, misspecify, 
+                     regXY, XYtype = NULL, alpha1, alpha2 = NULL,
+                     xnames = c(paste0("x", 1:3), paste0("y", 1:4)), 
+                     ynames = paste0("y", 5:8)) {
+  
+  dat <- gendat(ntrain = ntrain, ntest = ntest, misspecify = misspecify)
+  train <- dat$train
+  test <- dat$test
+  
+  S <- (cov(train)*(nrow(train)-1)) / nrow(train) 
+  # `cov()` computes covmat using denominator 'n-1', but `lavaan` uses 'n' to scale
+  # covmats and SEs. thus, rescaled the covmat produced by `cov()` so that it scales by 'n'
+  S_xx <- S[xnames, xnames]
+  S_xy <- S[xnames, ynames]
+  
+  # values from test dataset
+  X0 <- test[,xnames] # to be inputted into formulae
+  Ytest <- test[,ynames] # original Y values from test dataset
+  
+  fit <- fitmod(train = train)
+  ImpliedStats <- lavInspect(fit, "implied")
+  Sigma_xx     <- ImpliedStats$cov[xnames, xnames]
+  Sigma_xy     <- ImpliedStats$cov[xnames, ynames]
+  Mu_x         <- ImpliedStats$mean[xnames]
+  Mu_y         <- ImpliedStats$mean[ynames]
+  
+  if(!regXY) {
+    if (XYtype == "S.xy") {
+      Ypred <- t(Mu_y + t(S_xy) %*% 
+                   solve((1-alpha1)*Sigma_xx + alpha1*S_xx) %*% 
+                   (t(X0) - Mu_x)) 
+      # t(X0) to make compatible with Mu_x and t(Mu_y + ...) to change to long format. also below.
+    } else if (XYtype == "Sigma.xy") { # if alpha = 0, result will match De Rooij et al. (2022) prediction rule
+      Ypred <- t(Mu_y + t(Sigma_xy) %*% 
+                   solve((1-alpha1)*Sigma_xx + alpha1*S_xx) %*% 
+                   (t(X0) - Mu_x)) 
+    } else {
+      stop("specify valid type for XY covariance matrix")
+    }
+  } else {
+    if(!is.null(alpha2)) {
+      Ypred <- t(Mu_y + ((1-alpha2)*t(Sigma_xy) + alpha2*t(S_xy)) %*% 
+                   solve((1-alpha1)*Sigma_xx + alpha1*S_xx) %*% 
+                   (t(X0) - Mu_x))
+    } else {
+      stop("specify value for `alpha2`")
+    }
+  }
+  
+  bias <- Ypred - Ytest
+  
+  RMSEpr.result <- as.data.frame(cbind(regXY = regXY, 
+                                       XYtype = ifelse(!is.null(XYtype), XYtype, NA),
+                                       alpha1 = alpha1, 
+                                       alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
+                                       misspecify = misspecify,
+                                       meanBias = colMeans(bias),
+                                       RMSEpr = sqrt(colMeans((bias)^2)),
+                                       yname = ynames))
+  
+  RMSEp.result <- as.data.frame(cbind(regXY = regXY, 
+                                      XYtype = ifelse(!is.null(XYtype), XYtype, NA),
+                                      alpha1 = alpha1, 
+                                      alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
+                                      misspecify = misspecify,
+                                      RMSEp = sqrt(sum((bias)^2)/(length(ynames)*ntest))))
+  
+  final <- list(Ypred = Ypred, Ytest = Ytest, bias = bias,
+                RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
+  # save all arguments as attributes, just in case we need them later
+  attr(final, "ntrain")     <- ntrain
+  attr(final, "ntest")      <- ntest
+  attr(final, "misspecify") <- misspecify
+  attr(final, "regXY")      <- regXY
+  attr(final, "XYtype")     <- ifelse(!is.null(XYtype), XYtype, "NA")
+  attr(final, "alpha1")     <- alpha1
+  attr(final, "alpha2")     <- ifelse(!is.null(alpha2), alpha2, "NA")
+  attr(final, "xnames")     <- c(paste0("x", 1:3), paste0("y", 1:4))
+  attr(final, "ynames")     <- paste0("y", 5:8)
+  
+  return(final)
+  
+}
+
+# test `testrule()`
+# foo <- testrule(ntrain = 100, ntest = 250, misspecify = F, regXY = F, 
+#                 XYtype = "Sigma.xy", alpha1 = 0)
+# bar <- testrule(ntrain = 100, ntest = 250, misspecify = T, regXY = T, 
+#                 alpha1 = 0.4, alpha2 = 0.3)
+
+
+
+#TODO adapt function so that you can run `lavPredictY()` on the `fitmod()` output?
+# or an alternative is to just use the `gendat()` function and fit the model yourself
+# since it only needs to happen once
+
