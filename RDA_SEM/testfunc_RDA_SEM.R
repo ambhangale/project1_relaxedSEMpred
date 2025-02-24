@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 21 February 2025
+## Last updated: 24 February 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## testing the results from the function(s) file
@@ -82,17 +82,19 @@ round(Ypred.A3$Ypred,10) == round(Ypred.A4$Ypred,10)
 #----
 
 ## preliminary check of results from function----
-conds1 <- rbind(expand.grid(regXY = F, XYtype = c("S.xy", "Sigma.xy"), 
-                            alpha1 = seq(0,1,0.1), alpha2 = NA, misspecify = c(F,T)),
-                expand.grid(regXY = T, XYtype = NA, alpha1 = seq(0,1,0.1), 
-                            alpha2 = seq(0,1,0.1), misspecify = c(F,T)))
+conds1 <- rbind(expand.grid(regXY = FALSE, XYtype = c("S.xy", "Sigma.xy"), 
+                            alpha1 = seq(0,1,0.1), alpha2 = NA, 
+                            misspecify = c(FALSE,TRUE), stringAsFactors = F),
+                expand.grid(regXY = TRUE, XYtype = NA, alpha1 = seq(0,1,0.1), 
+                            alpha2 = seq(0,1,0.1), 
+                            misspecify = c(FALSE,TRUE), stringAsFactors = F))
 # dim(conds) should be (11*2*2) + (11*11*2) = 286
 
 # results
 t0 <- Sys.time()
 resList1 <- mapply(testrule, ntrain = 250, ntest = 250, 
                   misspecify = conds1$misspecify, regXY = conds1$regXY, 
-                  XYtype = conds1$XYtype, alpha1 = conds1$alpha1, 
+                  XYtype = as.character(conds1$XYtype), alpha1 = conds1$alpha1, 
                   alpha2 = conds1$alpha2, SIMPLIFY = F)
 t1 <- Sys.time()
 diff <- difftime(t1, t0, units = "sec")
@@ -104,6 +106,10 @@ RMSEpr$RMSEpr <- as.numeric(RMSEpr$RMSEpr)
   
 RMSEp <- as.data.frame(do.call("rbind", 
                                lapply(1:length(resList1), function(x) resList1[[x]]$RMSEp.result)))
+
+RMSEp$RMSEp <- as.numeric(RMSEp$RMSEp)
+# head(RMSEpr)
+# head(RMSEp) # check
 
 ##----
 
