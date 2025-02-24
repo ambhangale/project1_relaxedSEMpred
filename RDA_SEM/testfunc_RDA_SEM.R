@@ -111,5 +111,52 @@ RMSEp$RMSEp <- as.numeric(RMSEp$RMSEp)
 # head(RMSEpr)
 # head(RMSEp) # check
 
+## plot results
+
+
+### RMSEp (all outcomes combined)
+# RMSEp, regXY = F
+ggplot(data = RMSEp[RMSEp$regXY == F & RMSEp$XYtype == "S.xy" &  is.na(RMSEp$alpha2),], 
+       mapping = aes(x = alpha1, y = RMSEp)) + geom_point() + facet_wrap(~ misspecify) +
+  ggtitle("PLOT1: RMSEp values for regXY = F and XYtype = 'S.xy'")
+ggplot(data = RMSEp[RMSEp$regXY == F & RMSEp$XYtype == "Sigma.xy" &  is.na(RMSEp$alpha2),], 
+       mapping = aes(x = alpha1, y = RMSEp)) + geom_point() + facet_wrap(~ misspecify) +
+  ggtitle("PLOT2: RMSEp values for regXY = F and XYtype = 'Sigma.xy'")
+
+# RMSEp, regXY = T
+# misspecify = F
+ggplot(data = RMSEp[RMSEp$regXY == T & RMSEp$misspecify == F &  !is.na(RMSEp$alpha2),], 
+       mapping = aes(x = alpha2, y = RMSEp)) + geom_point() + facet_wrap(~ alpha1) +
+  ggtitle("PLOT3: RMSEp values for regXY = T and misspecify = F")
+# misspecify = T
+ggplot(data = RMSEp[RMSEp$regXY == T & RMSEp$misspecify == T &  !is.na(RMSEp$alpha2),], 
+       mapping = aes(x = alpha2, y = RMSEp)) + geom_point() + facet_wrap(~ alpha1) +
+  ggtitle("PLOT4: RMSEp values for regXY = T and misspecify = T")
+
+
+### RMSEpr
+# RMSEpr, regXY = F
+ggplot(data = RMSEpr[RMSEpr$regXY == F & RMSEpr$XYtype == "S.xy" &  is.na(RMSEpr$alpha2),], 
+       mapping = aes(x = alpha1, y = RMSEpr)) + geom_point() + facet_wrap(~ yname + misspecify, ncol = 2) +
+  ggtitle("PLOT5: RMSEpr values for regXY = F, and XYtype = 'S.xy'")
+ggplot(data = RMSEpr[RMSEpr$regXY == F & RMSEpr$XYtype == "Sigma.xy" &  is.na(RMSEpr$alpha2),], 
+       mapping = aes(x = alpha1, y = RMSEpr)) + geom_point() + facet_wrap(~ yname + misspecify, ncol = 2) +
+  ggtitle("PLOT6: RMSEpr values for regXY = F, and XYtype = 'Sigma.xy'")
+
+# RMSEpr, regXY = T
+# misspecify = F
+ggplot(data = RMSEpr[RMSEpr$regXY == T & RMSEpr$misspecify == F &  !is.na(RMSEpr$alpha2),], 
+       mapping = aes(x = alpha2, y = RMSEpr)) + geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) +
+  ggtitle("PLOT7: RMSEpr values for regXY = T and misspecify = F")
+# misspecify = T
+ggplot(data = RMSEpr[RMSEpr$regXY == T & RMSEpr$misspecify == T &  !is.na(RMSEpr$alpha2),], 
+       mapping = aes(x = alpha2, y = RMSEpr)) + geom_point() + facet_wrap(~ yname + alpha1, ncol = 11) +
+  ggtitle("PLOT8: RMSEpr values for regXY = T and misspecify = T")
+
+# ggplot(data = RMSEpr[RMSEpr$regXY == T & RMSEpr$misspecify == F &  !is.na(RMSEpr$alpha2) & RMSEpr$yname == "y5",], 
+#        mapping = aes(x = alpha2, y = RMSEpr)) + geom_point() + facet_wrap(~ alpha1)
+
+# FIXME eventually create a custom function to make all these plots
+
 ##----
 
