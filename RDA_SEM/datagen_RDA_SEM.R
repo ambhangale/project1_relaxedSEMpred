@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 21 February 2025
+## Last updated: 26 February 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## data generation file
@@ -33,7 +33,7 @@ gendat <- function(ntrain, ntest, misspecify) {
     y6 ~~ y8
 ' # empirical example in De Rooij et al. (2023)
   
-  if (misspecify) mod <- paste(mod, 'dem60 ~ x1', collapse = "\n") # add additional direct effect for misspecification
+  if (misspecify) mod <- paste(mod, 'dem60 ~ x1 \n', collapse = "\n") # add additional direct effect for misspecification
   
   fit <- sem(mod, data = PoliticalDemocracy, meanstructure = T) # mean structure is saturated
   popStats <- lavInspect(fit, "implied") # use to generate new data
