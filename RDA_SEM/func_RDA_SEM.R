@@ -129,15 +129,15 @@ testrule <- function(ntrain, ntest, misspecify,
   attr(final, "XYtype")     <- ifelse(!is.null(XYtype), XYtype, "NA")
   attr(final, "alpha1")     <- alpha1
   attr(final, "alpha2")     <- ifelse(!is.null(alpha2), alpha2, "NA")
-  attr(final, "xnames")     <- c(paste0("x", 1:3), paste0("y", 1:4))
-  attr(final, "ynames")     <- paste0("y", 5:8)
+  attr(final, "xnames")     <- xnames
+  attr(final, "ynames")     <- ynames
   
   return(final)
   
 }
 
 # test `testrule()`
-# foo <- testrule(ntrain = 100, ntest = 250, misspecify = F, regXY = F, 
+# foo <- testrule(ntrain = 100, ntest = 250, misspecify = F, regXY = F,
 #                 XYtype = "Sigma.xy", alpha1 = 0)
 # bar <- testrule(ntrain = 100, ntest = 250, misspecify = T, regXY = T, 
 #                 alpha1 = 0.4, alpha2 = 0.3)
