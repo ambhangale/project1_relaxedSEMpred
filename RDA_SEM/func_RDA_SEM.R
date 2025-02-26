@@ -38,9 +38,6 @@ fitmod <- function(train) {
     
 }
 
-# test `fitmod()`
-# fitmod(ntrain = 250, ntest = 250, misspecify = F)
-
 
 # function to apply formulae
 testrule <- function(ntrain, ntest, misspecify, 
@@ -56,7 +53,7 @@ testrule <- function(ntrain, ntest, misspecify,
   # `cov()` computes covmat using denominator 'n-1', but `lavaan` uses 'n' to scale
   # covmats and SEs. thus, rescaled the covmat produced by `cov()` so that it scales by 'n'
   S_xx <- S[xnames, xnames]
-  S_xy <- S[xnames, ynames]
+  S_xy <- S[xnames, ynames] #FIXME eventually use _yx to avoid the t()?
   
   # values from test dataset
   X0 <- test[,xnames] # to be inputted into formulae
@@ -65,7 +62,7 @@ testrule <- function(ntrain, ntest, misspecify,
   fit <- fitmod(train = train)
   ImpliedStats <- lavInspect(fit, "implied")
   Sigma_xx     <- ImpliedStats$cov[xnames, xnames]
-  Sigma_xy     <- ImpliedStats$cov[xnames, ynames]
+  Sigma_xy     <- ImpliedStats$cov[xnames, ynames] #FIXME eventually use _yx to avoid the t()?
   Mu_x         <- ImpliedStats$mean[xnames]
   Mu_y         <- ImpliedStats$mean[ynames]
   
