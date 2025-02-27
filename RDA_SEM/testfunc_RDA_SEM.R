@@ -205,4 +205,50 @@ ggplot(data = RMSEp2[RMSEp2$regXY == T & RMSEp2$misspecify == T &  !is.na(RMSEp2
 
 #----
 
+## experimenting with small training set (100) and small test set (100)----
+
+# use conds1
+
+# results
+t0 <- Sys.time()
+resList3 <- mapply(testrule, ntrain = 100, ntest = 100, 
+                   misspecify = conds1$misspecify, regXY = conds1$regXY, 
+                   XYtype = as.character(conds1$XYtype), alpha1 = conds1$alpha1, 
+                   alpha2 = conds1$alpha2, SIMPLIFY = F)
+t1 <- Sys.time()
+diff3 <- difftime(t1, t0, units = "sec")
+
+RMSEpr3 <- as.data.frame(do.call("rbind", 
+                                 lapply(1:length(resList3), function(x) resList3[[x]]$RMSEpr.result)))
+RMSEpr3$meanBias <- as.numeric(RMSEpr3$meanBias)
+RMSEpr3$RMSEpr <- as.numeric(RMSEpr3$RMSEpr)
+
+RMSEp3 <- as.data.frame(do.call("rbind", 
+                                lapply(1:length(resList3), function(x) resList3[[x]]$RMSEp.result)))
+
+RMSEp3$RMSEp <- as.numeric(RMSEp3$RMSEp)
+
+## plot results
+
+### RMSEp3 (all outcomes combined)
+# RMSEp3, regXY = F
+ggplot(data = RMSEp3[RMSEp3$regXY == F & RMSEp3$XYtype == "S.xy" &  is.na(RMSEp3$alpha2),], 
+       mapping = aes(x = alpha1, y = RMSEp)) + geom_point() + facet_wrap(~ misspecify) +
+  ggtitle("PLOT1: RMSEp3 values for regXY = F and XYtype = 'S.xy'")
+ggplot(data = RMSEp3[RMSEp3$regXY == F & RMSEp3$XYtype == "Sigma.xy" &  is.na(RMSEp3$alpha2),], 
+       mapping = aes(x = alpha1, y = RMSEp)) + geom_point() + facet_wrap(~ misspecify) +
+  ggtitle("PLOT2: RMSEp3 values for regXY = F and XYtype = 'Sigma.xy'")
+
+# RMSEp3, regXY = T
+# misspecify = F
+ggplot(data = RMSEp3[RMSEp3$regXY == T & RMSEp3$misspecify == F &  !is.na(RMSEp3$alpha2),], 
+       mapping = aes(x = alpha2, y = RMSEp)) + geom_point() + facet_wrap(~ alpha1) +
+  ggtitle("PLOT3: RMSEp3 values for regXY = T and misspecify = F")
+# misspecify = T
+ggplot(data = RMSEp3[RMSEp3$regXY == T & RMSEp3$misspecify == T &  !is.na(RMSEp3$alpha2),], 
+       mapping = aes(x = alpha2, y = RMSEp)) + geom_point() + facet_wrap(~ alpha1) +
+  ggtitle("PLOT4: RMSEp3 values for regXY = T and misspecify = T")
+
+##----
+
 
