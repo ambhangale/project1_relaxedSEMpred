@@ -75,10 +75,10 @@ conds1 <- rbind(expand.grid(regXY = FALSE, XYtype = c("S.xy", "Sigma.xy"),
 
 # results
 t0 <- Sys.time()
-resList1 <- mapply(testrule, ntrain = 250, ntest = 250, 
+resList1 <- mapply(testrule, ntrain = 100, ntest = 10^4, 
                   misspecify = conds1$misspecify, regXY = conds1$regXY, 
                   XYtype = as.character(conds1$XYtype), alpha1 = conds1$alpha1, 
-                  alpha2 = conds1$alpha2, SIMPLIFY = F)
+                  alpha2 = conds1$alpha2, seed = 1234, SIMPLIFY = F)
 t1 <- Sys.time()
 diff1 <- difftime(t1, t0, units = "sec")
 

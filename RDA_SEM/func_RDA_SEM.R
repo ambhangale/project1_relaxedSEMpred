@@ -18,13 +18,15 @@ fitmod <- function(train, mod = pol_model) {
 }
 
 
+
+
 # function to apply formulae
 testrule <- function(ntrain, ntest, misspecify, 
                      regXY, XYtype = NULL, alpha1, alpha2 = NULL,
                      xnames = c(paste0("x", 1:3), paste0("y", 1:4)), 
-                     ynames = paste0("y", 5:8)) {
+                     ynames = paste0("y", 5:8), seed = 10824) {
   
-  dat <- gendat(ntrain = ntrain, ntest = ntest, misspecify = misspecify)
+  dat <- gendat(ntrain = ntrain, ntest = ntest, misspecify = misspecify, seed = seed)
   train <- dat$train
   test <- dat$test
   
