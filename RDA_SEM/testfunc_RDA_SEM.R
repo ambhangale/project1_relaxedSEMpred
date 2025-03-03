@@ -27,9 +27,9 @@ Ypred.A1 <- testrule(ntrain = 250, ntest = 250, misspecify = F, regXY = F,
 Ypred.A2 <- testrule(ntrain = 250, ntest = 250, misspecify = F, regXY = T, 
                      alpha1 = 0, alpha2 = 0)
 
-round(Ypred.lav,9) == round(Ypred.A1$Ypred,9)
-round(Ypred.lav,9) == round(Ypred.A2$Ypred,9)
-round(Ypred.A1$Ypred,9) == round(Ypred.A2$Ypred,9)
+stopifnot(all(round(Ypred.lav,9) == round(Ypred.A1$Ypred,9)))
+stopifnot(all(round(Ypred.lav,9) == round(Ypred.A2$Ypred,9)))
+stopifnot(all(round(Ypred.A1$Ypred,9) == round(Ypred.A2$Ypred,9)))
 # the three are comparable
 # rounding only to compare, because R returns FALSE due to rounding error at some nth term 
 
