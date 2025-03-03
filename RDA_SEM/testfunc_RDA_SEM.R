@@ -7,7 +7,8 @@
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_SEM")
 
-source("func_RDA_SEM.R")
+library(here)
+source(here("RDA_SEM", "func_RDA_SEM.R"))
 library(ggplot2)
 
 dat <- gendat(ntrain = 250, ntest = 250, misspecify = F) # for comparison with `lavaan()` and `lm()`

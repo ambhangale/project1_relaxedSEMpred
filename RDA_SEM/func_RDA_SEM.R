@@ -7,7 +7,8 @@
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_SEM")
 
-source("datagen_RDA_SEM.R")
+library(here)
+source(here("RDA_SEM", "datagen_RDA_SEM.R"))
 
 
 # function to fit model
