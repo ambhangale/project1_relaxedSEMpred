@@ -10,12 +10,7 @@
 library(lavaan)
 library(MASS) # for mvrnorm()
 
-## function for data generation
-gendat <- function(ntrain, ntest, misspecify) {
-  
-  data("PoliticalDemocracy")
-  
-  mod <- ' 
+pol_model <- ' 
   # latent variable definitions
     ind60 =~ x1 + x2 + x3
     dem60 =~ y1 + y2 + y3 + y4 
@@ -31,14 +26,19 @@ gendat <- function(ntrain, ntest, misspecify) {
     y3 ~~ y7
     y4 ~~ y8
     y6 ~~ y8
-' # empirical example in De Rooij et al. (2023)
+'
+
+## function for data generation
+gendat <- function(ntrain, ntest, misspecify, mod = pol_model, seed = 10824) {
+  
+  data("PoliticalDemocracy")
   
   if (misspecify) mod <- paste(mod, 'dem60 ~ x1 \n', collapse = "\n") # add additional direct effect for misspecification
   
   fit <- sem(mod, data = PoliticalDemocracy, meanstructure = T) # mean structure is saturated
   popStats <- lavInspect(fit, "implied") # use to generate new data
   
-  set.seed(10824)
+  set.seed(seed)
   train <- as.data.frame(mvrnorm(n = ntrain, mu = popStats$mean, Sigma = popStats$cov))
   test <-  as.data.frame(mvrnorm(n = ntest , mu = popStats$mean, Sigma = popStats$cov))
   
