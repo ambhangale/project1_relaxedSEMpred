@@ -43,6 +43,8 @@ gendat <- function(ntrain, ntest, std.data, misspecify, mod = pol_model,
                                   '*x1')), sep = "\n")
   # add additional direct effect and covariance/correlation for misspecification
   
+  if(!misspecify & (!is.na(cor.strength) | !is.na(reg.strength))) message("`cor.strength` and `reg.strength` not used unless `misspecify = T`")
+  
   if (!std.data) {
     fit <- sem(mod, data = PoliticalDemocracy, std.lv = T, meanstructure = T) 
     # mean structure is saturated, UVI constraint
