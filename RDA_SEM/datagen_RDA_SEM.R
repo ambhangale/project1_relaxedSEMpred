@@ -27,7 +27,7 @@ pol_model <- '
     y3 ~~ y7
     y4 ~~ y8
     y6 ~~ y8
-' # population model
+' # population model for political democracy data
 
 ## function for data generation
 gendat <- function(ntrain, ntest, std.data, misspecify, mod = pol_model, 
@@ -42,6 +42,8 @@ gendat <- function(ntrain, ntest, std.data, misspecify, mod = pol_model,
                                   ifelse(is.na(reg.strength), NA, reg.strength), 
                                   '*x1')), sep = "\n")
   # add additional direct effect and covariance/correlation for misspecification
+  
+  if(!misspecify & (!is.na(cor.strength) | !is.na(reg.strength))) message("`cor.strength` and `reg.strength` not used unless `misspecify = T`")
   
   if (!std.data) {
     fit <- sem(mod, data = PoliticalDemocracy, std.lv = T, meanstructure = T) 
