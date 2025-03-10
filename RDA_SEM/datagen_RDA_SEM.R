@@ -1,5 +1,6 @@
 ## Aditi M. Bhangale
-## Last updated: 3 March 2025 (Fixes and improvements by Julian D. Karch)
+## Last updated: 10 March 2025
+## Fixes and improvements: 3 March 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## data generation file
@@ -26,24 +27,35 @@ pol_model <- '
     y3 ~~ y7
     y4 ~~ y8
     y6 ~~ y8
-'
+' # population model
 
 ## function for data generation
-gendat <- function(ntrain, ntest, misspecify, mod = pol_model, seed = 10824) {
+gendat <- function(ntrain, ntest, std.data, misspecify, mod = pol_model, seed = 10824) {
   
   data("PoliticalDemocracy")
   
   if (misspecify) mod <- paste(mod, 'dem60 ~ x1 \n', collapse = "\n") # add additional direct effect for misspecification
   
-  fit <- sem(mod, data = PoliticalDemocracy, meanstructure = T) # mean structure is saturated
-  popStats <- lavInspect(fit, "implied") # use to generate new data
-  
   set.seed(seed)
+  if (!std.data) {
+    fit <- sem(mod, data = PoliticalDemocracy, std.lv = T, meanstructure = T) 
+    # mean structure is saturated, UVI constraint
+    
+    popStats <- lavInspect(fit, "implied") # use to generate new data
+  } else {
+    fit <- sem(mod, data = as.data.frame(scale(PoliticalDemocracy)), std.lv = T, meanstructure = T) 
+    # above + set obs V means to 0 and variance to 1
+    
+    popStats <- lapply(c("cor.ov", "mean.ov"), function(x) lavInspect(fit, x)) # when dat stdised, use correlation matrix instead
+    names(popStats) <- list("cov", "mean")
+  }
+  
   train <- as.data.frame(mvrnorm(n = ntrain, mu = popStats$mean, Sigma = popStats$cov))
   test <-  as.data.frame(mvrnorm(n = ntest , mu = popStats$mean, Sigma = popStats$cov))
   
   datlist <- list(train = train, test = test)
   attr(datlist, "misspecify") <- misspecify
+  attr(datlist, "std.data") <- std.data
   return(datlist)
 }
 
