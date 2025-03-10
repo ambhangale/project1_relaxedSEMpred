@@ -30,13 +30,19 @@ pol_model <- '
 ' # population model
 
 ## function for data generation
-gendat <- function(ntrain, ntest, std.data, misspecify, mod = pol_model, seed = 10824) {
+gendat <- function(ntrain, ntest, std.data, misspecify, mod = pol_model, 
+                   cor.strength = NA, reg.strength = NA, seed = 10824) {
   
   data("PoliticalDemocracy")
   
-  if (misspecify) mod <- paste(mod, 'dem60 ~ x1 \n', collapse = "\n") # add additional direct effect for misspecification
+  if (misspecify) mod <- paste0(c(mod, paste0('x2 ~~ ', 
+                                       ifelse(is.na(cor.strength), NA, cor.strength), 
+                                       '*x3'), 
+                           paste0('dem60 ~ ', 
+                                  ifelse(is.na(reg.strength), NA, reg.strength), 
+                                  '*x1')), sep = "\n")
+  # add additional direct effect and covariance/correlation for misspecification
   
-  set.seed(seed)
   if (!std.data) {
     fit <- sem(mod, data = PoliticalDemocracy, std.lv = T, meanstructure = T) 
     # mean structure is saturated, UVI constraint
@@ -50,17 +56,25 @@ gendat <- function(ntrain, ntest, std.data, misspecify, mod = pol_model, seed = 
     names(popStats) <- list("cov", "mean")
   }
   
+  # generate training and test set
+  set.seed(seed)
   train <- as.data.frame(mvrnorm(n = ntrain, mu = popStats$mean, Sigma = popStats$cov))
   test <-  as.data.frame(mvrnorm(n = ntest , mu = popStats$mean, Sigma = popStats$cov))
   
   datlist <- list(train = train, test = test)
+  
+  # add attributes in case required later
   attr(datlist, "misspecify") <- misspecify
   attr(datlist, "std.data") <- std.data
+  attr(datlist, "cor.strength") <- cor.strength
+  attr(datlist, "reg.strength") <- reg.strength
+  
   return(datlist)
 }
 
 # test function
-# gendat(ntrain = 15, ntest = 15, misspecify = T)
-# gendat(ntrain = 15, ntest = 15, misspecify = F)
-
+# gendat(ntrain = 15, ntest = 15, std.data = F,  misspecify = T)
+# gendat(ntrain = 15, ntest = 15, std.data = T, misspecify = F)
+# gendat(ntrain = 15, ntest = 15, std.data = T, reg.strength = 0.4, misspecify = T)
+# gendat(ntrain = 15, ntest = 15, std.data = T, cor.strength = 0.3, reg.strength = 0.4, misspecify = T)
 
