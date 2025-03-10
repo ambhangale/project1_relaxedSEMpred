@@ -1,5 +1,6 @@
 ## Aditi M. Bhangale
-## Last updated: 3 March 2025 (Fixes and improvements by Julian D. Karch)
+## Last updated: 10 March 2025
+## Fixes and improvements: 3 March 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## function(s) file
@@ -13,11 +14,10 @@ source(here("RDA_SEM", "datagen_RDA_SEM.R"))
 
 # function to fit model
 fitmod <- function(train, mod = pol_model) {
-  fit <- sem(mod, data = train, meanstructure = T) # mean structure saturated for now
+  fit <- sem(mod, data = train, std.lv = T, meanstructure = T) 
+  # mean structure saturated for now, UVI constraint used
   return(fit)
 }
-
-
 
 
 # function to apply formulae
