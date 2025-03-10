@@ -21,12 +21,15 @@ fitmod <- function(train, mod = pol_model) {
 
 
 # function to apply formulae
-testrule <- function(ntrain, ntest, misspecify, 
+testrule <- function(ntrain, ntest, std.data, misspecify,
+                     cor.strength = NA, reg.strength = NA,
                      regXY, XYtype = NULL, alpha1, alpha2 = NULL,
                      xnames = c(paste0("x", 1:3), paste0("y", 1:4)), 
                      ynames = paste0("y", 5:8), seed = 10824) {
   
-  dat <- gendat(ntrain = ntrain, ntest = ntest, misspecify = misspecify, seed = seed)
+  dat <- gendat(ntrain = ntrain, ntest = ntest, std.data = std.data, 
+                misspecify = misspecify, cor.strength = cor.strength, 
+                reg.strength = reg.strength, seed = seed)
   train <- dat$train
   test <- dat$test
   
@@ -103,15 +106,18 @@ testrule <- function(ntrain, ntest, misspecify,
   final <- list(Ypred = Ypred, Ytest = Ytest, bias = bias,
                 RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
   # save all arguments as attributes, just in case we need them later
-  attr(final, "ntrain")     <- ntrain
-  attr(final, "ntest")      <- ntest
-  attr(final, "misspecify") <- misspecify
-  attr(final, "regXY")      <- regXY
-  attr(final, "XYtype")     <- ifelse(!is.null(XYtype), XYtype, "NA")
-  attr(final, "alpha1")     <- alpha1
-  attr(final, "alpha2")     <- ifelse(!is.null(alpha2), alpha2, "NA")
-  attr(final, "xnames")     <- xnames
-  attr(final, "ynames")     <- ynames
+  attr(final, "ntrain")       <- ntrain
+  attr(final, "ntest")        <- ntest
+  attr(final, "std.data")     <- std.data
+  attr(final, "misspecify")   <- misspecify
+  attr(final, "cor.strength") <- cor.strength
+  attr(final, "reg.strength") <- reg.strength
+  attr(final, "regXY")        <- regXY
+  attr(final, "XYtype")       <- ifelse(!is.null(XYtype), XYtype, "NA")
+  attr(final, "alpha1")       <- alpha1
+  attr(final, "alpha2")       <- ifelse(!is.null(alpha2), alpha2, "NA")
+  attr(final, "xnames")       <- xnames
+  attr(final, "ynames")       <- ynames
   
   return(final)
   
