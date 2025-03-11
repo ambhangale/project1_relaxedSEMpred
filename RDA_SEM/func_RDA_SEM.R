@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 10 March 2025
+## Last updated: 11 March 2025
 ## Fixes and improvements: 3 March 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
@@ -124,9 +124,10 @@ testrule <- function(ntrain, ntest, std.data, misspecify,
 }
 
 # test `testrule()`
-# foo <- testrule(ntrain = 100, ntest = 250, misspecify = F, regXY = F,
+# foo <- testrule(ntrain = 100, ntest = 250, std.data = F, misspecify = F, regXY = F,
 #                 XYtype = "Sigma.xy", alpha1 = 0)
-# bar <- testrule(ntrain = 100, ntest = 250, misspecify = T, regXY = T, 
+# bar <- testrule(ntrain = 100, ntest = 250, std.data = T, misspecify = T, , 
+#                 cor.strength = -0.1, reg.strength = 0.7, regXY = T,
 #                 alpha1 = 0.4, alpha2 = 0.3)
 
 
