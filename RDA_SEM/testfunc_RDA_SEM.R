@@ -11,7 +11,7 @@ library(here)
 source(here("RDA_SEM", "func_RDA_SEM.R"))
 library(ggplot2)
 
-dat <- gendat(ntrain = 250, ntest = 250, misspecify = F) # for comparison with `lavaan()` and `lm()`
+dat <- gendat(ntrain = 250, ntest = 250, std.data = T, misspecify = F) # for comparison with `lavaan()` and `lm()`
 
 ## compare with `lavPredictY()` function to see if `alpha1/2 = 0` with `XYtype = "Sigma.xy"` is equivalent----
 
@@ -22,15 +22,16 @@ Ypred.lav <- lavPredictY(fit, newdata = dat$test, ynames = paste0("y", 5:8),
                          xnames = c(paste0("x", 1:3), paste0("y", 1:4)))
 
 ### my function
-Ypred.A1 <- testrule(ntrain = 250, ntest = 250, misspecify = F, regXY = F, 
-                    XYtype = "Sigma.xy", alpha1 = 0)
-Ypred.A2 <- testrule(ntrain = 250, ntest = 250, misspecify = F, regXY = T, 
+Ypred.A1 <- testrule(ntrain = 250, ntest = 250, std.data = T, misspecify = F, regXY = F, 
+                     XYtype = "Sigma.xy", alpha1 = 0)
+Ypred.A2 <- testrule(ntrain = 250, ntest = 250, std.data = T, misspecify = F, regXY = T, 
                      alpha1 = 0, alpha2 = 0)
 
 stopifnot(all(round(Ypred.lav,9) == round(Ypred.A1$Ypred,9)))
 stopifnot(all(round(Ypred.lav,9) == round(Ypred.A2$Ypred,9)))
 stopifnot(all(round(Ypred.A1$Ypred,9) == round(Ypred.A2$Ypred,9)))
 # the three are comparable
+# also works when `std.data = F`
 # rounding only to compare, because R returns FALSE due to rounding error at some nth term 
 
 ##----
