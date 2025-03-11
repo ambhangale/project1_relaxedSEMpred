@@ -1,5 +1,6 @@
 ## Aditi M. Bhangale
-## Last updated: 3 March 2025 (Fixes and improvements by Julian D. Karch)
+## Last updated: 11 March 2025
+## Fixes and improvements: 3 March 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## testing the results from the function(s) file
@@ -31,8 +32,8 @@ stopifnot(all(round(Ypred.lav,9) == round(Ypred.A1$Ypred,9)))
 stopifnot(all(round(Ypred.lav,9) == round(Ypred.A2$Ypred,9)))
 stopifnot(all(round(Ypred.A1$Ypred,9) == round(Ypred.A2$Ypred,9)))
 # the three are comparable
-# also works when `std.data = F`
-# rounding only to compare, because R returns FALSE due to rounding error at some nth term 
+# also works when `std.data = F` in `gendata()` and `testrule()`
+# rounding only to compare, because R returns FALSE due to rounding error at some nth term. also below.
 
 ##----
 
@@ -53,15 +54,16 @@ lmPred <- function(train, test,
 
 Ypred.lm <- lmPred(train = dat$train, test = dat$test)
 
-Ypred.A3 <- testrule(ntrain = 250, ntest = 250, misspecify = F, regXY = F, 
+Ypred.A3 <- testrule(ntrain = 250, ntest = 250, std.data = T, misspecify = F, regXY = F, 
                      XYtype = "S.xy", alpha1 = 1)
-Ypred.A4 <- testrule(ntrain = 250, ntest = 250, misspecify = F, regXY = T, 
+Ypred.A4 <- testrule(ntrain = 250, ntest = 250, std.data = T, misspecify = F, regXY = T, 
                      alpha1 = 1, alpha = 1)
 
-round(Ypred.lm,10) == round(Ypred.A3$Ypred,10)
-round(Ypred.lm,10) == round(Ypred.A4$Ypred,10)
-round(Ypred.A3$Ypred,10) == round(Ypred.A4$Ypred,10)
+stopifnot(all(round(Ypred.lm,10) == round(Ypred.A3$Ypred,10)))
+stopifnot(all(round(Ypred.lm,10) == round(Ypred.A4$Ypred,10)))
+stopifnot(all(round(Ypred.A3$Ypred,10) == round(Ypred.A4$Ypred,10)))
 # the three are comparable
+# also works when `std.data = F` in `gendata()` and `testrule()`
 
 #----
 
