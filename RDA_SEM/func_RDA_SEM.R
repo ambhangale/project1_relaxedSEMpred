@@ -92,6 +92,8 @@ testrule <- function(ntrain, ntest, std.data, misspecify,
                                        alpha1 = alpha1, 
                                        alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
                                        misspecify = misspecify,
+                                       cor.strength = ifelse(!is.null(cor.strength), cor.strength),
+                                       reg.strength = ifelse(!is.null(reg.strength), reg.strength),
                                        meanBias = colMeans(bias),
                                        RMSEpr = sqrt(colMeans((bias)^2)),
                                        yname = ynames))
@@ -101,6 +103,8 @@ testrule <- function(ntrain, ntest, std.data, misspecify,
                                       alpha1 = alpha1, 
                                       alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
                                       misspecify = misspecify,
+                                      cor.strength = ifelse(!is.null(cor.strength), cor.strength),
+                                      reg.strength = ifelse(!is.null(reg.strength), reg.strength),
                                       RMSEp = sqrt(sum((bias)^2)/(length(ynames)*ntest))))
   
   final <- list(Ypred = Ypred, Ytest = Ytest, bias = bias,
@@ -126,7 +130,7 @@ testrule <- function(ntrain, ntest, std.data, misspecify,
 # test `testrule()`
 # foo <- testrule(ntrain = 100, ntest = 250, std.data = F, misspecify = F, regXY = F,
 #                 XYtype = "Sigma.xy", alpha1 = 0)
-# bar <- testrule(ntrain = 100, ntest = 250, std.data = T, misspecify = T, , 
+# bar <- testrule(ntrain = 100, ntest = 250, std.data = T, misspecify = T, ,
 #                 cor.strength = -0.1, reg.strength = 0.7, regXY = T,
 #                 alpha1 = 0.4, alpha2 = 0.3)
 
