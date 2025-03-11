@@ -18,15 +18,15 @@ source(here("RDA_SEM", "customfunc_RDA_SEM.R"))
 # WHEN MODEL IS CORRECTLY SPECIFIED
 
 conds.cs <- expand.grid(std.data = T, misspecify = F, 
-                      regXY = TRUE, XYtype = NA, alpha1 = seq(0,1,0.1), 
-                            alpha2 = seq(0,1,0.1), stringsAsFactors = F) # correctly-specified conds
+                      regXY = T, alpha1 = seq(0,1,0.1), 
+                      alpha2 = seq(0,1,0.1), stringsAsFactors = F) # correctly-specified conds
 
-## mini simulation with small train set (100) and large test set (10000)----
+## mini simulation with small train set (100) and large test set (10000), correctly specified model----
 t0.cs.1e2 <- Sys.time()
 resList.cs.1e2 <- mapply(testrule, ntrain = 100, ntest = 1e4, 
                          std.data = conds.cs$std.data, misspecify = conds.cs$misspecify, 
-                         regXY = conds.cs$regXY, XYtype = conds.cs$XYtype,
-                         alpha1 = conds.cs$alpha1, alpha2 = conds.cs$alpha2, SIMPLIFY = F)
+                         regXY = conds.cs$regXY, alpha1 = conds.cs$alpha1, 
+                         alpha2 = conds.cs$alpha2, SIMPLIFY = F)
 t1.cs.1e2 <- Sys.time()
 diff.cs.1e2 <- difftime(t1.cs.1e2, t0.cs.1e2, "sec")
 
@@ -40,12 +40,12 @@ RMSEpr.plot.cs.1e2 <- plot_result(RMSE.cs.1e2$RMSEpr, plot.stat = "RMSEpr",
 
 ##----
 
-## mini simulation with large train set (10000) and large test set (10000)----
+## mini simulation with large train set (10000) and large test set (10000), correctly specified model----
 t0.cs.1e4 <- Sys.time()
 resList.cs.1e4 <- mapply(testrule, ntrain = 1e4, ntest = 1e4, 
                          std.data = conds.cs$std.data, misspecify = conds.cs$misspecify, 
-                         regXY = conds.cs$regXY, XYtype = conds.cs$XYtype,
-                         alpha1 = conds.cs$alpha1, alpha2 = conds.cs$alpha2, SIMPLIFY = F)
+                         regXY = conds.cs$regXY, alpha1 = conds.cs$alpha1, 
+                         alpha2 = conds.cs$alpha2, SIMPLIFY = F)
 t1.cs.1e4 <- Sys.time()
 diff.cs.1e4 <- difftime(t1.cs.1e4, t0.cs.1e4, "sec")
 
@@ -60,10 +60,67 @@ RMSEpr.plot.cs.1e4 <- plot_result(RMSE.cs.1e4$RMSEpr, plot.stat = "RMSEpr",
 
 # WHEN MODEL IS MISSPECIFIED
 
-# TODO conds.ms <- 
+conds.ms <- rbind(expand.grid(std.data = T, misspecify = T,
+                              cor.strength = NA, reg.strength = NA, 
+                              regXY = T, alpha1 = seq(0,1,0.1), 
+                              alpha2 = seq(0,1,0.1), stringsAsFactors = F),
+                  expand.grid(std.data = T, misspecify = T,
+                              cor.strength = -0.3, reg.strength = 0.4, 
+                              regXY = T, alpha1 = seq(0,1,0.1), 
+                              alpha2 = seq(0,1,0.1), stringsAsFactors = F),
+                  expand.grid(std.data = T, misspecify = T,
+                              cor.strength = 0.1, reg.strength = 0.9, 
+                              regXY = T, alpha1 = seq(0,1,0.1), 
+                              alpha2 = seq(0,1,0.1), stringsAsFactors = F))
 
-## TODO mini simulation with strength of misspecification manipulated?
-# estimate misspecified effects
-# fix misspecified effects to a particular value
+## mini simulation with small train set (100) and large test set (10000), misspecified model----
+t0.ms.1e2 <- Sys.time()
+resList.ms.1e2 <- mapply(testrule, ntrain = 100, ntest = 1e2, 
+                         std.data = conds.ms$std.data, misspecify = conds.ms$misspecify,
+                         cor.strength = conds.ms$cor.strength, reg.strength = conds.ms$reg.strength,
+                         regXY = conds.ms$regXY, alpha1 = conds.ms$alpha1, 
+                         alpha2 = conds.ms$alpha2, SIMPLIFY = F)
+t1.ms.1e2 <- Sys.time()
+diff.ms.1e2 <- difftime(t1.ms.1e2, t0.ms.1e2, "sec")
+
+RMSE.ms.1e2 <- sum_result(resList.ms.1e2)
+RMSE.ms.1e2$RMSEp$ms.strength <- ifelse(is.na(RMSE.ms.1e2$RMSEp$cor.strength) & 
+                                          is.na(RMSE.ms.1e2$RMSEp$reg.strength), "estimated",
+                                        ifelse(RMSE.ms.1e2$RMSEp$cor.strength == -0.3 & 
+                                                 RMSE.ms.1e2$RMSEp$reg.strength == 0.4, "smaller",
+                                               "larger")) # just for now, create labels in columns for RMSEp
+
+ggplot(data = RMSE.ms.1e2$RMSEp, mapping = aes(x = alpha1, y = RMSEp)) +
+  geom_point() + 
+  facet_wrap(~ ms.strength + alpha2, ncol = 11) +
+  ggtitle("RMSEp for SMALL train set, misspecified model")
+## TODO eventually add to custom function. also below.
+
+##----
+
+## mini simulation with large train set (10000) and large test set (10000), misspecified model----
+t0.ms.1e4 <- Sys.time()
+resList.ms.1e4 <- mapply(testrule, ntrain = 1e4, ntest = 1e4, 
+                         std.data = conds.ms$std.data, misspecify = conds.ms$misspecify,
+                         cor.strength = conds.ms$cor.strength, reg.strength = conds.ms$reg.strength,
+                         regXY = conds.ms$regXY, alpha1 = conds.ms$alpha1, 
+                         alpha2 = conds.ms$alpha2, SIMPLIFY = F)
+t1.ms.1e4 <- Sys.time()
+diff.ms.1e4 <- difftime(t1.ms.1e4, t0.ms.1e4, "sec")
+
+RMSE.ms.1e4 <- sum_result(resList.ms.1e4)
+RMSE.ms.1e4$RMSEp$ms.strength <- ifelse(is.na(RMSE.ms.1e4$RMSEp$cor.strength) & 
+                                          is.na(RMSE.ms.1e4$RMSEp$reg.strength), "estimated",
+                                        ifelse(RMSE.ms.1e4$RMSEp$cor.strength == -0.3 & 
+                                                 RMSE.ms.1e4$RMSEp$reg.strength == 0.4, "smaller",
+                                               "larger")) # just for now, create labels in columns for RMSEp
+
+ggplot(data = RMSE.ms.1e4$RMSEp, mapping = aes(x = alpha1, y = RMSEp)) +
+  geom_point() + 
+  facet_wrap(~ ms.strength + alpha2, ncol = 11) +
+  ggtitle("RMSEp for LARGE train set, misspecified model")
+## TODO eventually add to custom function. also below.
+
+##----
 
 
