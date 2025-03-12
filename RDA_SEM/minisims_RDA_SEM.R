@@ -31,9 +31,11 @@ t1.cs.1e2 <- Sys.time()
 diff.cs.1e2 <- difftime(t1.cs.1e2, t0.cs.1e2, "sec")
 
 RMSE.cs.1e2 <- sum_result(resList.cs.1e2)
+min.RMSEp.cs.1e2 <- subset(RMSE.cs.1e2$RMSEp, RMSE.cs.1e2$RMSEp$RMSEp == min(RMSE.cs.1e2$RMSEp$RMSEp)) # TODO custom function
 
 RMSEp.plot.cs.1e2 <- plot_result(RMSE.cs.1e2$RMSEp, plot.stat = "RMSEp",
-                                 plot.title = "RMSEp for SMALL train set, correctly specified model")
+                                 plot.title = "RMSEp for SMALL train set, correctly specified model") +
+  geom_point(data = min.RMSEp.cs.1e2, colour = "red") # TODO custom function
 
 RMSEpr.plot.cs.1e2 <- plot_result(RMSE.cs.1e2$RMSEpr, plot.stat = "RMSEpr",
                                  plot.title = "RMSEpr for SMALL train set, correctly specified model")
@@ -50,9 +52,11 @@ t1.cs.1e4 <- Sys.time()
 diff.cs.1e4 <- difftime(t1.cs.1e4, t0.cs.1e4, "sec")
 
 RMSE.cs.1e4 <- sum_result(resList.cs.1e4)
+min.RMSEp.cs.1e4 <- subset(RMSE.cs.1e4$RMSEp, RMSE.cs.1e4$RMSEp$RMSEp == min(RMSE.cs.1e4$RMSEp$RMSEp)) # TODO custom function
 
 RMSEp.plot.cs.1e4 <- plot_result(RMSE.cs.1e4$RMSEp, plot.stat = "RMSEp",
-                                 plot.title = "RMSEp for LARGE train set, correctly specified model")
+                                 plot.title = "RMSEp for LARGE train set, correctly specified model") +
+  geom_point(data = min.RMSEp.cs.1e4, colour = "red") # TODO custom function
 
 RMSEpr.plot.cs.1e4 <- plot_result(RMSE.cs.1e4$RMSEpr, plot.stat = "RMSEpr",
                                   plot.title = "RMSEpr for LARGE train set, correctly specified model")
@@ -89,10 +93,14 @@ RMSE.ms.1e2$RMSEp$ms.strength <- ifelse(is.na(RMSE.ms.1e2$RMSEp$cor.strength) &
                                         ifelse(RMSE.ms.1e2$RMSEp$cor.strength == -0.3 & 
                                                  RMSE.ms.1e2$RMSEp$reg.strength == 0.4, "smaller",
                                                "larger")) # just for now, create labels in columns for RMSEp
+min.RMSEp.ms.1e2 <- do.call("rbind", lapply(unique(RMSE.ms.1e2$RMSEp$ms.strength), 
+                                            function(x) subset(RMSE.ms.1e2$RMSEp[RMSE.ms.1e2$RMSEp$ms.strength == x,], 
+                                                               RMSE.ms.1e2$RMSEp[RMSE.ms.1e2$RMSEp$ms.strength == x,]$RMSEp == 
+                                                                 min(RMSE.ms.1e2$RMSEp[RMSE.ms.1e2$RMSEp$ms.strength == x,]$RMSEp)))) # TODO custom function
 
 ggplot(data = RMSE.ms.1e2$RMSEp, mapping = aes(x = alpha1, y = RMSEp)) +
   geom_point() + 
-  facet_wrap(~ ms.strength + alpha2, ncol = 11) +
+  facet_wrap(~ ms.strength + alpha2, ncol = 11) + geom_point(data = min.RMSEp.ms.1e2, colour = "red") + # TODO custom function
   ggtitle("RMSEp for SMALL train set, misspecified model")
 ## TODO eventually add to custom function. also below.
 
@@ -114,10 +122,14 @@ RMSE.ms.1e4$RMSEp$ms.strength <- ifelse(is.na(RMSE.ms.1e4$RMSEp$cor.strength) &
                                         ifelse(RMSE.ms.1e4$RMSEp$cor.strength == -0.3 & 
                                                  RMSE.ms.1e4$RMSEp$reg.strength == 0.4, "smaller",
                                                "larger")) # just for now, create labels in columns for RMSEp
+min.RMSEp.ms.1e4 <- do.call("rbind", lapply(unique(RMSE.ms.1e4$RMSEp$ms.strength), 
+                                            function(x) subset(RMSE.ms.1e4$RMSEp[RMSE.ms.1e4$RMSEp$ms.strength == x,], 
+                                                               RMSE.ms.1e4$RMSEp[RMSE.ms.1e4$RMSEp$ms.strength == x,]$RMSEp == 
+                                                                 min(RMSE.ms.1e4$RMSEp[RMSE.ms.1e4$RMSEp$ms.strength == x,]$RMSEp)))) # TODO custom function
 
 ggplot(data = RMSE.ms.1e4$RMSEp, mapping = aes(x = alpha1, y = RMSEp)) +
   geom_point() + 
-  facet_wrap(~ ms.strength + alpha2, ncol = 11) +
+  facet_wrap(~ ms.strength + alpha2, ncol = 11) + geom_point(data = min.RMSEp.ms.1e4, colour = "red") + # TODO custom function
   ggtitle("RMSEp for LARGE train set, misspecified model")
 ## TODO eventually add to custom function. also below.
 
