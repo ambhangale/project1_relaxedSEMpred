@@ -2,7 +2,8 @@
 ## Last updated: 11 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
-## mini simulations to test the method
+## SEM on political democracy dataset
+### mini simulations to test the method
 
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_SEM")

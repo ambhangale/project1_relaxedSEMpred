@@ -3,7 +3,8 @@
 ## Fixes and improvements: 3 March 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
-## function(s) file
+## SEM on political democracy dataset
+### function(s) file
 
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_SEM")
