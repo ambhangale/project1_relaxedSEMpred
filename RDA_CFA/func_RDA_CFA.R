@@ -46,6 +46,71 @@ x7 ~ 1
   return(fit)
 }
 
-testrule <- function() {
+testrule <- function(ntrain, ntest, misspecify,
+                     alpha1, alpha2, 
+                     xnames = paste0("x", 4:7), ynames = paste0("x", 1:3), 
+                     seed = 10824) {
+  dat <- gendat(ntrain = ntrain, ntest = ntest, 
+                misspecify = misspecify, seed = seed)
   
+  train <- dat$train
+  test  <- dat$test
+  
+  # rescale covariance matrix of training set to make consistent with `lavaan`
+  S    <- (cov(train)*(nrow(train)-1)) / nrow(train) 
+  S_xx <- S[xnames, xnames]
+  S_yx <- S[ynames, xnames] ## using _yx to avoid using t()
+  
+  # values from test dataset
+  X0    <- test[,xnames] # to be inputted into formulae
+  Ytest <- test[,ynames] # original Y values from test dataset
+  
+  fit <- fitmod(train = train)
+  ImpliedStats <- lavInspect(fit, "implied")
+  Sigma_xx     <- ImpliedStats$cov[xnames, xnames]
+  Sigma_yx     <- ImpliedStats$cov[ynames, xnames] ## using _yx to avoid using t()
+  Mu_x         <- ImpliedStats$mean[xnames]
+  Mu_y         <- ImpliedStats$mean[ynames]
+  
+  if (0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
+    Ypred <- t(Mu_y + ((1-alpha2)*Sigma_yx + alpha2*S_yx) %*% 
+                 solve((1-alpha1)*Sigma_xx + alpha1*S_xx) %*% 
+                 (t(X0) - Mu_x))
+  } else {
+    stop("specify values between 0 and 1 for `alpha1` and `alpha2`")
+  }
+  
+  bias <- Ypred - Ytest
+  
+  RMSEpr.result <- as.data.frame(cbind(alpha1 = alpha1, 
+                                       alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
+                                       meanBias = colMeans(bias),
+                                       RMSEpr = sqrt(colMeans((bias)^2)),
+                                       yname = ynames))
+  
+  RMSEp.result <- as.data.frame(cbind(alpha1 = alpha1, 
+                                      alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
+                                      misspecify = misspecify,
+                                      RMSEp = sqrt(sum((bias)^2)/(length(ynames)*ntest))))
+  
+  final <- list(Ypred = Ypred, Ytest = Ytest, bias = bias,
+                RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
+  # save all arguments as attributes, just in case we need them later
+  attr(final, "ntrain")       <- ntrain
+  attr(final, "ntest")        <- ntest
+  attr(final, "misspecify")   <- misspecify
+  attr(final, "alpha1")       <- alpha1
+  attr(final, "alpha2")       <- alpha2
+  attr(final, "xnames")       <- xnames
+  attr(final, "ynames")       <- ynames
+  
+  return(final)
 }
+
+# testrule(ntrain = 100, ntest = 100, misspecify = F, alpha1 = 0, alpha2 = 0)
+# testrule(ntrain = 100, ntest = 100, misspecify = F, alpha1 = 1, alpha2 = 0)
+# FIXME, what's going on here
+# testrule(ntrain = 100, ntest = 100, misspecify = T, alpha1 = 0, alpha2 = 1)
+# testrule(ntrain = 100, ntest = 100, misspecify = T, alpha1 = 1, alpha2 = 1)
+# i think the issues above have to do with the misspecifcation. how to fix
+
