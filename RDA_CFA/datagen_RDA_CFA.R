@@ -6,7 +6,7 @@
 ### data generation file
 
 # getwd()
-# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_SEM")
+# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
 
 library(mvtnorm)
 library(lavaan)
@@ -75,7 +75,8 @@ x7 ~ 0.54*1
 gendat <- function(ntrain, ntest, misspecify, seed = 10824) {
   
   # (do not) fit model, return start values
-  fit <- if(!misspecify) {lavaan(mod1, do.fit = F)
+  fit <- if(!misspecify) {
+    lavaan(mod1, do.fit = F)
   } else {
     lavaan(mod2, do.fit = F)
   }
