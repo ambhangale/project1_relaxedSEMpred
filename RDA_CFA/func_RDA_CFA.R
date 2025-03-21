@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 20 March 2025
+## Last updated: 21 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -72,6 +72,9 @@ testrule <- function(ntrain, ntest, misspecify,
   Mu_x         <- ImpliedStats$mean[xnames]
   Mu_y         <- ImpliedStats$mean[ynames]
   
+  PD.lv <- ifelse(!all(eigen(lavInspect(fit, "cov.lv"))$values > 0), F, T)
+  PD.ov <- ifelse(!all(eigen(lavInspect(fit, "cov.ov"))$values > 0), F, T)
+  
   if (0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
     Ypred <- t(Mu_y + ((1-alpha2)*Sigma_yx + alpha2*S_yx) %*% 
                  solve((1-alpha1)*Sigma_xx + alpha1*S_xx) %*% 
@@ -82,16 +85,20 @@ testrule <- function(ntrain, ntest, misspecify,
   
   bias <- Ypred - Ytest
   
-  RMSEpr.result <- as.data.frame(cbind(alpha1 = alpha1, 
-                                       alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
+  RMSEpr.result <- as.data.frame(cbind(alpha1   = alpha1, 
+                                       alpha2   = ifelse(!is.null(alpha2), alpha2, NA),
+                                       PD.lv    = PD.lv,
+                                       PD.ov    = PD.ov,
                                        meanBias = colMeans(bias),
-                                       RMSEpr = sqrt(colMeans((bias)^2)),
-                                       yname = ynames))
+                                       RMSEpr   = sqrt(colMeans((bias)^2)),
+                                       yname    = ynames))
   
-  RMSEp.result <- as.data.frame(cbind(alpha1 = alpha1, 
-                                      alpha2 = ifelse(!is.null(alpha2), alpha2, NA),
+  RMSEp.result <- as.data.frame(cbind(alpha1     = alpha1, 
+                                      alpha2     = ifelse(!is.null(alpha2), alpha2, NA),
+                                      PD.lv    = PD.lv,
+                                      PD.ov    = PD.ov,
                                       misspecify = misspecify,
-                                      RMSEp = sqrt(sum((bias)^2)/(length(ynames)*ntest))))
+                                      RMSEp      = sqrt(sum((bias)^2)/(length(ynames)*ntest))))
   
   final <- list(Ypred = Ypred, Ytest = Ytest, bias = bias,
                 RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
@@ -101,6 +108,8 @@ testrule <- function(ntrain, ntest, misspecify,
   attr(final, "misspecify")   <- misspecify
   attr(final, "alpha1")       <- alpha1
   attr(final, "alpha2")       <- alpha2
+  attr(final, "PD.lv")        <- PD.lv
+  attr(final, "PD.ov")        <- PD.ov
   attr(final, "xnames")       <- xnames
   attr(final, "ynames")       <- ynames
   
@@ -109,8 +118,10 @@ testrule <- function(ntrain, ntest, misspecify,
 
 # testrule(ntrain = 100, ntest = 100, misspecify = F, alpha1 = 0, alpha2 = 0)
 # testrule(ntrain = 100, ntest = 100, misspecify = F, alpha1 = 1, alpha2 = 0)
-# FIXME, what's going on here
 # testrule(ntrain = 100, ntest = 100, misspecify = T, alpha1 = 0, alpha2 = 1)
 # testrule(ntrain = 100, ntest = 100, misspecify = T, alpha1 = 1, alpha2 = 1)
-# i think the issues above have to do with the misspecifcation. how to fix
-
+## model results in non-positive definite covariance matrix when 
+## sample size is small (particularly for `ntrain`, i think?)
+# testrule(ntrain = 1e4, ntest = 100, misspecify = T, alpha1 = 0, alpha2 = 1)
+# testrule(ntrain = 1e4, ntest = 1e4, misspecify = T, alpha1 = 1, alpha2 = 1)
+## things okay when `ntrain` is large
