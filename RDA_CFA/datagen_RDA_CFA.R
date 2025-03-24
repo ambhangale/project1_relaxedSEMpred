@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 20 March 2025
+## Last updated: 24 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -80,14 +80,13 @@ gendat <- function(ntrain, ntest, misspecify, seed = 10824) {
   } else {
     lavaan(mod2, do.fit = F)
   }
-  pop.cov <- lavInspect(fit, "cov.ov") # population covariance matrix
-  pop.mean <- lavInspect(fit, "mean.ov") # population mean vector
+  popStats <- lavInspect(fit, "implied") # population covariance matrix and mean vector
   
   # data generation
   set.seed(seed)
-  train <- as.data.frame(rmvnorm(n = ntrain, mean = pop.mean, sigma = pop.cov,
+  train <- as.data.frame(rmvnorm(n = ntrain, mean = popStats$mean, sigma = popStats$cov,
                                  pre0.9_9994 = T)) # training set
-  test  <- as.data.frame(rmvnorm(n = ntest, mean = pop.mean, sigma = pop.cov,
+  test  <- as.data.frame(rmvnorm(n = ntest, mean = popStats$mean, sigma = popStats$cov,
                                  pre0.9_9994 = T)) # test set
   
   datlist <- list(train = train, test = test)
