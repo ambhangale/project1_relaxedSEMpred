@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 11 March 2025
+## Last updated: 24 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## SEM on political democracy dataset
@@ -31,9 +31,11 @@ plot_result <- function(data, plot.stat, plot.title = NULL, facet_cols = 11) {
     geom_point() + 
     facet_wrap(as.formula(paste("~", ifelse(plot.stat == "RMSEpr", "yname +", ""), "alpha2")), ncol = facet_cols)
     ggtitle(plot.title)
-  
-  # if (min.val) plot <- plot + gghighlight(min(plot.stat))
-  #TODO figure out how to highlight minimum point
+    
+    if (plot.stat == "RMSEp") {
+      min.val <- subset(data, data$RMSEp == min(data$RMSEp))
+      plot <- plot + geom_point(data = min.val, color = "red") # highlight minimum value
+    }
   
   return(plot)
 }
