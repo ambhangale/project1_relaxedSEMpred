@@ -9,7 +9,7 @@
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
 
 library(here)
-library(here("RDA_CFA", "func_RDA_CFA.R"))
+source(here("RDA_CFA", "func_RDA_CFA.R"))
 library(ggplot2)
 
 dat <- gendat(ntrain = 250, ntest = 250, misspecify = F) # data to compare results with `lavaan` and `lm()`
