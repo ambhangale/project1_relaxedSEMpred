@@ -88,7 +88,9 @@ testrule <- function(ntrain, ntest, misspecify,
   
   bias <- Ypred - Ytest
   
-  RMSEpr.result <- as.data.frame(cbind(alpha1   = alpha1, 
+  RMSEpr.result <- as.data.frame(cbind(ntrain   = ntrain, 
+                                       ntest    = ntest, 
+                                       alpha1   = alpha1, 
                                        alpha2   = ifelse(!is.null(alpha2), alpha2, NA),
                                        PD.lv    = PD.lv,
                                        PD.ov    = PD.ov,
@@ -96,10 +98,12 @@ testrule <- function(ntrain, ntest, misspecify,
                                        RMSEpr   = sqrt(colMeans((bias)^2)),
                                        yname    = ynames))
   
-  RMSEp.result <- as.data.frame(cbind(alpha1     = alpha1, 
+  RMSEp.result <- as.data.frame(cbind(ntrain     = ntrain, 
+                                      ntest      = ntest, 
+                                      alpha1     = alpha1, 
                                       alpha2     = ifelse(!is.null(alpha2), alpha2, NA),
-                                      PD.lv    = PD.lv,
-                                      PD.ov    = PD.ov,
+                                      PD.lv      = PD.lv,
+                                      PD.ov      = PD.ov,
                                       misspecify = misspecify,
                                       RMSEp      = sqrt(sum((bias)^2)/(length(ynames)*ntest))))
   
