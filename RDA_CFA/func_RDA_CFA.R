@@ -1,9 +1,12 @@
 ## Aditi M. Bhangale
-## Last updated: 21 March 2025
+## Last updated: 24 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
 ### function(s) file
+
+# getwd()
+# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
 
 library(here)
 source(here("RDA_CFA", "datagen_RDA_CFA.R"))
