@@ -39,8 +39,9 @@ plot_result <- function(data, plot.stat, plot.title = NULL, facet_cols = 11, yna
                                                                   data$alpha2 == y),
                                            x = c(0,0.5,1), y = c(0,0.5,1), SIMPLIFY = F)) # SEM & OLS pred, perfect compromise
       
-      plot <- plot + geom_point(data = min.val, color = "red") +
-        geom_point(data = alpha.val, color = c("deeppink1", "green", "orange"))
+      plot <- plot + geom_point(data = min.val, aes(color = "Minimum")) +
+        geom_point(data = alpha.val, aes(color = c("SEM rule", "Compromise", "OLS rule"))) +
+        guides(color = guide_legend(title = "RMSE value"))
       
     } else if (plot.stat == "RMSEpr") {
       if (!is.null(ynames)) {
@@ -54,11 +55,14 @@ plot_result <- function(data, plot.stat, plot.title = NULL, facet_cols = 11, yna
                                                         data[data$yname == i, ]$alpha2 == y),
                                                x = c(0, 0.5, 1), y = c(0, 0.5, 1), SIMPLIFY = F)))) # SEM & OLS pred, perfect compromise
         
-        plot <- plot + geom_point(data = min.val, color = "red") +
-          geom_point(data = alpha.val, color = rep(c("deeppink1", "green", "orange"), length(ynames)))
+        plot <- plot + geom_point(data = min.val, aes(color = "Minimum")) +
+          geom_point(data = alpha.val, aes(color = rep(c("SEM rule", "Compromise", "OLS rule"), length(ynames)))) +
+          guides(color = guide_legend(title = "RMSE value"))
         
         }
     }
+  attr(plot, "min.val")   <- min.val
+  attr(plot, "alpha.val") <- alpha.val 
   
   return(plot)
 }
