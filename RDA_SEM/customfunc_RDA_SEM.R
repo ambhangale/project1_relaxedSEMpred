@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 24 March 2025
+## Last updated: 25 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## SEM on political democracy dataset
@@ -26,18 +26,40 @@ sum_result <- function(resList) {
 }
 
 # plot results
-plot_result <- function(data, plot.stat, plot.title = NULL, facet_cols = 11) { 
+plot_result <- function(data, plot.stat, plot.title = NULL, facet_cols = 11, ynames = NULL) { 
   plot <- ggplot(data = data, mapping = aes(x = alpha1, y = .data[[plot.stat]])) +
     geom_point() + 
-    facet_wrap(as.formula(paste("~", ifelse(plot.stat == "RMSEpr", "yname +", ""), "alpha2")), ncol = facet_cols)
-    ggtitle(plot.title)
+    facet_wrap(as.formula(paste("~", ifelse(plot.stat == "RMSEpr", "yname +", ""), "alpha2")), 
+               ncol = facet_cols) + ggtitle(plot.title)  # base plot
     
     if (plot.stat == "RMSEp") {
-      min.val <- subset(data, data$RMSEp == min(data$RMSEp))
-      plot <- plot + geom_point(data = min.val, color = "red") # highlight minimum value
+      min.val   <- subset(data, data$RMSEp == min(data$RMSEp)) # minimum value
+      alpha.val <- do.call("rbind", mapply(function(x,y) subset(data, data$alpha1 == x & 
+                                                                  data$alpha2 == y),
+                                           x = c(0,0.5,1), y = c(0,0.5,1), SIMPLIFY = F)) # SEM & OLS pred, perfect compromise
+      
+      plot <- plot + geom_point(data = min.val, color = "red") +
+        geom_point(data = alpha.val, color = c("deeppink1", "green", "orange"))
+      
+    } else if (plot.stat == "RMSEpr") {
+      if (!is.null(ynames)) {
+        min.val   <- do.call("rbind", lapply(ynames, function(x) 
+          subset(data[data$yname == x, ], 
+                 data[data$yname == x, ]$RMSEpr == min(data[data$yname == x, ]$RMSEpr)))) # minimum value
+        alpha.val <- do.call("rbind", lapply(ynames, 
+                                             function(i)  do.call("rbind", mapply(function(x,y) 
+                                               subset(data[data$yname == i, ], 
+                                                      data[data$yname == i, ]$alpha1 == x & 
+                                                        data[data$yname == i, ]$alpha2 == y),
+                                               x = c(0, 0.5, 1), y = c(0, 0.5, 1), SIMPLIFY = F)))) # SEM & OLS pred, perfect compromise
+        
+        plot <- plot + geom_point(data = min.val, color = "red") +
+          geom_point(data = alpha.val, color = rep(c("deeppink1", "green", "orange"), length(ynames)))
+        
+        }
     }
   
   return(plot)
 }
 
-# plot_result(RMSE.cs.1e2$RMSEpr, plot.stat = "RMSEpr", plot.title = "test") # test
+# plot_result(RMSE.cs.1e2$RMSEpr, plot.stat = "RMSEpr", plot.title = "test", ynames = paste0("x",1:3)) # test
