@@ -30,7 +30,8 @@ plot_result <- function(data, plot.stat, plot.title = NULL, facet_cols = 11, yna
   plot <- ggplot(data = data, mapping = aes(x = alpha1, y = .data[[plot.stat]])) +
     geom_point() + 
     facet_wrap(as.formula(paste("~", ifelse(plot.stat == "RMSEpr", "yname +", ""), "alpha2")), 
-               ncol = facet_cols) + ggtitle(plot.title)  # base plot
+               ncol = facet_cols) + theme(axis.text.x = element_text(angle = 45, size = 7)) + 
+    ggtitle(plot.title)  # base plot
     
     if (plot.stat == "RMSEp") {
       min.val   <- subset(data, data$RMSEp == min(data$RMSEp)) # minimum value
