@@ -124,8 +124,3 @@ testrule <- function(ntrain, ntest, misspecify,
 # testrule(ntrain = 100, ntest = 100, misspecify = F, alpha1 = 1, alpha2 = 0)
 # testrule(ntrain = 100, ntest = 100, misspecify = T, alpha1 = 0, alpha2 = 1)
 # testrule(ntrain = 100, ntest = 100, misspecify = T, alpha1 = 1, alpha2 = 1)
-## model results in non-positive definite covariance matrix when 
-## sample size is small (particularly for `ntrain`, i think?)
-# testrule(ntrain = 1e4, ntest = 100, misspecify = T, alpha1 = 0, alpha2 = 1)
-# testrule(ntrain = 1e4, ntest = 1e4, misspecify = T, alpha1 = 1, alpha2 = 1)
-## things okay when `ntrain` is large
