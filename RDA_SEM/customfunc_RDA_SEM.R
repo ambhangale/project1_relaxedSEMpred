@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 25 March 2025
+## Last updated: 26 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## SEM on political democracy dataset
@@ -39,8 +39,8 @@ plot_result <- function(data, plot.stat, plot.title = NULL, facet_cols = 11, yna
                                                                   data$alpha2 == y),
                                            x = c(0,0.5,1), y = c(0,0.5,1), SIMPLIFY = F)) # SEM & OLS pred, perfect compromise
       
-      plot <- plot + geom_point(data = min.val, aes(color = "Minimum")) +
-        geom_point(data = alpha.val, aes(color = c("SEM rule", "Compromise", "OLS rule"))) +
+      plot <- plot + geom_point(data = alpha.val, aes(color = c("SEM rule", "Compromise", "OLS rule"))) +
+        geom_point(data = min.val, aes(color = "Minimum")) +
         guides(color = guide_legend(title = "RMSE value"))
       
     } else if (plot.stat == "RMSEpr") {
@@ -55,8 +55,8 @@ plot_result <- function(data, plot.stat, plot.title = NULL, facet_cols = 11, yna
                                                         data[data$yname == i, ]$alpha2 == y),
                                                x = c(0, 0.5, 1), y = c(0, 0.5, 1), SIMPLIFY = F)))) # SEM & OLS pred, perfect compromise
         
-        plot <- plot + geom_point(data = min.val, aes(color = "Minimum")) +
-          geom_point(data = alpha.val, aes(color = rep(c("SEM rule", "Compromise", "OLS rule"), length(ynames)))) +
+        plot <- plot + geom_point(data = alpha.val, aes(color = rep(c("SEM rule", "Compromise", "OLS rule"), length(ynames)))) +
+          geom_point(data = min.val, aes(color = "Minimum")) +
           guides(color = guide_legend(title = "RMSE value"))
         
         }
