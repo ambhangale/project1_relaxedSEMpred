@@ -99,3 +99,22 @@ RMSEpr.plot.ms.1e4 <- plot_result(RMSE.ms.1e4$RMSEpr, plot.stat = "RMSEpr",
 
 #----
 
+# mini simulation for ms model with ntrain = 250 and ntest = 10000----
+t0.ms.250 <- Sys.time()
+resList.ms.250 <- mapply(testrule, ntrain = 250, ntest = 250, 
+                         misspecify = conds.ms$misspecify, 
+                         alpha1 = conds.ms$alpha1, 
+                         alpha2 = conds.ms$alpha2, SIMPLIFY = F)
+t1.ms.250 <- Sys.time()
+diff.ms.250 <- difftime(t1.ms.250, t0.ms.250, "sec")
+
+RMSE.ms.250 <- sum_result(resList.ms.250) # all lv cov matrices are positive definite
+
+RMSEp.plot.ms.250 <- plot_result(RMSE.ms.250$RMSEp, plot.stat = "RMSEp",
+                                 plot.title = "RMSEp for ntrain = 250, misspecified model")
+
+RMSEpr.plot.ms.250 <- plot_result(RMSE.ms.250$RMSEpr, plot.stat = "RMSEpr",
+                                  plot.title = "RMSEpr for ntrain = 250, misspecified model",
+                                  ynames = paste0("x", 1:3))
+#----
+
