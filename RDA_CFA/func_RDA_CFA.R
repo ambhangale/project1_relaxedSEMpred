@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 26 March 2025
+## Last updated: 27 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -11,7 +11,7 @@
 library(here)
 source(here("RDA_CFA", "datagen_RDA_CFA.R"))
 
-fitmod <- function(train) {
+fitmod <- function(dat) {
   mod <- '
 # factor loadings
 F1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7
@@ -41,7 +41,7 @@ x6 ~ 1
 x7 ~ 1
 '
   
-  fit <- lavaan(mod, data = train, meanstructure = T)
+  fit <- lavaan(mod, data = dat, meanstructure = T)
   
   return(fit)
 }
