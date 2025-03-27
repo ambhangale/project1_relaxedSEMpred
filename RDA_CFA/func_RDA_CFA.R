@@ -46,26 +46,26 @@ x7 ~ 1
   return(fit)
 }
 
-testrule <- function(ntrain, ntest, misspecify,
+testrule <- function(nCal, nPred, misspecify,
                      alpha1, alpha2, 
                      xnames = paste0("x", 4:7), ynames = paste0("x", 1:3), 
                      seed = 10824) {
-  dat <- gendat(ntrain = ntrain, ntest = ntest, 
+  dat <- gendat(nCal = nCal, nPred = nPred, 
                 misspecify = misspecify, seed = seed)
   
-  train <- dat$train
-  test  <- dat$test
+  calibration <- dat$calibration
+  prediction  <- dat$prediction
   
   # rescale covariance matrix of training set to make consistent with `lavaan`
-  S    <- (cov(train)*(nrow(train)-1)) / nrow(train) 
+  S    <- (cov(calibration)*(nrow(calibration)-1)) / nrow(calibration) 
   S_xx <- S[xnames, xnames]
   S_yx <- S[ynames, xnames] ## using _yx to avoid using t()
   
-  # values from test dataset
-  X0    <- test[,xnames] # to be inputted into formulae
-  Ytest <- test[,ynames] # original Y values from test dataset
+  # values from prediction dataset
+  X0    <- prediction[,xnames] # to be inputted into formulae
+  Ytest <- prediction[,ynames] # original Y values from prediction dataset
   
-  fit <- fitmod(train = train)
+  fit <- fitmod(dat = calibration)
   ImpliedStats <- lavInspect(fit, "implied")
   Sigma_xx     <- ImpliedStats$cov[xnames, xnames]
   Sigma_yx     <- ImpliedStats$cov[ynames, xnames] ## using _yx to avoid using t()
@@ -85,8 +85,8 @@ testrule <- function(ntrain, ntest, misspecify,
   
   bias <- Ypred - Ytest
   
-  RMSEpr.result <- as.data.frame(cbind(ntrain   = ntrain, 
-                                       ntest    = ntest, 
+  RMSEpr.result <- as.data.frame(cbind(nCal     = nCal, 
+                                       nPred    = nPred, 
                                        alpha1   = alpha1, 
                                        alpha2   = ifelse(!is.null(alpha2), alpha2, NA),
                                        PD.lv    = PD.lv,
@@ -95,20 +95,20 @@ testrule <- function(ntrain, ntest, misspecify,
                                        RMSEpr   = sqrt(colMeans((bias)^2)),
                                        yname    = ynames))
   
-  RMSEp.result <- as.data.frame(cbind(ntrain     = ntrain, 
-                                      ntest      = ntest, 
+  RMSEp.result <- as.data.frame(cbind(nCal       = nCal, 
+                                      nPred      = nPred, 
                                       alpha1     = alpha1, 
                                       alpha2     = ifelse(!is.null(alpha2), alpha2, NA),
                                       PD.lv      = PD.lv,
                                       PD.ov      = PD.ov,
                                       misspecify = misspecify,
-                                      RMSEp      = sqrt(sum((bias)^2)/(length(ynames)*ntest))))
+                                      RMSEp      = sqrt(sum((bias)^2)/(length(ynames)*nPred))))
   
   final <- list(Ypred = Ypred, Ytest = Ytest, bias = bias,
                 RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
   # save all arguments as attributes, just in case we need them later
-  attr(final, "ntrain")       <- ntrain
-  attr(final, "ntest")        <- ntest
+  attr(final, "nCal")         <- nCal
+  attr(final, "nPred")        <- nPred
   attr(final, "misspecify")   <- misspecify
   attr(final, "alpha1")       <- alpha1
   attr(final, "alpha2")       <- alpha2
@@ -120,7 +120,7 @@ testrule <- function(ntrain, ntest, misspecify,
   return(final)
 }
 
-# testrule(ntrain = 100, ntest = 100, misspecify = F, alpha1 = 0, alpha2 = 0)
-# testrule(ntrain = 100, ntest = 100, misspecify = F, alpha1 = 1, alpha2 = 0)
-# testrule(ntrain = 100, ntest = 100, misspecify = T, alpha1 = 0, alpha2 = 1)
-# testrule(ntrain = 100, ntest = 100, misspecify = T, alpha1 = 1, alpha2 = 1)
+# testrule(nCal = 100, nPred = 100, misspecify = F, alpha1 = 0, alpha2 = 0)
+# testrule(nCal = 100, nPred = 100, misspecify = F, alpha1 = 1, alpha2 = 0)
+# testrule(nCal = 100, nPred = 100, misspecify = T, alpha1 = 0, alpha2 = 1)
+# testrule(nCal = 100, nPred = 100, misspecify = T, alpha1 = 1, alpha2 = 1)

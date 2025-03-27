@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 26 March 2025
+## Last updated: 27 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -72,7 +72,7 @@ x6 ~ 0.66*1
 x7 ~ 0.54*1
 '
 
-gendat <- function(ntrain, ntest, misspecify, seed = 10824) {
+gendat <- function(nCal, nPred, misspecify, seed = 10824) {
   
   # (do not) fit model, return start values
   fit <- if(!misspecify) {
@@ -84,16 +84,16 @@ gendat <- function(ntrain, ntest, misspecify, seed = 10824) {
   
   # data generation
   set.seed(seed)
-  train <- as.data.frame(rmvnorm(n = ntrain, mean = popStats$mean, sigma = popStats$cov,
-                                 pre0.9_9994 = T)) # training set
-  test  <- as.data.frame(rmvnorm(n = ntest, mean = popStats$mean, sigma = popStats$cov,
-                                 pre0.9_9994 = T)) # test set
+  calibration <- as.data.frame(rmvnorm(n = nCal, mean = popStats$mean, sigma = popStats$cov,
+                                 pre0.9_9994 = T)) # calibration set
+  prediction  <- as.data.frame(rmvnorm(n = nPred, mean = popStats$mean, sigma = popStats$cov,
+                                 pre0.9_9994 = T)) # prediction set
   
-  datlist <- list(train = train, test = test)
+  datlist <- list(calibration = calibration, prediction = prediction)
   
   ## add attributes in case you need them later
-  attr(datlist, "ntrain") <- ntrain
-  attr(datlist, "ntest") <- ntest
+  attr(datlist, "nCal") <- nCal
+  attr(datlist, "nPred") <- nPred
   attr(datlist, "misspecify") <- misspecify
   attr(datlist, "seed") <- seed
   
@@ -101,7 +101,7 @@ gendat <- function(ntrain, ntest, misspecify, seed = 10824) {
 }
 
 # test function
-# gendat(ntrain = 20, ntest = 25, misspecify = F)
-# gendat(ntrain = 25, ntest = 20, misspecify = T)
+# gendat(nCal = 20, nPred = 25, misspecify = F)
+# gendat(nCal = 25, nPred = 20, misspecify = T)
 
 
