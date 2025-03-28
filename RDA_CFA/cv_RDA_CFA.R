@@ -3,7 +3,7 @@
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
-### mini simulation with cross-validation
+### functions to test the prediction rule in a k-fold cross-validation setting
 
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
