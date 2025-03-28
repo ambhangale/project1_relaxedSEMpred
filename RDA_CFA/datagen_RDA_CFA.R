@@ -72,7 +72,7 @@ x6 ~ 0.66*1
 x7 ~ 0.54*1
 '
 
-gendat <- function(nCal, nPred, misspecify, seed = 10824) {
+gendat <- function(nCal, nPred, misspecify, seed) {
   
   # (do not) fit model, return start values
   fit <- if(!misspecify) {
