@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 27 March 2025
+## Last updated: 31 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -10,6 +10,7 @@
 
 library(mvtnorm)
 library(lavaan)
+library(portableParallelSeeds)
 
 mod1 <- '
 # factor loadings
@@ -72,7 +73,12 @@ x6 ~ 0.66*1
 x7 ~ 0.54*1
 '
 
-gendat <- function(nCal, nPred, misspecify, seed) {
+gendat <- function(sampID, nCal, nPred, misspecify, seed) {
+  
+  # create multiple seeds, so that same data is generated each time when a specific `sampID` is used
+  allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 1, seed = seed)
+  
+  setSeeds(projSeeds = allSeeds, run = sampID) # set seed based on `sampID`
   
   # (do not) fit model, return start values
   fit <- if(!misspecify) {
@@ -83,7 +89,7 @@ gendat <- function(nCal, nPred, misspecify, seed) {
   popStats <- lavInspect(fit, "implied") # population covariance matrix and mean vector
   
   # data generation
-  set.seed(seed)
+  # set.seed(seed)
   calibration <- as.data.frame(rmvnorm(n = nCal, mean = popStats$mean, sigma = popStats$cov,
                                  pre0.9_9994 = T)) # calibration set
   prediction  <- as.data.frame(rmvnorm(n = nPred, mean = popStats$mean, sigma = popStats$cov,
@@ -101,7 +107,7 @@ gendat <- function(nCal, nPred, misspecify, seed) {
 }
 
 # test function
-# gendat(nCal = 20, nPred = 25, misspecify = F)
-# gendat(nCal = 25, nPred = 20, misspecify = T)
+# gendat(sampID = 1, nCal = 20, nPred = 25, misspecify = F, seed = 10824)
+# gendat(sampID = 1, nCal = 25, nPred = 20, misspecify = T, seed = 10824)
 
 
