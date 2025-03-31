@@ -11,7 +11,7 @@
 library(here)
 source(here("RDA_CFA", "datagen_RDA_CFA.R"))
 
-# dat <- gendat(250, 250, misspecify = F) # dummy data for now
+# dat <- gendat(sampID = 1, nCal = 250, nPred = 250, misspecify = F) # dummy data for now
 # calibration <- dat$calibration; prediction <- dat$prediction
 
 # function to partition data into K parts----
@@ -196,12 +196,12 @@ predict.y.alpha <- function(dat, K, nK,
 #----
 
 # prediction rule with cross-validation----
-predict.y.cv <- function(nCal, nPred, misspecify,
+predict.y.cv <- function(sampID, nCal, nPred, misspecify,
                          alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
                          K = 10, nK = 25, 
                          xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
                          seed = 10824) {
-  dat <- gendat(nCal = nCal, nPred = nPred, misspecify = misspecify, seed = seed)
+  dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify, seed = seed)
   calibration <- dat$calibration # calibration set
   prediction  <- dat$prediction # prediction set
   
@@ -245,6 +245,7 @@ predict.y.cv <- function(nCal, nPred, misspecify,
                 RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
   
   # save all arguments as attributes, just in case we need them later
+  attr(final, "sampID")       <- sampID
   attr(final, "nCal")         <- nCal
   attr(final, "nPred")        <- nPred
   attr(final, "misspecify")   <- misspecify
@@ -263,7 +264,7 @@ predict.y.cv <- function(nCal, nPred, misspecify,
 }
 
 # t0 <- Sys.time()
-# bar <- predict.y.cv(nCal = 250, nPred = 250, misspecify = F)
+# bar <- predict.y.cv(sampID = 1, nCal = 250, nPred = 250, misspecify = F)
 # t1 <- Sys.time()
 # diff <- difftime(t1,t0,"sec")
 
