@@ -22,7 +22,7 @@ resList <- mcmapply(FUN = predict.y.cv, sampID = conds$sampID,
                     misspecify = conds$misspecify, SIMPLIFY = F, 
                     mc.cores = detectCores() - 1L) # parallelised version of mapply (parallel package)
 t1 <- Sys.time()
-diff <- difftime(t1, t0, "sec")
+diff <- difftime(t1, t0, "hour")
 
 # resList <- mapply(FUN = predict.y.cv, sampID = conds$sampID,
 #                   nCal = conds$nCal, nPred = 1e4,
