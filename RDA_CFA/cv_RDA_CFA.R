@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 28 March 2025
+## Last updated: 31 March 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -84,8 +84,8 @@ predict.y <- function(calidat, preddat, califit,
 
 # prediction for the K partitions----
 predict.y.part <- function(dat, K, nK, 
-                           alpha1, alpha2, xnames, ynames) { #TODO is seed argument necessary?
-  partdat <- partition(dat = dat, K = K, nK = nK) # partitioned data
+                           alpha1, alpha2, xnames, ynames, seed) { #TODO is seed argument necessary?
+  partdat <- partition(dat = dat, K = K, nK = nK, seed = seed) # partitioned data
   
   mat.rows <- do.call("c", lapply(1:K, 
                                   function(k) apply(expand.grid(k, 1:nK), 1, 
@@ -125,9 +125,10 @@ predict.y.part <- function(dat, K, nK,
 
 # compute RMSEp(r) for each alpha1,alpha2 combination and return alpha1,2 values with min(RMSEp)----
 predict.y.alpha <- function(dat, K, nK, 
-                            alpha1, alpha2, xnames, ynames) {
+                            alpha1, alpha2, xnames, ynames, seed) {
   biasmat <- predict.y.part(dat = dat, K = K, nK = nK, alpha1 = alpha1,
-                            alpha2 = alpha2, xnames = xnames, ynames = ynames)
+                            alpha2 = alpha2, xnames = xnames, ynames = ynames, 
+                            seed = seed)
   
   RMSEp  <- expand.grid(alpha1 = alpha1, alpha2 = alpha2, RMSEp = NA)
   # RMSEp <- matrix(NA, length(alpha1)*length(alpha2), 3,
@@ -168,7 +169,8 @@ predict.y.cv <- function(nCal, nPred, misspecify,
   
   alpha.vals <- predict.y.alpha(dat = calibration, K = K, nK = nK,
                                 alpha1 = alpha1, alpha2 = alpha2,
-                                xnames = xnames, ynames = ynames)
+                                xnames = xnames, ynames = ynames, 
+                                seed = seed)
   
   fit <- fitmod(dat = calibration) # model fitted on complete calibration set
   
