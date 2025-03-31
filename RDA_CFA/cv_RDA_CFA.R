@@ -8,9 +8,6 @@
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
 
-library(here)
-source(here("RDA_CFA", "func_RDA_CFA.R")) # for `fitmod()`
-
 # dat <- gendat(250, 250, misspecify = F) # dummy data for now
 # calibration <- dat$calibration; prediction <- dat$prediction
 
@@ -37,6 +34,44 @@ partition <- function(dat, K, nK, seed) { # input here is the calibration data
 }
 
 # partition(calibration, K = 10, nK = 25) # test function
+
+#----
+
+# fit model in lavaan (from 'func_RDA_CFA.R' file)----
+fitmod <- function(dat) {
+  mod <- '
+# factor loadings
+F1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7
+
+# factor variance
+F1 ~~ 1*F1
+
+# item (co)variances
+x1 ~~ x1
+x2 ~~ x2
+x3 ~~ x3
+x4 ~~ x4
+x5 ~~ x5
+x6 ~~ x6
+x7 ~~ x7
+
+# factor mean
+F1 ~ 0*1
+
+# item means
+x1 ~ 1
+x2 ~ 1
+x3 ~ 1
+x4 ~ 1
+x5 ~ 1
+x6 ~ 1
+x7 ~ 1
+'
+  
+  fit <- lavaan(mod, data = dat, meanstructure = T)
+  
+  return(fit)
+}
 
 #----
 
