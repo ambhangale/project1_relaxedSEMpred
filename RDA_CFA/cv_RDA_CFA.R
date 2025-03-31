@@ -198,12 +198,14 @@ predict.y.alpha <- function(dat, K, nK,
 # prediction rule with cross-validation----
 predict.y.cv <- function(sampID, nCal, nPred, misspecify,
                          alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
-                         K = 10, nK = 25, 
+                         K = 10, nK = NULL, 
                          xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
                          seed = 10824) {
   dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify, seed = seed)
   calibration <- dat$calibration # calibration set
   prediction  <- dat$prediction # prediction set
+  
+  nK <- ifelse(is.null(nK), nCal/K, nK) # compute nK manually if left blank
   
   alpha.vals <- predict.y.alpha(dat = calibration, K = K, nK = nK,
                                 alpha1 = alpha1, alpha2 = alpha2,
