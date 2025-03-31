@@ -8,6 +8,9 @@
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
 
+library(here)
+source(here("RDA_CFA", "datagen_RDA_CFA.R"))
+
 # dat <- gendat(250, 250, misspecify = F) # dummy data for now
 # calibration <- dat$calibration; prediction <- dat$prediction
 
