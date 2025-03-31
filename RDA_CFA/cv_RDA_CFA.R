@@ -203,7 +203,7 @@ predict.y.cv <- function(nCal, nPred, misspecify,
                                       misspecify = misspecify,
                                       RMSEp      = sqrt(sum((bias)^2)/(length(ynames)*nPred))))
   
-  final <- list(Ypred = predVals$Ypred, Ytest = predVals$Ytest, bias = bias,
+  final <- list(Ypred = predVals$Ypred, Ytrue = predVals$Ytrue, bias = bias,
                 RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
   
   # save all arguments as attributes, just in case we need them later
