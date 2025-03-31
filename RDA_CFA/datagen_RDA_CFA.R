@@ -73,12 +73,16 @@ x6 ~ 0.66*1
 x7 ~ 0.54*1
 '
 
-gendat <- function(sampID, nCal, nPred, misspecify, seed) {
+gendat <- function(sampID = NULL, nCal, nPred, misspecify, seed) {
   
-  # create multiple seeds, so that same data is generated each time when a specific `sampID` is used
-  allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 1, seed = seed)
-  
-  setSeeds(projSeeds = allSeeds, run = sampID) # set seed based on `sampID`
+  if (!is.null(sampID)) {
+    # create multiple seeds, so that same data is generated each time when a specific `sampID` is used
+    allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 1, seed = seed)
+    
+    setSeeds(projSeeds = allSeeds, run = sampID) # set seed based on `sampID`
+  } else {
+    set.seed(seed)
+  }
   
   # (do not) fit model, return start values
   fit <- if(!misspecify) {
@@ -89,7 +93,6 @@ gendat <- function(sampID, nCal, nPred, misspecify, seed) {
   popStats <- lavInspect(fit, "implied") # population covariance matrix and mean vector
   
   # data generation
-  # set.seed(seed)
   calibration <- as.data.frame(rmvnorm(n = nCal, mean = popStats$mean, sigma = popStats$cov,
                                  pre0.9_9994 = T)) # calibration set
   prediction  <- as.data.frame(rmvnorm(n = nPred, mean = popStats$mean, sigma = popStats$cov,
