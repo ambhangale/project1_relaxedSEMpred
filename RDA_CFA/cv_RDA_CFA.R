@@ -186,6 +186,7 @@ predict.y.alpha <- function(dat, K, nK,
     for (a1 in alpha1) {
       for (a2 in alpha2) {
         
+        # compute single RMSE value per alpha1-alpha2 combination
         RMSEp.val <- sum((biasmat[paste0(k, ".", 1:nK), 
                               paste0(ynames, ",", a1,",", a2)])^2)/(nK*length(ynames))
         
@@ -199,7 +200,10 @@ predict.y.alpha <- function(dat, K, nK,
  return(list(alpha1 = min.RMSE.val$alpha1, alpha2 = min.RMSE.val$alpha2))  
 }
 
-# predict.y.alpha(dat = calibration)
+# predict.y.alpha(dat = calibration, K = 10, nK = 25, 
+#                 alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
+#                 xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
+#                 seed = 10824)
 
 #----
 
