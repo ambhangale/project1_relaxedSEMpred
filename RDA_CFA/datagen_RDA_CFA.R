@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 31 March 2025
+## Last updated: 1 April 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -101,10 +101,11 @@ gendat <- function(sampID = NULL, nCal, nPred, misspecify, seed) {
   datlist <- list(calibration = calibration, prediction = prediction)
   
   ## add attributes in case you need them later
-  attr(datlist, "nCal") <- nCal
-  attr(datlist, "nPred") <- nPred
+  attr(datlist, "sampID")     <- ifelse(!is.null(sampID), sampID, NA)
+  attr(datlist, "nCal")       <- nCal
+  attr(datlist, "nPred")      <- nPred
   attr(datlist, "misspecify") <- misspecify
-  attr(datlist, "seed") <- seed
+  attr(datlist, "seed")       <- seed
   
   return(datlist)
 }
