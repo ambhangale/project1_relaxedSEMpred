@@ -213,6 +213,7 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify,
                          K = 10, nK = NULL, 
                          xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
                          seed = 10824) {
+  t0 <- Sys.time()
   dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify, seed = seed)
   calibration <- dat$calibration # calibration set
   prediction  <- dat$prediction # prediction set
@@ -260,6 +261,9 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify,
   final <- list(Ypred = predVals$Ypred, Ytrue = predVals$Ytrue, bias = bias,
                 RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
   
+  t1   <- Sys.time()
+  diff <- difftime(t1, t0, "sec")
+  
   # save all arguments as attributes, just in case we need them later
   attr(final, "sampID")       <- sampID
   attr(final, "nCal")         <- nCal
@@ -274,6 +278,7 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify,
   attr(final, "xnames")       <- xnames
   attr(final, "ynames")       <- ynames
   attr(final, "seed")         <- seed
+  attr(final, "runtime")      <- diff
   
   return(final)
   
