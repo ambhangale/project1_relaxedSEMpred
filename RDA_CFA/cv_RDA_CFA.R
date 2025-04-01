@@ -83,7 +83,8 @@ x7 ~ 1
 # prediction rule----
 predict.y <- function(calidat, preddat, califit, 
                       alpha1, alpha2, xnames, ynames) {
-  S <- (cov(calidat)*(nrow(calidat)-1)) / nrow(calidat) 
+  # rescale covariance matrix to scale as `lavaan` does
+  S <- (cov(calidat)*(nrow(calidat)-1)) / nrow(calidat)
   S_xx <- S[xnames, xnames]
   S_yx <- S[ynames, xnames] ## using _yx to avoid using t()
   
@@ -118,7 +119,8 @@ predict.y <- function(calidat, preddat, califit,
 }
 
 # fit <- fitmod(dat = calibration)
-# predict.y(calibration, prediction, fit, alpha1 = 0.5, alpha2 = 0.3)
+# predict.y(calibration, prediction, fit, alpha1 = 0.5, alpha2 = 0.3,
+#           xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
 
