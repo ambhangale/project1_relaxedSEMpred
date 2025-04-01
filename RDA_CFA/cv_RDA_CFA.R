@@ -126,15 +126,16 @@ predict.y <- function(calidat, preddat, califit,
 
 # prediction for the K partitions----
 predict.y.part <- function(dat, K, nK, 
-                           alpha1, alpha2, xnames, ynames, seed) { #TODO is seed argument necessary?
+                           alpha1, alpha2, xnames, ynames, seed) { #TODO is seed argument necessary? I don't think so?
   partdat <- partition(dat = dat, K = K, nK = nK, seed = seed) # partitioned data
   
+  # row and column names
   mat.rows <- do.call("c", lapply(1:K, 
                                   function(k) apply(expand.grid(k, 1:nK), 1, 
                                                     paste0, collapse = ".")))
   mat.cols <- apply(expand.grid(ynames, as.character(alpha1), as.character(alpha2)), 
                     1, paste0, collapse = ",") 
-  # use as.charcater() above to paste only 0/1 instead of 0.0 and 1.0
+  # use as.character() above to paste only 0/1 instead of 0.0 and 1.0
   # because in the for loops, a1/a2 are 0/1 not 0.0/0.1
   biasmat <- matrix(NA, K*nK, length(alpha1)*length(alpha2)*length(ynames),
                     dimnames = list(mat.rows, mat.cols)) # matrix with predicted values of partitioned data
@@ -159,7 +160,10 @@ predict.y.part <- function(dat, K, nK,
 }
 
 # t0 <- Sys.time()
-# foo <- predict.y.part(dat = calibration)
+# foo <- predict.y.part(dat = calibration, K = 10, nK = 25,
+#                       alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
+#                       xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
+#                       seed = 10824)
 # t1 <- Sys.time()
 # diff <- difftime(t1, t0, "sec")
 
