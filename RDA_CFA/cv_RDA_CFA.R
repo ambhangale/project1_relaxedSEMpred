@@ -11,7 +11,7 @@
 library(here)
 source(here("RDA_CFA", "datagen_RDA_CFA.R"))
 
-# dat <- gendat(sampID = 1, nCal = 250, nPred = 250, misspecify = F) # dummy data for now
+# dat <- gendat(sampID = 1, nCal = 250, nPred = 250, misspecify = F, seed = 10824) # dummy data for now
 # calibration <- dat$calibration; prediction <- dat$prediction
 
 # function to partition data into K parts----
@@ -21,6 +21,8 @@ partition <- function(dat, K, nK, seed) { # input here is the calibration data
   
   partvec <- rep(1:K, nK)
   
+  # randomly assign observations to one of the K parts such that there are nK 
+  # observations per part
   partidx <- sample(partvec, nrow(dat), replace = F)
   
   final <- list()
