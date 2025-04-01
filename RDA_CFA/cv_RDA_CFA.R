@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 31 March 2025
+## Last updated: 1 April 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -224,7 +224,8 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify,
   PD.lv <- attributes(predVals)$PD.lv
   PD.ov <- attributes(predVals)$PD.ov
   
-  RMSEpr.result <- as.data.frame(cbind(nCal     = nCal, 
+  RMSEpr.result <- as.data.frame(cbind(sampID   = sampID, 
+                                       nCal     = nCal, 
                                        nPred    = nPred, 
                                        alpha1   = alpha.vals$alpha1, 
                                        alpha2   = alpha.vals$alpha2,
@@ -234,7 +235,8 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify,
                                        RMSEpr   = sqrt(colMeans((bias)^2)),
                                        yname    = ynames))
   
-  RMSEp.result <- as.data.frame(cbind(nCal       = nCal, 
+  RMSEp.result <- as.data.frame(cbind(sampID     = sampID, 
+                                      nCal       = nCal, 
                                       nPred      = nPred, 
                                       alpha1     = alpha.vals$alpha1, 
                                       alpha2     = alpha.vals$alpha2,
