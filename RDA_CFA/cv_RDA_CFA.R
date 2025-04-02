@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 1 April 2025
+## Last updated: 2 April 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -137,8 +137,8 @@ predict.y.part <- function(dat, K, nK,
                     1, paste0, collapse = ",") 
   # use as.character() above to paste only 0/1 instead of 0.0 and 1.0
   # because in the for loops, a1/a2 are 0/1 not 0.0/0.1
-  biasmat <- matrix(NA, K*nK, length(alpha1)*length(alpha2)*length(ynames),
-                    dimnames = list(mat.rows, mat.cols)) # matrix with predicted values of partitioned data
+  sqdevmat <- matrix(NA, K*nK, length(alpha1)*length(alpha2)*length(ynames),
+                    dimnames = list(mat.rows, mat.cols)) # matrix with squared deviations
  
  for (k in 1:K) {
    for (a1 in alpha1) {
@@ -151,12 +151,12 @@ predict.y.part <- function(dat, K, nK,
                              alpha1 = a1, alpha2 = a2, xnames = xnames,
                              ynames = ynames)
        
-       biasmat[paste0(k, ".", 1:nK), paste0(ynames, ",", a1,",", a2)] <- 
-         as.matrix(predpart$Ypred - predpart$Ytrue)
+       sqdevmat[paste0(k, ".", 1:nK), paste0(ynames, ",", a1,",", a2)] <- 
+         as.matrix((predpart$Ypred - predpart$Ytrue)^2)
      }
    }
  } 
-  return(biasmat)
+  return(sqdevmat)
 }
 
 # t0 <- Sys.time()
@@ -172,7 +172,7 @@ predict.y.part <- function(dat, K, nK,
 # compute RMSEp(r) for each alpha1,alpha2 combination and return alpha1,2 values with min(RMSEp)----
 predict.y.alpha <- function(dat, K, nK, 
                             alpha1, alpha2, xnames, ynames, seed) {
-  biasmat <- predict.y.part(dat = dat, K = K, nK = nK, alpha1 = alpha1,
+  sqdevmat <- predict.y.part(dat = dat, K = K, nK = nK, alpha1 = alpha1,
                             alpha2 = alpha2, xnames = xnames, ynames = ynames, 
                             seed = seed)
   
@@ -187,8 +187,8 @@ predict.y.alpha <- function(dat, K, nK,
       for (a2 in alpha2) {
         
         # compute single RMSE value per alpha1-alpha2 combination
-        RMSEp.val <- sum((biasmat[paste0(k, ".", 1:nK), 
-                              paste0(ynames, ",", a1,",", a2)])^2)/(nK*length(ynames))
+        RMSEp.val <- sum(sqdevmat[paste0(k, ".", 1:nK), 
+                              paste0(ynames, ",", a1,",", a2)])/(nK*length(ynames))
         
         RMSEp[RMSEp$alpha1 == a1 & RMSEp$alpha2 == a2, "RMSEp"] <- RMSEp.val
       }
@@ -200,7 +200,7 @@ predict.y.alpha <- function(dat, K, nK,
  return(list(alpha1 = min.RMSE.val$alpha1, alpha2 = min.RMSE.val$alpha2))  
 }
 
-# predict.y.alpha(dat = calibration, K = 10, nK = 25, 
+# predict.y.alpha(dat = calibration, K = 10, nK = 25,
 #                 alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
 #                 xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
 #                 seed = 10824)
