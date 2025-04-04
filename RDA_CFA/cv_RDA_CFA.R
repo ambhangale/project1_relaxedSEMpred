@@ -130,6 +130,7 @@ predict.y.part <- function(dat, K, nK,
   partdat <- partition(dat = dat, K = K, nK = nK, seed = seed) # partitioned data
 
   # row and column names
+  # would abandon this in favor of array, see previous comment
   mat.rows <- do.call("c", lapply(
     1:K,
     function(k) {
@@ -145,7 +146,9 @@ predict.y.part <- function(dat, K, nK,
   )
   # use as.character() above to paste only 0/1 instead of 0.0 and 1.0
   # because in the for loops, a1/a2 are 0/1 not 0.0/0.1
-  sqdevmat <- matrix(NA, K * nK, length(alpha1) * length(alpha2) * length(ynames),
+  # K*nK will not always work (when n is not divisible by K)
+  # I would recommend using an array instead of dim (n, length(alpha1), length(alpha2), length(ynames))
+  sqdevmat <- matrix(NA, K * nK, length(alpha1) * length(alpha2) * length(ynames), 
     dimnames = list(mat.rows, mat.cols)
   ) # matrix with squared deviations
 
