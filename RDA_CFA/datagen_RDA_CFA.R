@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 1 April 2025
+## Last updated: 14 April 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -10,7 +10,7 @@
 
 library(mvtnorm)
 library(lavaan)
-library(portableParallelSeeds)
+library(portableParallelSeeds) # remotes::install_github("wjakethompson/portableParallelSeeds")
 
 mod1 <- '
 # factor loadings

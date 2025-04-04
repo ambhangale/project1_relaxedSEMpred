@@ -1,5 +1,6 @@
 ## Aditi M. Bhangale
-## Last updated: 2 April 2025
+## Last updated: 14 April 2025
+## Fixes and improvements: 4 April 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -25,20 +26,21 @@ partition <- function(dat, K, nK, seed) { # input here is the calibration data
   # observations per part
   partidx <- sample(partvec, nrow(dat), replace = F)
   
-  final <- list()
+  final <- vector("list", K)
   
-  for (k in 1:K) {
-    assign(paste0("test", k), dat[partidx == k,])
-    assign(paste0("train", k), dat[partidx != k,])
+  for (k in seq_len(K)) {
+    test  <- dat[partidx == k, ]
+    train <- dat[partidx != k, ]
     
-    final[[paste0("part",k)]] <- list(train = get(paste0("train", k)),
-                                      test = get(paste0("test", k)))
+    final[[k]] <- list(train = train, test = test)
   }
+  
+  names(final) <- paste0("part", seq_len(K)) #FIXME maybe not needed? never used, i think
   
   return(final)
 }
 
-# partition(calibration, K = 10, nK = 25) # test function
+# partition(calibration, K = 10, nK = 25, seed = 10824) # test function
 
 #----
 
@@ -130,6 +132,7 @@ predict.y.part <- function(dat, K, nK,
   partdat <- partition(dat = dat, K = K, nK = nK, seed = seed) # partitioned data
   
   # row and column names
+  # FIXME JDK: would abandon this in favour of array, see previous comment
   mat.rows <- do.call("c", lapply(1:K, 
                                   function(k) apply(expand.grid(k, 1:nK), 1, 
                                                     paste0, collapse = ".")))
@@ -137,6 +140,8 @@ predict.y.part <- function(dat, K, nK,
                     1, paste0, collapse = ",") 
   # use as.character() above to paste only 0/1 instead of 0.0 and 1.0
   # because in the for loops, a1/a2 are 0/1 not 0.0/0.1
+  # FIXME JDK: below, K*nL will not always work (when n is not divisible by K)
+  # FIXME JDK: I would recommend using an array instead of dim (n, length(alpha1), length(alpha2), length(ynames))
   sqdevmat <- matrix(NA, K*nK, length(alpha1)*length(alpha2)*length(ynames),
                     dimnames = list(mat.rows, mat.cols)) # matrix with squared deviations
  
@@ -189,7 +194,7 @@ predict.y.alpha <- function(dat, K, nK,
         # compute single RMSE value per alpha1-alpha2 combination
         RMSEp.val <- sum(sqdevmat[paste0(k, ".", 1:nK), 
                               paste0(ynames, ",", a1,",", a2)])/(nK*length(ynames))
-        
+
         RMSEp[RMSEp$alpha1 == a1 & RMSEp$alpha2 == a2, "RMSEp"] <- RMSEp.val
       }
     }

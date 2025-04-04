@@ -1,6 +1,6 @@
 ## Aditi M. Bhangale
-## Last updated: 10 March 2025
-## Fixes and improvements: 3 March 2025 (Julian D. Karch)
+## Last updated: 14 April 2025
+## Fixes and improvements: 4 April 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## SEM on political democracy dataset
@@ -43,9 +43,9 @@ gendat <- function(ntrain, ntest, std.data, misspecify, mod = pol_model,
                                   ifelse(is.na(reg.strength), NA, reg.strength), 
                                   '*x1')), sep = "\n")
   # add additional direct effect and covariance/correlation for misspecification
-  
-  if(!misspecify & (!is.na(cor.strength) | !is.na(reg.strength))) message("`cor.strength` and `reg.strength` not used unless `misspecify = T`")
-  
+
+  if (!misspecify && (!is.na(cor.strength) || !is.na(reg.strength))) message("`cor.strength` and `reg.strength` not used unless `misspecify = T`")
+
   if (!std.data) {
     fit <- sem(mod, data = PoliticalDemocracy, std.lv = T, meanstructure = T) 
     # mean structure is saturated, UVI constraint
