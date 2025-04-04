@@ -25,17 +25,16 @@ partition <- function(dat, K, nK, seed) { # input here is the calibration data
   # observations per part
   partidx <- sample(partvec, nrow(dat), replace = F)
 
-  final <- list()
+  final <- vector("list", K)
 
-  for (k in 1:K) {
-    assign(paste0("test", k), dat[partidx == k, ])
-    assign(paste0("train", k), dat[partidx != k, ])
+  for (k in seq_len(K)) {
+    test <- dat[partidx == k, ]
+    train <- dat[partidx != k, ]
 
-    final[[paste0("part", k)]] <- list(
-      train = get(paste0("train", k)),
-      test = get(paste0("test", k))
-    )
+    final[[k]] <- list(train = train, test = test)
   }
+
+  names(final) <- paste0("part", seq_len(K)) # not needed maybe?
 
   return(final)
 }
