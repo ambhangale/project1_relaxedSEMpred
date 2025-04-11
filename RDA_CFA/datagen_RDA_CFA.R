@@ -10,7 +10,7 @@
 
 library(mvtnorm)
 library(lavaan)
-library(portableParallelSeeds) # remotes::install_github("wjakethompson/portableParallelSeeds")
+library(portableParallelSeeds)
 
 mod1 <- '
 # factor loadings
