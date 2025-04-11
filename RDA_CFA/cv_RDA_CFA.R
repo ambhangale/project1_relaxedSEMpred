@@ -204,7 +204,7 @@ predict.y.alpha <- function(dat, K, nK,
           paste0(ynames, ",", a1, ",", a2)
         ]) / (nK * length(ynames))
 
-        RMSEp[RMSEp$alpha1 == a1 & RMSEp$alpha2 == a2, "RMSEp"] <- RMSEp.val
+        RMSEp[RMSEp$alpha1 == a1 && RMSEp$alpha2 == a2, "RMSEp"] <- RMSEp.val
       }
     }
   }
