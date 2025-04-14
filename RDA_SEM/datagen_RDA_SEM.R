@@ -1,6 +1,6 @@
 ## Aditi M. Bhangale
 ## Last updated: 14 April 2025
-## Fixes and improvements: 4 April 2025 (Julian D. Karch)
+## Fixes and improvements: 4 April 2025 (Julian D. Karch) 
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## SEM on political democracy dataset
