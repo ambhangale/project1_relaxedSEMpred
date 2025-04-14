@@ -12,7 +12,7 @@
 library(here)
 source(here("RDA_CFA", "datagen_RDA_CFA.R"))
 
-# dat <- gendat(sampID = 1, nCal = 250, nPred = 250, misspecify = F, seed = 10824) # dummy data for now
+# dat <- gendat(sampID = 2, nCal = 250, nPred = 250, misspecify = F, seed = 10824) # dummy data for now
 # calibration <- dat$calibration; prediction <- dat$prediction
 
 # function to partition data into K parts----
@@ -213,22 +213,41 @@ predict.y.alpha <- function(dat, K, nK,
 #----
 
 # prediction rule with cross-validation----
-predict.y.cv <- function(sampID, nCal, nPred, misspecify,
-                         alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
+predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
+                         alpha1, alpha2,
                          K = 10, nK = NULL, 
                          xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
                          seed = 10824) {
   t0 <- Sys.time()
-  dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify, seed = seed)
+  dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, 
+                misspecify = misspecify, seed = seed)
   calibration <- dat$calibration # calibration set
   prediction  <- dat$prediction # prediction set
   
+  if (CV) {
   nK <- ifelse(is.null(nK), nCal/K, nK) # compute nK manually if left blank
   
-  alpha.vals <- predict.y.alpha(dat = calibration, K = K, nK = nK,
-                                alpha1 = alpha1, alpha2 = alpha2,
-                                xnames = xnames, ynames = ynames, 
-                                seed = seed)
+  if (is.numeric(alpha1) && is.numeric(alpha2) && 
+      length(alpha1) > 1L && length(alpha2) > 1L && 
+      all(0L <= alpha1) && all(alpha1 <= 1L) && 
+      all(0L <= alpha2) && all(alpha2 <= 1L)) {
+    alpha.vals <- predict.y.alpha(dat = calibration, K = K, nK = nK,
+                                  alpha1 = alpha1, alpha2 = alpha2,
+                                  xnames = xnames, ynames = ynames, 
+                                  seed = seed)
+  } else {
+    stop("specify numeric vectors with length > 1L and only containing values between 
+         0 and 1 for `alpha1` and `alpha2` when `CV = TRUE`")
+  }
+  } else {
+    if (is.numeric(alpha1) && is.numeric(alpha2) && 
+        length(alpha1) == 1L && length(alpha2) == 1L &&
+        0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
+      alpha.vals <- list(alpha1 = alpha1, alpha2 = alpha2)
+    } else {
+      stop("specify numeric values between 0 and 1 for `alpha1` and `alpha2` when `CV = FALSE`")
+    }
+  }
   
   fit <- fitmod(dat = calibration) # model fitted on complete calibration set
   
@@ -274,6 +293,7 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify,
   attr(final, "nCal")         <- nCal
   attr(final, "nPred")        <- nPred
   attr(final, "misspecify")   <- misspecify
+  attr(final, "CV")           <- CV
   attr(final, "alpha1")       <- alpha.vals$alpha1
   attr(final, "alpha2")       <- alpha.vals$alpha2
   attr(final, "K")            <- K
@@ -290,7 +310,8 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify,
 }
 
 # t0 <- Sys.time()
-# bar <- predict.y.cv(sampID = 1, nCal = 250, nPred = 250, misspecify = F)
+# bar <- predict.y.cv(sampID = 1, nCal = 250, nPred = 250, misspecify = F, CV = T,
+#                     alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1))
 # t1 <- Sys.time()
 # diff <- difftime(t1,t0,"sec")
 
