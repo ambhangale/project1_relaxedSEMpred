@@ -10,6 +10,7 @@
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
 
 library(here)
+library(glmnet)
 source(here("RDA_CFA", "datagen_RDA_CFA.R"))
 
 # dat <- gendat(sampID = 2, nCal = 250, nPred = 250, misspecify = F, seed = 10824) # dummy data for now
@@ -400,5 +401,7 @@ predict.y.en <- function(sampID, nCal, nPred, misspecify,
   
   return(final)
 }
+
+predict.y.en(sampID = 1, nCal = 250, nPred = 250, misspecify = F)
 
 #----
