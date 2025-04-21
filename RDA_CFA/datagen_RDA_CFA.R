@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 15 April 2025
+## Last updated: 21 April 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -12,6 +12,14 @@ library(mvtnorm)
 library(lavaan)
 library(portableParallelSeeds) # remotes::install_github("wjakethompson/portableParallelSeeds")
 
+# create seed object for data generation and partition generation----
+allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
+
+# possible to run sampIDs 1:5000. adjust nReps if we want to go higher.
+# 2 streams. stream 1 to be used for data generation and stream 2 to be used for partitioning
+#----
+
+# correctly specified and misspecified models----
 mod1 <- '
 # factor loadings
 F1 =~ 0.67*x1 + 0.71*x2 + 0.58*x3 + 0.83*x4 + 0.64*x5 + 0.55*x6 + 0.68*x7
@@ -73,15 +81,21 @@ x6 ~ 0.66*1
 x7 ~ 0.54*1
 '
 
-gendat <- function(sampID = NULL, nCal, nPred, misspecify, seed) {
+#----
+
+# data generation function----
+gendat <- function(sampID = NULL, nCal, nPred, misspecify, seed = NULL) {
   
   if (!is.null(sampID)) {
-    # create multiple seeds, so that same data is generated each time when a specific `sampID` is used
-    allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 1, seed = seed)
-    
-    setSeeds(projSeeds = allSeeds, run = sampID) # set seed based on `sampID`
+    # set seed based on `sampID`
+    setSeeds(projSeeds = allSeeds, run = sampID)
+    useStream(1) # use the first stream of the `sampID` rep for data generation
   } else {
-    set.seed(seed)
+    if (!is.null(seed)) {
+      set.seed(seed)
+    } else {
+      stop("specify `seed` argument if `sampID` is left blank") 
+    }
   }
   
   # (do not) fit model, return start values
@@ -105,13 +119,13 @@ gendat <- function(sampID = NULL, nCal, nPred, misspecify, seed) {
   attr(datlist, "nCal")       <- nCal
   attr(datlist, "nPred")      <- nPred
   attr(datlist, "misspecify") <- misspecify
-  attr(datlist, "seed")       <- seed
+  attr(datlist, "seed")       <- ifelse(!is.null(seed), seed, NA)
   
   return(datlist)
 }
 
 # test function
-# gendat(sampID = 1, nCal = 20, nPred = 25, misspecify = F, seed = 10824)
-# gendat(sampID = 1, nCal = 25, nPred = 20, misspecify = T, seed = 10824)
-
+# gendat(sampID = 1, nCal = 20, nPred = 25, misspecify = F)
+# gendat(sampID = 1, nCal = 25, nPred = 20, misspecify = T)
+#----
 
