@@ -104,6 +104,7 @@ x7 ~ 1
 }
 
 # fitmod(calibration)
+
 #----
 
 # prediction rule----
@@ -151,9 +152,9 @@ predict.y <- function(calidat, preddat, califit,
 #----
 
 # prediction for the K partitions----
-predict.y.part <- function(dat, K, nK, 
-                           alpha1, alpha2, xnames, ynames, seed) { #TODO is seed argument necessary? I don't think so?
-  partdat <- partition(dat = dat, K = K, nK = nK, seed = seed) # partitioned data
+predict.y.part <- function(sampID = NULL, dat, K, nK, 
+                           alpha1, alpha2, xnames, ynames, seed = NULL) {
+  partdat <- partition(sampID = sampID, dat = dat, K = K, nK = nK, seed = seed) # partitioned data
   
   # row and column names
   # FIXME JDK: would abandon this in favour of array, see previous comment 
@@ -164,7 +165,7 @@ predict.y.part <- function(dat, K, nK,
                     1, paste0, collapse = ",") 
   # use as.character() above to paste only 0/1 instead of 0.0 and 1.0
   # because in the for loops, a1/a2 are 0/1 not 0.0/0.1
-  # FIXME JDK: below, K*nL will not always work (when n is not divisible by K) 
+  # FIXME JDK: below, K*nK will not always work (when n is not divisible by K) 
   # FIXME JDK: I would recommend using an array instead of dim (n, length(alpha1), length(alpha2), length(ynames)) 
   sqdevmat <- matrix(NA, K*nK, length(alpha1)*length(alpha2)*length(ynames),
                     dimnames = list(mat.rows, mat.cols)) # matrix with squared deviations
@@ -189,10 +190,9 @@ predict.y.part <- function(dat, K, nK,
 }
 
 # t0 <- Sys.time()
-# foo <- predict.y.part(dat = calibration, K = 10, nK = 25,
+# foo <- predict.y.part(sampID = 2, dat = calibration, K = 10, nK = 25,
 #                       alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
-#                       xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
-#                       seed = 10824)
+#                       xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
 # diff <- difftime(t1, t0, "sec")
 
