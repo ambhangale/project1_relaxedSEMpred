@@ -45,31 +45,25 @@ partidx <- function(ndat, sampID = NULL, K, nK, seed = NULL) {
 #----
 
 # function to partition data into K parts----
-partition <- function(dat, K, nK, seed) { # input here is the calibration data
+partition <- function(sampID = NULL, dat, K, nK, seed = NULL) { # input here is the calibration data
   
-  set.seed(seed)
-  
-  partvec <- rep(1:K, nK)
-  
-  # randomly assign observations to one of the K parts such that there are nK 
-  # observations per part
-  partidx <- sample(partvec, nrow(dat), replace = F)
+  partid <- partidx(ndat = nrow(dat), sampID = sampID, K = K, nK = nK, seed = seed)
   
   final <- vector("list", K)
   
   for (k in seq_len(K)) {
-    test  <- dat[partidx == k, ]
-    train <- dat[partidx != k, ]
+    test  <- dat[partid == k, ]
+    train <- dat[partid != k, ]
     
     final[[k]] <- list(train = train, test = test)
   }
   
-  names(final) <- paste0("part", seq_len(K)) #FIXME maybe not needed? never used, i think
+  # names(final) <- paste0("part", seq_len(K)) #FIXME maybe not needed? never used, i think
   
   return(final)
 }
 
-# partition(calibration, K = 10, nK = 25, seed = 10824) # test function
+# partition(sampID = 2, dat = calibration, K = 10, nK = 25) # test function
 
 #----
 
