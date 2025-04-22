@@ -199,9 +199,9 @@ predict.y.part <- function(sampID = NULL, dat, K, nK,
 #----
 
 # compute RMSEp(r) for each alpha1,alpha2 combination and return alpha1,2 values with min(RMSEp)----
-predict.y.alpha <- function(dat, K, nK, 
-                            alpha1, alpha2, xnames, ynames, seed) {
-  sqdevmat <- predict.y.part(dat = dat, K = K, nK = nK, alpha1 = alpha1,
+predict.y.alpha <- function(sampID = NULL, dat, K, nK, 
+                            alpha1, alpha2, xnames, ynames, seed = NULL) {
+  sqdevmat <- predict.y.part(sampID = sampID, dat = dat, K = K, nK = nK, alpha1 = alpha1,
                             alpha2 = alpha2, xnames = xnames, ynames = ynames, 
                             seed = seed)
   
@@ -229,10 +229,9 @@ predict.y.alpha <- function(dat, K, nK,
  return(list(alpha1 = min.RMSE.val$alpha1, alpha2 = min.RMSE.val$alpha2))  
 }
 
-# predict.y.alpha(dat = calibration, K = 10, nK = 25,
+# predict.y.alpha(sampID = 2, dat = calibration, K = 10, nK = 25,
 #                 alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
-#                 xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
-#                 seed = 10824)
+#                 xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
 
