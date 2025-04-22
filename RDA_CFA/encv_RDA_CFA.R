@@ -10,7 +10,7 @@ library(glmnet) # to perform elastic net regression
 source(here("RDA_CFA", "part_RDA_CFA.R")) 
 
 # prediction with an elastic net regresison model----
-predict.y.en <- function(sampID, nCal, nPred, misspecify, 
+en.predict.y <- function(sampID, nCal, nPred, misspecify, 
                          alphas = seq(0,1,0.1), 
                          xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
                          seed = 10824) {
@@ -92,6 +92,6 @@ predict.y.en <- function(sampID, nCal, nPred, misspecify,
   return(final)
 }
 
-# predict.y.en(sampID = 1, nCal = 250, nPred = 250, misspecify = F)
+# en.predict.y(sampID = 1, nCal = 250, nPred = 250, misspecify = F)
 
 #----

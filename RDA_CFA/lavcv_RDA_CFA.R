@@ -49,7 +49,7 @@ x7 ~ 1
 #----
 
 # prediction rule----
-predict.y <- function(calidat, preddat, califit, 
+lav.predict.y <- function(calidat, preddat, califit, 
                       alpha1, alpha2, xnames, ynames) {
   # rescale covariance matrix to scale as `lavaan` does
   S <- (cov(calidat)*(nrow(calidat)-1)) / nrow(calidat)
@@ -87,13 +87,13 @@ predict.y <- function(calidat, preddat, califit,
 }
 
 # fit <- fitmod(dat = calibration)
-# predict.y(calibration, prediction, fit, alpha1 = 0.5, alpha2 = 0.3,
+# lav.predict.y(calibration, prediction, fit, alpha1 = 0.5, alpha2 = 0.3,
 #           xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
 
 # prediction for the K partitions----
-predict.y.part <- function(sampID = NULL, dat, K, nK, 
+lav.predict.y.part <- function(sampID = NULL, dat, K, nK, 
                            alpha1, alpha2, xnames, ynames, seed = NULL) {
   partdat <- partition(sampID = sampID, dat = dat, K = K, nK = nK, seed = seed) # partitioned data
   
@@ -116,7 +116,7 @@ predict.y.part <- function(sampID = NULL, dat, K, nK,
       for (a2 in alpha2) {
         fitpart <- fitmod(dat = partdat[[k]]$train) # fit to only the training data
         
-        predpart <- predict.y(calidat = partdat[[k]]$train,
+        predpart <- lav.predict.y(calidat = partdat[[k]]$train,
                               preddat = partdat[[k]]$test,
                               califit = fitpart,
                               alpha1 = a1, alpha2 = a2, xnames = xnames,
@@ -131,7 +131,7 @@ predict.y.part <- function(sampID = NULL, dat, K, nK,
 }
 
 # t0 <- Sys.time()
-# foo <- predict.y.part(sampID = 2, dat = calibration, K = 10, nK = 25,
+# foo <- lav.predict.y.part(sampID = 2, dat = calibration, K = 10, nK = 25,
 #                       alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
 #                       xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
@@ -140,9 +140,9 @@ predict.y.part <- function(sampID = NULL, dat, K, nK,
 #----
 
 # compute RMSEp(r) for each alpha1,alpha2 combination and return alpha1,2 values with min(RMSEp)----
-predict.y.alpha <- function(sampID = NULL, dat, K, nK, 
+lav.predict.y.alpha <- function(sampID = NULL, dat, K, nK, 
                             alpha1, alpha2, xnames, ynames, seed = NULL) {
-  sqdevmat <- predict.y.part(sampID = sampID, dat = dat, K = K, nK = nK, alpha1 = alpha1,
+  sqdevmat <- lav.predict.y.part(sampID = sampID, dat = dat, K = K, nK = nK, alpha1 = alpha1,
                              alpha2 = alpha2, xnames = xnames, ynames = ynames, 
                              seed = seed)
   
@@ -170,14 +170,14 @@ predict.y.alpha <- function(sampID = NULL, dat, K, nK,
   return(list(alpha1 = min.RMSE.val$alpha1, alpha2 = min.RMSE.val$alpha2))  
 }
 
-# predict.y.alpha(sampID = 2, dat = calibration, K = 10, nK = 25,
+# lav.predict.y.alpha(sampID = 2, dat = calibration, K = 10, nK = 25,
 #                 alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
 #                 xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
 
 # prediction rule with cross-validation----
-predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
+lav.predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
                          alpha1, alpha2,
                          K = 10, nK = NULL, 
                          xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
@@ -195,7 +195,7 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
         length(alpha1) > 1L && length(alpha2) > 1L && 
         all(0L <= alpha1) && all(alpha1 <= 1L) && 
         all(0L <= alpha2) && all(alpha2 <= 1L)) {
-      alpha.vals <- predict.y.alpha(sampID = sampID, dat = calibration, K = K, nK = nK,
+      alpha.vals <- lav.predict.y.alpha(sampID = sampID, dat = calibration, K = K, nK = nK,
                                     alpha1 = alpha1, alpha2 = alpha2,
                                     xnames = xnames, ynames = ynames) # always require `sampID` when called in predict.y.cv()
     } else {
@@ -214,7 +214,7 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
   
   fit <- fitmod(dat = calibration) # model fitted on complete calibration set
   
-  predVals <- predict.y(calidat = calibration, preddat = prediction,
+  predVals <- lav.predict.y(calidat = calibration, preddat = prediction,
                         califit = fit, alpha1 = alpha.vals$alpha1,
                         alpha2 = alpha.vals$alpha2,
                         xnames = xnames, ynames = ynames)
@@ -274,7 +274,7 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
 }
 
 # t0 <- Sys.time()
-# bar <- predict.y.cv(sampID = 1, nCal = 250, nPred = 250, misspecify = F, CV = T,
+# bar <- lav.predict.y.cv(sampID = 1, nCal = 250, nPred = 250, misspecify = F, CV = T,
 #                     alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1))
 # t1 <- Sys.time()
 # diff <- difftime(t1,t0,"sec")
