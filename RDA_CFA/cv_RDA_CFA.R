@@ -240,10 +240,10 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
                          alpha1, alpha2,
                          K = 10, nK = NULL, 
                          xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
-                         seed = 10824) {
+                         seed = NULL) {
   t0 <- Sys.time()
   dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, 
-                misspecify = misspecify, seed = seed)
+                misspecify = misspecify) # always require `sampID` when called in predict.y.cv()
   calibration <- dat$calibration # calibration set
   prediction  <- dat$prediction # prediction set
   
@@ -254,10 +254,9 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
       length(alpha1) > 1L && length(alpha2) > 1L && 
       all(0L <= alpha1) && all(alpha1 <= 1L) && 
       all(0L <= alpha2) && all(alpha2 <= 1L)) {
-    alpha.vals <- predict.y.alpha(dat = calibration, K = K, nK = nK,
+    alpha.vals <- predict.y.alpha(sampID = sampID, dat = calibration, K = K, nK = nK,
                                   alpha1 = alpha1, alpha2 = alpha2,
-                                  xnames = xnames, ynames = ynames, 
-                                  seed = seed)
+                                  xnames = xnames, ynames = ynames) # always require `sampID` when called in predict.y.cv()
   } else {
     stop("specify numeric vectors with length > 1L and only containing values between 
          0 and 1 for `alpha1` and `alpha2` when `CV = TRUE`")
@@ -313,7 +312,7 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
   diff <- difftime(t1, t0, "sec")
   
   # save all arguments as attributes, just in case we need them later
-  attr(final, "sampID")       <- sampID
+  attr(final, "sampID")      <- ifelse(!is.null(sampID), sampID, NA)
   attr(final, "nCal")         <- nCal
   attr(final, "nPred")        <- nPred
   attr(final, "misspecify")   <- misspecify
@@ -326,7 +325,7 @@ predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
   attr(final, "PD.ov")        <- PD.ov
   attr(final, "xnames")       <- xnames
   attr(final, "ynames")       <- ynames
-  attr(final, "seed")         <- seed
+  attr(final, "seed")         <- ifelse(!is.null(seed), seed, NA)
   attr(final, "runtime")      <- diff
   
   return(final)
