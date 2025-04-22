@@ -12,25 +12,24 @@ source(here("RDA_CFA", "part_RDA_CFA.R"))
 # prediction with an elastic net regresison model----
 en.predict.y <- function(sampID, nCal, nPred, misspecify, 
                          alphas = seq(0,1,0.1), 
+                         K, nK,
                          xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
-                         seed = 10824) {
+                         seed = NULL) {
   t0 <- Sys.time()
   dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, 
-                misspecify = misspecify, seed = seed)
+                misspecify = misspecify)
   calibration <- dat$calibration # calibration set
   prediction  <- dat$prediction # prediction set
   
-  cv.errors <- rep(NA, length(alphas)) 
+  part.id <- partidx(ndat = nCal, sampID = sampID, K = K, nK = nK) # always require `sampID` when called in predict.y.cv()
   
-  # FIXME if i want to use same partitions for CV in my rule + en 
-  # TODO can create a separate `partidx()` function that only comes up with partition assignments
-  # TODO can replace redundant code in `partition()` function if i do the above
-  # TODO can just include `foldid = (output of partidx() function)` in `cv.glmnet()`
+  cv.errors <- rep(NA, length(alphas)) 
   
   for (a in 1:length(alphas)) { # returns the optimal elastic net mixing parameter
     # save the minimum cross-validated error for each value in `alphas`
     cv.errors[a] <- min(cv.glmnet(x = dat$calibration[, xnames],
                                   y = dat$calibration[, ynames], 
+                                  foldid = part.id,
                                   family = "mgaussian", alpha = alphas[a])$cvm) 
     # above, use default lambda sequence because that's what Mark did in the original simulation 
   }
@@ -39,6 +38,7 @@ en.predict.y <- function(sampID, nCal, nPred, misspecify,
   
   lambda <- cv.glmnet(x = dat$calibration[, xnames],
                       y = dat$calibration[, ynames], 
+                      foldid = part.id,
                       family = "mgaussian", 
                       alpha = min.alpha)$lambda.min # minimum/optimal tuning parameter (lambda) value
   
@@ -86,12 +86,12 @@ en.predict.y <- function(sampID, nCal, nPred, misspecify,
   attr(final, "lambda")       <- lambda
   attr(final, "xnames")       <- xnames
   attr(final, "ynames")       <- ynames
-  attr(final, "seed")         <- seed
+  attr(final, "seed")         <- ifelse(!is.null(seed), seed, NA)
   attr(final, "runtime")      <- diff
   
   return(final)
 }
 
-# en.predict.y(sampID = 1, nCal = 250, nPred = 250, misspecify = F)
+# en.predict.y(sampID = 1, nCal = 250, nPred = 250, misspecify = F, K = 10, nK = 25)
 
 #----
