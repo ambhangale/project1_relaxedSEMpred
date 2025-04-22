@@ -103,6 +103,7 @@ x7 ~ 1
   return(fit)
 }
 
+# fitmod(calibration)
 #----
 
 # prediction rule----
