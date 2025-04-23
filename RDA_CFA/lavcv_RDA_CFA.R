@@ -56,7 +56,10 @@ lav.predict.y <- function(calidat, preddat, califit,
   S_xx <- S[xnames, xnames]
   S_yx <- S[ynames, xnames] ## using _yx to avoid using t()
   
-  X0    <- preddat[,xnames] # predictor values from preddat to be inputted into formulae
+  # values from prediction dataset
+  X0    <- preddat[,xnames] # to be inputted into formulae
+  Ytrue <- preddat[,ynames] # true Y values from prediction dataset
+  # Ytrue will be used to compute squared deviations in `lav.predict.y.part()`
   
   ImpliedStats <- lavInspect(califit, "implied")
   Sigma_xx     <- ImpliedStats$cov[xnames, xnames]
@@ -72,7 +75,9 @@ lav.predict.y <- function(calidat, preddat, califit,
     stop("specify values between 0 and 1 for `alpha1` and `alpha2`")
   }
   
-  return(Ypred) 
+  final <- list(Ypred = Ypred, Ytrue = Ytrue)
+  
+  return(final) 
   
 }
 
