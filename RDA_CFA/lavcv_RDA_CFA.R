@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 22 April 2025
+## Last updated: 23 April 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -56,18 +56,13 @@ lav.predict.y <- function(calidat, preddat, califit,
   S_xx <- S[xnames, xnames]
   S_yx <- S[ynames, xnames] ## using _yx to avoid using t()
   
-  # values from prediction dataset
-  X0    <- preddat[,xnames] # to be inputted into formulae
-  Ytrue <- preddat[,ynames] # true Y values from prediction dataset
+  X0    <- preddat[,xnames] # predictor values from preddat to be inputted into formulae
   
   ImpliedStats <- lavInspect(califit, "implied")
   Sigma_xx     <- ImpliedStats$cov[xnames, xnames]
   Sigma_yx     <- ImpliedStats$cov[ynames, xnames] ## using _yx to avoid using t()
   Mu_x         <- ImpliedStats$mean[xnames]
   Mu_y         <- ImpliedStats$mean[ynames]
-  
-  PD.lv <- ifelse(!all(eigen(lavInspect(califit, "cov.lv"))$values > 0), F, T)
-  PD.ov <- ifelse(!all(eigen(lavInspect(califit, "cov.ov"))$values > 0), F, T)
   
   if (0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
     Ypred <- t(Mu_y + ((1-alpha2)*Sigma_yx + alpha2*S_yx) %*% 
@@ -77,12 +72,7 @@ lav.predict.y <- function(calidat, preddat, califit,
     stop("specify values between 0 and 1 for `alpha1` and `alpha2`")
   }
   
-  final <- list(Ypred = Ypred, Ytrue = Ytrue)
-  
-  attr(final, "PD.lv")        <- PD.lv
-  attr(final, "PD.ov")        <- PD.ov
-  
-  return(final) 
+  return(Ypred) 
   
 }
 
@@ -184,7 +174,7 @@ lav.predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
                          seed = NULL) {
   t0 <- Sys.time()
   dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, 
-                misspecify = misspecify) # always require `sampID` when called in predict.y.cv()
+                misspecify = misspecify) # always require `sampID` when called in lav.predict.y.cv()
   calibration <- dat$calibration # calibration set
   prediction  <- dat$prediction # prediction set
   
@@ -253,7 +243,7 @@ lav.predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
   diff <- difftime(t1, t0, "sec")
   
   # save all arguments as attributes, just in case we need them later
-  attr(final, "sampID")      <- ifelse(!is.null(sampID), sampID, NA)
+  attr(final, "sampID")       <- sampID
   attr(final, "nCal")         <- nCal
   attr(final, "nPred")        <- nPred
   attr(final, "misspecify")   <- misspecify
