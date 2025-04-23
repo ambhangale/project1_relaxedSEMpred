@@ -37,10 +37,13 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
   
   Ypred <- as.matrix(predict(out, newx = preddat[,xnames], s = lambda)[,,1])
   
+  attr(Ypred, "alpha")  <- min.alpha # en mixing parameter
+  attr(Ypred, "lambda") <- lambda # tuning parameter
+  
   return(Ypred)
 }
 
-# en.predict.y.cv(calidat = calibration, preddat = prediction, alphas = seq(0,1,0.1), 
+# en.predict.y.cv(calidat = calibration, preddat = prediction, alphas = seq(0,1,0.1),
 #                 partid = part.ids, xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
