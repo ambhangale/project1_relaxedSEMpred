@@ -204,6 +204,10 @@ lav.predict.y.cv <- function(calidat, preddat, califit, CV,
                          alpha2 = alpha.vals$alpha2,
                          xnames = xnames, ynames = ynames)$Ypred
   
+  attr(Ypred, "CV")     <- CV # was cross-validation performed?
+  attr(Ypred, "alpha1") <- alpha.vals$alpha1 # for xx part
+  attr(Ypred, "alpha2") <- alpha.vals$alpha2 # for xy part
+  
   return(Ypred)
   
 }
