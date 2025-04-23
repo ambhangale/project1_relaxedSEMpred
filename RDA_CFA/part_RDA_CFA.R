@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 22 April 2025
+## Last updated: 23 April 2025
 ## Fixes and improvements: 4 April 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
@@ -44,9 +44,7 @@ partidx <- function(ndat, sampID = NULL, K, nK, seed = NULL) {
 #----
 
 # function to partition data into K parts----
-partition <- function(sampID = NULL, dat, K, nK, seed = NULL) { # input here is the calibration data
-  
-  partid <- partidx(ndat = nrow(dat), sampID = sampID, K = K, nK = nK, seed = seed)
+partition <- function(partid, dat, K) { # input here is the calibration data
   
   final <- vector("list", K)
   
@@ -62,6 +60,8 @@ partition <- function(sampID = NULL, dat, K, nK, seed = NULL) { # input here is 
   return(final)
 }
 
-# partition(sampID = 2, dat = calibration, K = 10, nK = 25) # test function
+# part.ids <- partidx(ndat = 250, sampID = 2, K = 10, nK = 25)
+# partition(partid = part.ids, dat = calibration, K = 10) # test function
 
 #----
+
