@@ -172,27 +172,20 @@ lav.predict.y.alpha <- function(sampID = NULL, dat, K, nK,
 #----
 
 # prediction rule with cross-validation----
-lav.predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
-                         alpha1, alpha2,
-                         K = 10, nK = NULL, 
-                         xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
-                         seed = NULL) {
-  t0 <- Sys.time()
-  dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, 
-                misspecify = misspecify) # always require `sampID` when called in lav.predict.y.cv()
-  calibration <- dat$calibration # calibration set
-  prediction  <- dat$prediction # prediction set
+lav.predict.y.cv <- function(sampID, calidat, preddat, califit, CV,
+                             alpha1, alpha2,
+                             K, nK, 
+                             xnames, ynames,
+                             seed) {
   
   if (CV) {
-    nK <- ifelse(is.null(nK), nCal/K, nK) # compute nK manually if left blank
-    
     if (is.numeric(alpha1) && is.numeric(alpha2) && 
         length(alpha1) > 1L && length(alpha2) > 1L && 
         all(0L <= alpha1) && all(alpha1 <= 1L) && 
         all(0L <= alpha2) && all(alpha2 <= 1L)) {
-      alpha.vals <- lav.predict.y.alpha(sampID = sampID, dat = calibration, K = K, nK = nK,
-                                    alpha1 = alpha1, alpha2 = alpha2,
-                                    xnames = xnames, ynames = ynames) # always require `sampID` when called in predict.y.cv()
+      alpha.vals <- lav.predict.y.alpha(sampID = sampID, dat = calidat, K = K, nK = nK,
+                                        alpha1 = alpha1, alpha2 = alpha2,
+                                        xnames = xnames, ynames = ynames) # always require `sampID` when called in predict.y.cv()
     } else {
       stop("specify numeric vectors with length > 1L and only containing values between 
          0 and 1 for `alpha1` and `alpha2` when `CV = TRUE`")
@@ -207,70 +200,21 @@ lav.predict.y.cv <- function(sampID, nCal, nPred, misspecify, CV,
     }
   }
   
-  fit <- fitmod(dat = calibration) # model fitted on complete calibration set
+  Ypred <- lav.predict.y(calidat = calidat, preddat = preddat,
+                         califit = califit, alpha1 = alpha.vals$alpha1,
+                         alpha2 = alpha.vals$alpha2,
+                         xnames = xnames, ynames = ynames)$Ypred
   
-  predVals <- lav.predict.y(calidat = calibration, preddat = prediction,
-                        califit = fit, alpha1 = alpha.vals$alpha1,
-                        alpha2 = alpha.vals$alpha2,
-                        xnames = xnames, ynames = ynames)
-  
-  bias <- predVals$Ypred - predVals$Ytrue
-  
-  PD.lv <- attributes(predVals)$PD.lv
-  PD.ov <- attributes(predVals)$PD.ov
-  
-  #TODO add a predType column = "sem.cv", "sem", or "OLS" ?
-  RMSEpr.result <- as.data.frame(cbind(sampID   = sampID, 
-                                       nCal     = nCal, 
-                                       nPred    = nPred, 
-                                       alpha1   = alpha.vals$alpha1, 
-                                       alpha2   = alpha.vals$alpha2,
-                                       PD.lv    = PD.lv,
-                                       PD.ov    = PD.ov,
-                                       meanBias = colMeans(bias),
-                                       RMSEpr   = sqrt(colMeans((bias)^2)),
-                                       yname    = ynames))
-  
-  RMSEp.result <- as.data.frame(cbind(sampID     = sampID, 
-                                      nCal       = nCal, 
-                                      nPred      = nPred, 
-                                      alpha1     = alpha.vals$alpha1, 
-                                      alpha2     = alpha.vals$alpha2,
-                                      PD.lv      = PD.lv,
-                                      PD.ov      = PD.ov,
-                                      misspecify = misspecify,
-                                      RMSEp      = sqrt(sum((bias)^2)/(length(ynames)*nPred))))
-  
-  final <- list(Ypred = predVals$Ypred, Ytrue = predVals$Ytrue, bias = bias,
-                RMSEpr.result = RMSEpr.result, RMSEp.result = RMSEp.result)
-  
-  t1   <- Sys.time()
-  diff <- difftime(t1, t0, "sec")
-  
-  # save all arguments as attributes, just in case we need them later
-  attr(final, "sampID")       <- sampID
-  attr(final, "nCal")         <- nCal
-  attr(final, "nPred")        <- nPred
-  attr(final, "misspecify")   <- misspecify
-  attr(final, "CV")           <- CV
-  attr(final, "alpha1")       <- alpha.vals$alpha1
-  attr(final, "alpha2")       <- alpha.vals$alpha2
-  attr(final, "K")            <- K
-  attr(final, "nK")           <- nK
-  attr(final, "PD.lv")        <- PD.lv
-  attr(final, "PD.ov")        <- PD.ov
-  attr(final, "xnames")       <- xnames
-  attr(final, "ynames")       <- ynames
-  attr(final, "seed")         <- ifelse(!is.null(seed), seed, NA)
-  attr(final, "runtime")      <- diff
-  
-  return(final)
+  return(Ypred)
   
 }
 
 # t0 <- Sys.time()
-# bar <- lav.predict.y.cv(sampID = 1, nCal = 250, nPred = 250, misspecify = F, CV = T,
-#                     alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1))
+# bar <- lav.predict.y.cv(sampID = 2, calidat = calibration, preddat = prediction,
+#                         califit = fit, CV = T,
+#                     alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1), K = 10, nK = 25,
+#                     xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
+#                     seed = NULL)
 # t1 <- Sys.time()
 # diff <- difftime(t1,t0,"sec")
 
