@@ -88,8 +88,8 @@ lav.predict.y <- function(calidat, preddat, califit,
 #----
 
 # prediction for the K partitions----
-lav.predict.y.part <- function(sampID = NULL, dat, K, nK, partid, 
-                           alpha1, alpha2, xnames, ynames, seed = NULL) {
+lav.predict.y.part <- function(dat, K, nK, partid, 
+                           alpha1, alpha2, xnames, ynames) {
   partdat <- partition(partid = partid, dat = dat, K = K) # partitioned data
   
   # row and column names
@@ -126,7 +126,7 @@ lav.predict.y.part <- function(sampID = NULL, dat, K, nK, partid,
 }
 
 # t0 <- Sys.time()
-# foo <- lav.predict.y.part(sampID = 2, dat = calibration, K = 10, nK = 25, partid = part.ids,
+# foo <- lav.predict.y.part(dat = calibration, K = 10, nK = 25, partid = part.ids,
 #                       alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
 #                       xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
@@ -135,11 +135,11 @@ lav.predict.y.part <- function(sampID = NULL, dat, K, nK, partid,
 #----
 
 # compute RMSEp(r) for each alpha1,alpha2 combination and return alpha1,2 values with min(RMSEp)----
-lav.predict.y.alpha <- function(sampID = NULL, dat, K, nK, partid, 
-                            alpha1, alpha2, xnames, ynames, seed = NULL) {
-  sqdevmat <- lav.predict.y.part(sampID = sampID, dat = dat, K = K, nK = nK, 
+lav.predict.y.alpha <- function(dat, K, nK, partid, 
+                            alpha1, alpha2, xnames, ynames) {
+  sqdevmat <- lav.predict.y.part(dat = dat, K = K, nK = nK, 
                                  partid = partid, alpha1 = alpha1, alpha2 = alpha2, 
-                                 xnames = xnames, ynames = ynames, seed = seed)
+                                 xnames = xnames, ynames = ynames)
   
   RMSEp  <- expand.grid(alpha1 = alpha1, alpha2 = alpha2, RMSEp = NA)
   # RMSEp <- matrix(NA, length(alpha1)*length(alpha2), 3,
@@ -165,27 +165,26 @@ lav.predict.y.alpha <- function(sampID = NULL, dat, K, nK, partid,
   return(list(alpha1 = min.RMSE.val$alpha1, alpha2 = min.RMSE.val$alpha2))  
 }
 
-# lav.predict.y.alpha(sampID = 2, dat = calibration, K = 10, nK = 25, partid = part.ids,
+# lav.predict.y.alpha(dat = calibration, K = 10, nK = 25, partid = part.ids,
 #                 alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
 #                 xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
 
 # prediction rule with cross-validation----
-lav.predict.y.cv <- function(sampID, calidat, preddat, califit, CV,
+lav.predict.y.cv <- function(calidat, preddat, califit, CV,
                              alpha1, alpha2,
                              K, nK, partid, 
-                             xnames, ynames,
-                             seed) {
+                             xnames, ynames) {
   
   if (CV) {
     if (is.numeric(alpha1) && is.numeric(alpha2) && 
         length(alpha1) > 1L && length(alpha2) > 1L && 
         all(0L <= alpha1) && all(alpha1 <= 1L) && 
         all(0L <= alpha2) && all(alpha2 <= 1L)) {
-      alpha.vals <- lav.predict.y.alpha(sampID = sampID, dat = calidat, K = K, nK = nK,
+      alpha.vals <- lav.predict.y.alpha(dat = calidat, K = K, nK = nK,
                                         partid = partid, alpha1 = alpha1, alpha2 = alpha2,
-                                        xnames = xnames, ynames = ynames) # always require `sampID` when called in predict.y.cv()
+                                        xnames = xnames, ynames = ynames)
     } else {
       stop("specify numeric vectors with length > 1L and only containing values between 
          0 and 1 for `alpha1` and `alpha2` when `CV = TRUE`")
@@ -210,11 +209,10 @@ lav.predict.y.cv <- function(sampID, calidat, preddat, califit, CV,
 }
 
 # t0 <- Sys.time()
-# bar <- lav.predict.y.cv(sampID = 2, calidat = calibration, preddat = prediction,
+# bar <- lav.predict.y.cv(calidat = calibration, preddat = prediction,
 #                         califit = fit, CV = T,
 #                     alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1), K = 10, nK = 25,
-#                     partid = part.ids, xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
-#                     seed = NULL)
+#                     partid = part.ids, xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
 # diff <- difftime(t1,t0,"sec")
 
