@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 23 April 2025
+## Last updated: 30 April 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -9,16 +9,23 @@ library(here)
 source(here("RDA_CFA", "lavcv_RDA_CFA.R"))
 source(here("RDA_CFA", "encv_RDA_CFA.R")) 
 
+# sampID = 1; nCal = 250; nPred = 250; misspecify = F; lav.CV = T;
+# lav.alpha1 = seq(0,1,0.1); lav.alpha2 = seq(0,1,0.1);
+# en.alphas = seq(0,1,0.1); K = 10; nK = NULL; 
+# xnames = paste0("x", 4:7); ynames = paste0("x", 1:3); seed = NULL
+
 wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
                               lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
                               en.alphas = seq(0,1,0.1), K = 10, nK = NULL, 
                               xnames = paste0("x", 4:7), ynames = paste0("x", 1:3),
                               seed = NULL) {
-  
+  t0 <- Sys.time()
   dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, 
                 misspecify = misspecify) # always require `sampID` when called in this wrapper function
   calibration <- dat$calibration # calibration set
   prediction <- dat$prediction # prediction set
+  
+  Ytrue <- prediction[,ynames] # true values of outcome variable(s)
   
   nK <- ifelse(is.null(nK), nCal/K, nK) # compute nK manually if left blank
   
@@ -32,10 +39,25 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   PD.ov <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.ov"))$values > 0), F, T)
   
   # Predictions using De Rooij et al. (2022) rule
+  DeRooij.t0 <- Sys.time()
   DeRooij.Ypred <- lavPredictY(object = lav.fit, newdata = prediction, 
                                ynames = ynames, xnames = xnames)
+  DeRooij.t1 <- Sys.time()
+  DeRooij.bias <- DeRooij.Ypred - Ytrue
+  DeRooij.meanBias <- colMeans(DeRooij.bias)
+  DeRooij.diff <- difftime(DeRooij.t1, DeRooij.t0, "sec")
+  DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, 
+                         RMSEp = sqrt(sum((DeRooij.bias)^2)/(length(ynames)*nPred)),
+                         runTime = DeRooij.diff)
+  DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov,
+                          yname = ynames, 
+                          meanBias = DeRooij.meanBias,
+                          RMSEpr = sqrt(DeRooij.meanBias^2),
+                          runTime = DeRooij.diff)
+  
   
   # Predictions using ordinary least squares regression
+  OLS.t0 <- Sys.time()
   OLS.Ypred.list <- list()
   for (y in ynames) {
     lmfit <- lm(formula(paste0(y, "~", paste0(xnames, collapse = "+"))), 
@@ -44,18 +66,71 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   }
   OLS.Ypred <- do.call("cbind", OLS.Ypred.list)
   colnames(OLS.Ypred) <- ynames
+  OLS.t1 <- Sys.time()
+  OLS.bias <- OLS.Ypred - Ytrue
+  OLS.meanBias <- colMeans(OLS.bias)
+  OLS.diff <- difftime(OLS.t1, OLS.t0, "sec")
+  OLS.RMSEp <- cbind(method = "OLS", 
+                     RMSEp = sqrt(sum((OLS.bias)^2)/(length(ynames)*nPred)),
+                     runTime = OLS.diff)
+  OLS.RMSEpr <- cbind(method = "OLS", yname = ynames, meanBias = OLS.meanBias, 
+                      RMSEpr = sqrt(OLS.meanBias^2),
+                      runTime = OLS.diff)
   
   # Predictions using regularised SEM rule (with cross-validation)
+  lavcv.t0 <- Sys.time()
   lavcv.Ypred <- lav.predict.y.cv(calidat = calibration, preddat = prediction, 
                                   califit = lav.fit, CV = lav.CV, 
                                   alpha1 = lav.alpha1, alpha2 = lav.alpha2,
                                   K = K, nK = nK, partid = partIDx,
                                   xnames = xnames, ynames = ynames)
+  lavcv.t1 <- Sys.time()
+  lavcv.bias <- lavcv.Ypred - Ytrue
+  lavcv.meanBias <- colMeans(lavcv.bias)
+  lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
+  lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, 
+                       lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
+                       lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
+                       RMSEp = sqrt(sum((lavcv.bias)^2)/(length(ynames)*nPred)),
+                       runTime = lavcv.diff)
+  lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, 
+                        lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
+                        lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
+                        yname = ynames,
+                        meanBias = lavcv.meanBias,
+                        RMSEpr = sqrt(lavcv.meanBias^2),
+                        runTime = lavcv.diff)
   
   # Predictions using elastic net regression (with cross-validation)
+  encv.t0 <- Sys.time()
   encv.Ypred <- en.predict.y.cv(calidat = calibration, preddat = prediction,
                                 alphas = en.alphas, partid = partIDx,
                                 xnames = xnames, ynames = ynames)
+  encv.t1 <- Sys.time()
+  encv.bias <- encv.Ypred - Ytrue
+  encv.meanBias <- colMeans(encv.bias)
+  encv.diff <- difftime(encv.t1, encv.t0, "sec")
+  encv.RMSEp <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
+                      en.lambda = attr(encv.Ypred, "lambda"),
+                      RMSEp = sqrt(sum((encv.bias)^2)/(length(ynames)*nPred)),
+                      runTime = encv.diff)
+  encv.RMSEpr <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
+                       en.lambda = attr(encv.Ypred, "lambda"),
+                       yname = ynames,
+                       meanBias = encv.meanBias,
+                       RMSEpr = sqrt(encv.meanBias^2),
+                       runTime = encv.diff)
+  
+  RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify,
+                 Reduce(function(x,y) merge(x, y, all = T), 
+                        list (DeRooij.RMSEp, OLS.RMSEp, lavcv.RMSEp, encv.RMSEp)))
+  
+  RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify,
+                 Reduce(function(x,y) merge(x, y, all = T), 
+                        list (DeRooij.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
+  
+  t1 <- Sys.time()
+  diff <- difftime(t1, t0, "sec")
   
   return() #TODO
   
