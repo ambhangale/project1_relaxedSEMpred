@@ -132,9 +132,27 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   t1 <- Sys.time()
   diff <- difftime(t1, t0, "sec")
   
-  return() #TODO
+  final <- list(RMSEp = RMSEp, RMSEpr = RMSEpr)
   
-  # TODO separate times saved for each method? & overall time saved as an attribute?
+  attr(final, "sampID")       <- sampID
+  attr(final, "nCal")         <- nCal
+  attr(final, "nPred")        <- nPred
+  attr(final, "misspecify")   <- misspecify
+  attr(final, "lav.CV")       <- lav.CV
+  attr(final, "K")            <- K
+  attr(final, "nK")           <- nK
+  attr(final, "PD.lv")        <- PD.lv
+  attr(final, "PD.ov")        <- PD.ov
+  attr(final, "xnames")       <- xnames
+  attr(final, "ynames")       <- ynames
+  attr(final, "lav.alpha1")   <- attr(lavcv.Ypred, "alpha1")
+  attr(final, "lav.alpha2")   <- attr(lavcv.Ypred, "alpha2")
+  attr(final, "en.alpha")     <- attr(encv.Ypred, "alpha")
+  attr(final, "en.lambda")    <- attr(encv.Ypred, "lambda")
+  attr(final, "seed")         <- ifelse(!is.null(seed), seed, NA)
+  attr(final, "runtime")      <- diff
+  
+  return(final) 
 }
 
 # foo <- wrapper.predict.y(sampID = 1, nCal = 250, nPred = 250, misspecify = F)
