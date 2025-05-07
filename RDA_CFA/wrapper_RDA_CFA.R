@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 30 April 2025
+## Last updated: 7 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -11,7 +11,7 @@ source(here("RDA_CFA", "encv_RDA_CFA.R"))
 
 # sampID = 1; nCal = 250; nPred = 250; misspecify = F; lav.CV = T;
 # lav.alpha1 = seq(0,1,0.1); lav.alpha2 = seq(0,1,0.1);
-# en.alphas = seq(0,1,0.1); K = 10; nK = NULL; 
+# en.alphas = seq(0,1,0.1); K = 10; nK = NULL;
 # xnames = paste0("x", 4:7); ynames = paste0("x", 1:3); seed = NULL
 
 wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
@@ -38,6 +38,13 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   PD.lv <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.lv"))$values > 0), F, T)
   PD.ov <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.ov"))$values > 0), F, T)
   
+  # check whether test for exact fit was rejected or not
+  fit.measures <- fitMeasures(lav.fit)
+  exact.fit    <- ifelse(fit.measures["pvalue"] < .05, "reject", "fail_to_reject")
+  RMSEA        <- fit.measures["rmsea"]
+  RMSEA.lowCI  <- fit.measures["rmsea.ci.lower"]
+  RMSEA.upCI   <- fit.measures["rmsea.ci.upper"]
+  
   # Predictions using De Rooij et al. (2022) rule
   DeRooij.t0 <- Sys.time()
   DeRooij.Ypred <- lavPredictY(object = lav.fit, newdata = prediction, 
@@ -47,9 +54,13 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   DeRooij.meanBias <- colMeans(DeRooij.bias)
   DeRooij.diff <- difftime(DeRooij.t1, DeRooij.t0, "sec")
   DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, 
+                         exact.fit = exact.fit, RMSEA = RMSEA,
+                         RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                          RMSEp = sqrt(sum((DeRooij.bias)^2)/(length(ynames)*nPred)),
                          runTime = DeRooij.diff)
   DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov,
+                          exact.fit = exact.fit, RMSEA = RMSEA,
+                          RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                           yname = ynames, 
                           meanBias = DeRooij.meanBias,
                           RMSEpr = sqrt(DeRooij.meanBias^2),
@@ -89,11 +100,15 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   lavcv.meanBias <- colMeans(lavcv.bias)
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
   lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, 
+                       exact.fit = exact.fit, RMSEA = RMSEA,
+                       RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                        lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                        lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                        RMSEp = sqrt(sum((lavcv.bias)^2)/(length(ynames)*nPred)),
                        runTime = lavcv.diff)
   lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, 
+                        exact.fit = exact.fit, RMSEA = RMSEA,
+                        RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                         lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                         lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                         yname = ynames,
@@ -143,6 +158,10 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   attr(final, "nK")           <- nK
   attr(final, "PD.lv")        <- PD.lv
   attr(final, "PD.ov")        <- PD.ov
+  attr(final, "exact.fit")    <- exact.fit
+  attr(final, "RMSEA")        <- RMSEA
+  attr(final, "RMSEA.lowCI")  <- RMSEA.lowCI
+  attr(final, "RMSEA.upCI")   <- RMSEA.upCI
   attr(final, "xnames")       <- xnames
   attr(final, "ynames")       <- ynames
   attr(final, "lav.alpha1")   <- attr(lavcv.Ypred, "alpha1")
