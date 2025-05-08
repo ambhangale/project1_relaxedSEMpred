@@ -3,7 +3,7 @@
 ## Fixes and improvements: 4 April 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
-## CFA example
+# relaxed SEM
 ### functions to create data partitions/folds
 
 # getwd()

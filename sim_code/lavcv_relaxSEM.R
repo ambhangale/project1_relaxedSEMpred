@@ -2,7 +2,7 @@
 ## Last updated: 8 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
-## CFA example
+# relaxed SEM
 ### functions to test the prediction rule in a k-fold cross-validation setting
 
 library(here)

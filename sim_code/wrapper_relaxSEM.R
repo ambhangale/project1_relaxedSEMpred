@@ -2,7 +2,7 @@
 ## Last updated: 8 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
-## CFA example
+# relaxed SEM
 ### wrapper function for De Rooij, OLS, lavcv, and encv rules
 
 library(here)
