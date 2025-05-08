@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 23 April 2025
+## Last updated: 8 May 2025
 ## Fixes and improvements: 4 April 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
