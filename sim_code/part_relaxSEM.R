@@ -10,7 +10,7 @@
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
 
 library(here)
-source(here("RDA_CFA", "datagen_RDA_CFA.R"))
+source(here("sim_code", "datagen_relaxSEM.R"))
 
 # dat <- gendat(sampID = 2, nCal = 250, nPred = 250, misspecify = F, seed = 10824) # dummy data for now
 # calibration <- dat$calibration; prediction <- dat$prediction

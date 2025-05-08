@@ -6,8 +6,8 @@
 ### wrapper function for De Rooij, OLS, lavcv, and encv rules
 
 library(here)
-source(here("RDA_CFA", "lavcv_RDA_CFA.R"))
-source(here("RDA_CFA", "encv_RDA_CFA.R")) 
+source(here("sim_code", "lavcv_relaxSEM.R"))
+source(here("sim_code", "encv_relaxSEM.R")) 
 
 # sampID = 1; nCal = 250; nPred = 250; misspecify = F; lav.CV = T;
 # lav.alpha1 = seq(0,1,0.1); lav.alpha2 = seq(0,1,0.1);

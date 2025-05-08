@@ -6,7 +6,7 @@
 ### functions to test the prediction rule in a k-fold cross-validation setting
 
 library(here)
-source(here("RDA_CFA", "part_RDA_CFA.R"))
+source(here("sim_code", "part_relaxSEM.R"))
 
 # fit model in lavaan----
 fitmod <- function(dat) {

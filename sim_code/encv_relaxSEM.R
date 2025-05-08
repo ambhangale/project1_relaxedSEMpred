@@ -7,7 +7,7 @@
 
 library(here)
 library(glmnet) # to perform elastic net regression
-source(here("RDA_CFA", "part_RDA_CFA.R")) 
+source(here("sim_code", "part_relaxSEM.R")) 
 
 # prediction with an elastic net regresison model with cross-validation----
 en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
