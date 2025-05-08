@@ -42,7 +42,7 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
                 family = "gaussian", alpha = min.alpha, 
                 standardize = T, standardize.response = F) # final model to use for predicting new values
   
-  Ypred <- as.matrix(predict(out, newx = preddat[,xnames], s = lambda)[,,1])
+  Ypred <- as.matrix(predict(out, newx = preddat[,xnames], s = lambda)[,1])
   
   attr(Ypred, "alpha")  <- min.alpha # en mixing parameter
   attr(Ypred, "lambda") <- lambda # tuning parameter
