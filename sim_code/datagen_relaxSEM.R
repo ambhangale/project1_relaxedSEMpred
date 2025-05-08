@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 21 April 2025
+## Last updated: 8 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 ## CFA example
@@ -20,66 +20,32 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 #----
 
 # correctly specified and misspecified models----
-mod1 <- '
-# factor loadings
-F1 =~ 0.67*x1 + 0.71*x2 + 0.58*x3 + 0.83*x4 + 0.64*x5 + 0.55*x6 + 0.68*x7
+data("PoliticalDemocracy")
 
-# factor variance
-F1 ~~ 1*F1
+PoliticalDemocracy$dem65_sum <- apply(PoliticalDemocracy[, paste0("y", 5:8)],
+                                      1, sum) # create a sum score for y (to be predicted)
 
-# item (co)variances
-x1 ~~ 0.22*x1
-x2 ~~ 0.41*x2
-x3 ~~ 0.55*x3
-x4 ~~ 0.49*x4
-x5 ~~ 0.71*x5
-x6 ~~ 0.39*x6
-x7 ~~ 0.61*x7
+cs.mod <- ' 
+  # latent variable definitions
+    ind60 =~ x1 + x2 + x3
+    dem60 =~ y1 + y2 + y3 + y4
+    
+  # regressions
+    dem65_sum ~ ind60 + dem60
+' # correctly specified model
 
-# factor mean
-F1 ~ 0*1
+ms.mod <- ' 
+  # latent variable definitions
+    ind60 =~ x1 + x2 + x3
+    dem60 =~ y1 + y2 + y3 + y4
+    
+  # regressions
+    dem65_sum ~ ind60 + dem60 + x1 + x2 + x3 + y1 + y2 + y3 + y4
+' # misspecified model
 
-# item means
-x1 ~ 0.91*1
-x2 ~ 0.43*1
-x3 ~ 0.73*1
-x4 ~ 0.44*1
-x5 ~ 0.83*1
-x6 ~ 0.66*1
-x7 ~ 0.54*1
-'
-
-mod2 <- '
-# factor loadings
-F1 =~ 0.67*x1 + 0.71*x2 + 0.58*x3
-F2 =~ 0.83*x4 + 0.64*x5 + 0.55*x6 + 0.68*x7
-
-# factor (co)variances
-F1 ~~ 1*F1 + 0.3*F2
-F2 ~~ 1*F2
-
-# item (co)variances
-x1 ~~ 0.22*x1
-x2 ~~ 0.41*x2
-x3 ~~ 0.55*x3
-x4 ~~ 0.49*x4
-x5 ~~ 0.71*x5
-x6 ~~ 0.39*x6
-x7 ~~ 0.61*x7
-
-# factor means
-F1 ~ 0*1
-F2 ~ 0*1
-
-# item means
-x1 ~ 0.91*1
-x2 ~ 0.43*1
-x3 ~ 0.73*1
-x4 ~ 0.44*1
-x5 ~ 0.83*1
-x6 ~ 0.66*1
-x7 ~ 0.54*1
-'
+# the above model will not produce SEs, possible due to (empirical) non-identification
+# but we still use the estimates, because there are no Heywood cases and because
+# we will only use the estimates to generate data. this model will NOT be fitted again
 
 #----
 
@@ -100,9 +66,9 @@ gendat <- function(sampID = NULL, nCal, nPred, misspecify, seed = NULL) {
   
   # (do not) fit model, return start values
   fit <- if(!misspecify) {
-    lavaan(mod1, do.fit = F)
+    sem(cs.mod, data = PoliticalDemocracy, meanstructure = T)
   } else {
-    lavaan(mod2, do.fit = F)
+    sem(ms.mod, data = PoliticalDemocracy, meanstructure = T)
   }
   popStats <- lavInspect(fit, "implied") # population covariance matrix and mean vector
   
