@@ -10,36 +10,16 @@ source(here("sim_code", "part_relaxSEM.R"))
 
 # fit model in lavaan----
 fitmod <- function(dat) {
-  mod <- '
-# factor loadings
-F1 =~ x1 + x2 + x3 + x4 + x5 + x6 + x7
-
-# factor variance
-F1 ~~ 1*F1
-
-# item (co)variances
-x1 ~~ x1
-x2 ~~ x2
-x3 ~~ x3
-x4 ~~ x4
-x5 ~~ x5
-x6 ~~ x6
-x7 ~~ x7
-
-# factor mean
-F1 ~ 0*1
-
-# item means
-x1 ~ 1
-x2 ~ 1
-x3 ~ 1
-x4 ~ 1
-x5 ~ 1
-x6 ~ 1
-x7 ~ 1
-'
+  mod <- ' 
+  # latent variable definitions
+    ind60 =~ x1 + x2 + x3
+    dem60 =~ y1 + y2 + y3 + y4
+    
+  # regressions
+    dem65_sum ~ ind60 + dem60
+' 
   
-  fit <- lavaan(mod, data = dat, meanstructure = T)
+  fit <- sem(mod, data = dat, meanstructure = T)
   
   return(fit)
 }
