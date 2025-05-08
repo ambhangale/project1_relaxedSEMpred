@@ -108,9 +108,9 @@ gendat <- function(sampID = NULL, nCal, nPred, misspecify, seed = NULL) {
   
   # data generation
   calibration <- as.matrix(rmvnorm(n = nCal, mean = popStats$mean, sigma = popStats$cov,
-                                 pre0.9_9994 = T)) # calibration set
+                                   pre0.9_9994 = T)) # calibration set
   prediction  <- as.matrix(rmvnorm(n = nPred, mean = popStats$mean, sigma = popStats$cov,
-                                 pre0.9_9994 = T)) # prediction set
+                                   pre0.9_9994 = T)) # prediction set
   
   datlist <- list(calibration = calibration, prediction = prediction)
   
