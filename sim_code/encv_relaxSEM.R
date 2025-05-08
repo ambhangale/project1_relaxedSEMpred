@@ -23,7 +23,7 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
     cv.errors[a] <- min(cv.glmnet(x = calidat[, xnames],
                                   y = calidat[, ynames], 
                                   foldid = partid,
-                                  family = "mgaussian", alpha = alphas[a], 
+                                  family = "gaussian", alpha = alphas[a], 
                                   standardize = T, standardize.response = F)$cvm) 
     # above, use default lambda sequence because that's what Mark did in the original simulation 
   }
@@ -33,13 +33,13 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
   lambda <- cv.glmnet(x = calidat[, xnames],
                       y = calidat[, ynames], 
                       foldid = partid,
-                      family = "mgaussian", 
+                      family = "gaussian", 
                       alpha = min.alpha, 
                       standardize = T, standardize.response = F)$lambda.min # minimum/optimal tuning parameter (lambda) value
   
   out <- glmnet(x = calidat[, xnames],
                 y = calidat[, ynames],
-                family = "mgaussian", alpha = min.alpha, 
+                family = "gaussian", alpha = min.alpha, 
                 standardize = T, standardize.response = F) # final model to use for predicting new values
   
   Ypred <- as.matrix(predict(out, newx = preddat[,xnames], s = lambda)[,,1])
