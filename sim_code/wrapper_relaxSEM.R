@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 8 May 2025
+## Last updated: 9 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -12,7 +12,7 @@ source(here("sim_code", "encv_relaxSEM.R"))
 # sampID = 1; nCal = 250; nPred = 250; misspecify = F; lav.CV = T;
 # lav.alpha1 = seq(0,1,0.1); lav.alpha2 = seq(0,1,0.1);
 # en.alphas = seq(0,1,0.1); K = 10; nK = NULL;
-# xnames = paste0("x", 4:7); ynames = paste0("x", 1:3); seed = NULL
+# xnames = c(paste0("x",1:3), paste0("y",1:4)); ynames = "dem65_sum"; seed = NULL
 
 wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
                               lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
