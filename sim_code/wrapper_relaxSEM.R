@@ -52,7 +52,6 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
                                ynames = ynames, xnames = xnames)
   DeRooij.t1 <- Sys.time()
   DeRooij.bias <- DeRooij.Ypred - Ytrue
-  DeRooij.meanBias <- colMeans(DeRooij.bias)
   DeRooij.diff <- difftime(DeRooij.t1, DeRooij.t0, "sec")
   DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, 
                          exact.fit = exact.fit, RMSEA = RMSEA,
@@ -62,9 +61,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov,
                           exact.fit = exact.fit, RMSEA = RMSEA,
                           RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
-                          yname = ynames, 
-                          meanBias = DeRooij.meanBias,
-                          RMSEpr = sqrt(DeRooij.meanBias^2),
+                          yname = ynames,
+                          RMSEpr = sqrt(colSums(DeRooij.bias^2)/nPred),
                           runTime = DeRooij.diff)
   
   
@@ -80,13 +78,12 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   colnames(OLS.Ypred) <- ynames
   OLS.t1 <- Sys.time()
   OLS.bias <- OLS.Ypred - Ytrue
-  OLS.meanBias <- colMeans(OLS.bias)
   OLS.diff <- difftime(OLS.t1, OLS.t0, "sec")
   OLS.RMSEp <- cbind(method = "OLS", 
                      RMSEp = sqrt(sum((OLS.bias)^2)/(length(ynames)*nPred)),
                      runTime = OLS.diff)
-  OLS.RMSEpr <- cbind(method = "OLS", yname = ynames, meanBias = OLS.meanBias, 
-                      RMSEpr = sqrt(OLS.meanBias^2),
+  OLS.RMSEpr <- cbind(method = "OLS", yname = ynames, 
+                      RMSEpr = sqrt(colSums(OLS.bias^2)/nPred),
                       runTime = OLS.diff)
   
   # Predictions using regularised SEM rule (with cross-validation)
@@ -98,7 +95,6 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
                                   xnames = xnames, ynames = ynames)
   lavcv.t1 <- Sys.time()
   lavcv.bias <- lavcv.Ypred - Ytrue
-  lavcv.meanBias <- colMeans(lavcv.bias)
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
   lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, 
                        exact.fit = exact.fit, RMSEA = RMSEA,
@@ -113,8 +109,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
                         lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                         lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                         yname = ynames,
-                        meanBias = lavcv.meanBias,
-                        RMSEpr = sqrt(lavcv.meanBias^2),
+                        RMSEpr = sqrt(colSums(lavcv.bias^2)/nPred),
                         runTime = lavcv.diff)
   
   # Predictions using elastic net regression (with cross-validation)
@@ -124,7 +119,6 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
                                 xnames = xnames, ynames = ynames)
   encv.t1 <- Sys.time()
   encv.bias <- encv.Ypred - Ytrue
-  encv.meanBias <- colMeans(encv.bias)
   encv.diff <- difftime(encv.t1, encv.t0, "sec")
   encv.RMSEp <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
                       en.lambda = attr(encv.Ypred, "lambda"),
@@ -133,8 +127,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   encv.RMSEpr <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
                        en.lambda = attr(encv.Ypred, "lambda"),
                        yname = ynames,
-                       meanBias = encv.meanBias,
-                       RMSEpr = sqrt(encv.meanBias^2),
+                       RMSEpr = sqrt(colSums(encv.bias^2)/nPred),
                        runTime = encv.diff)
   
   RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify,
