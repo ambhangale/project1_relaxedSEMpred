@@ -19,36 +19,6 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 # 2 streams. stream 1 to be used for data generation and stream 2 to be used for partitioning
 #----
 
-# correctly specified and misspecified models----
-data("PoliticalDemocracy")
-
-PoliticalDemocracy$dem65_sum <- apply(PoliticalDemocracy[, paste0("y", 5:8)],
-                                      1, sum) # create a sum score for y (to be predicted)
-
-cs.mod <- ' 
-  # latent variable definitions
-    ind60 =~ x1 + x2 + x3
-    dem60 =~ y1 + y2 + y3 + y4
-    
-  # regressions
-    dem65_sum ~ ind60 + dem60
-' # correctly specified model
-
-ms.mod <- ' 
-  # latent variable definitions
-    ind60 =~ x1 + x2 + x3
-    dem60 =~ y1 + y2 + y3 + y4
-    
-  # regressions
-    dem65_sum ~ ind60 + dem60 + x1 + x2 + x3 + y1 + y2 + y3 + y4
-' # misspecified model
-
-# the above model will not produce SEs, possible due to (empirical) non-identification
-# but we still use the estimates, because there are no Heywood cases and because
-# we will only use the estimates to generate data. this model will NOT be fitted again
-
-#----
-
 # data generation function----
 gendat <- function(sampID = NULL, nCal, nPred, misspecify, seed = NULL) {
   
