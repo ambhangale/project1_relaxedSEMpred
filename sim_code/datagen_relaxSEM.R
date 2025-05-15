@@ -6,7 +6,7 @@
 ### data generation file
 
 # getwd()
-# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
+# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/sim_code")
 
 library(mvtnorm)
 library(lavaan)

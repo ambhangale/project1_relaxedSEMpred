@@ -7,7 +7,7 @@
 ### functions to create data partitions/folds
 
 # getwd()
-# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/RDA_CFA")
+# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/sim_code")
 
 library(here)
 source(here("sim_code", "datagen_relaxSEM.R"))
