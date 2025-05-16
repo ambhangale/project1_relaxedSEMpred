@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 9 May 2025
+## Last updated: 16 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -11,21 +11,18 @@ source(here("sim_code", "wrapper_relaxSEM.R"))
 conds <- expand.grid(sampID = 1:100, nCal = c(250, 1e3, 1e4),
                      misspecify = c(F,T))
 
-# t0 <- Sys.time()
-# resList <- mcmapply(FUN = wrapper.predict.y, sampID = conds$sampID,
-#                     nCal = conds$nCal, nPred = 1e4,
-#                     misspecify = conds$misspecify, SIMPLIFY = F,
-#                     mc.cores = detectCores() - 1L) 
-# # parallelised version of mapply (parallel package). parallel should already be
-# # loaded, since it's a dependency for portableParallelSeeds used in the datagen file
-# t1 <- Sys.time()
-# diff <- difftime(t1, t0, "hour")
-# 
-# saveRDS(resList, file = paste0("PD_resList_", Sys.Date(), ".rds"))
+t0 <- Sys.time()
+resList <- mcmapply(FUN = wrapper.predict.y, sampID = conds$sampID,
+                    nCal = conds$nCal, nPred = 1e4,
+                    misspecify = conds$misspecify, SIMPLIFY = F,
+                    mc.cores = detectCores() - 1L)
+# parallelised version of mapply (parallel package). parallel should already be
+# loaded, since it's a dependency for portableParallelSeeds used in the datagen file
+t1 <- Sys.time()
+diff <- difftime(t1, t0, "hour")
 
-resList <- readRDS("PD_resList_2025-05-08.rds")
-## the RMSEpr values in this list are incorrect because you found a bug in your code
-## right after you ran this. but it doesn't matter, because you are only interested
-## in RMSEp values in this case anyways
+saveRDS(resList, file = paste0("PD_resList_", Sys.Date(), ".rds"))
+
+# resList <- readRDS()
 
 
