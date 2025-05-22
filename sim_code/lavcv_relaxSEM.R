@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 8 May 2025
+## Last updated: 22 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -10,14 +10,7 @@ source(here("sim_code", "part_relaxSEM.R"))
 
 # fit model in lavaan----
 fitmod <- function(dat) {
-  mod <- ' 
-  # latent variable definitions
-    ind60 =~ x1 + x2 + x3
-    dem60 =~ y1 + y2 + y3 + y4
-    
-  # regressions
-    dem65_sum ~ ind60 + dem60
-' 
+  mod <- cs.mod
   
   fit <- sem(mod, data = dat, meanstructure = T)
   
