@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 8 May 2025
+## Last updated: 22 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -20,8 +20,8 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
   ## procedure in my simulation
   for (a in 1:length(alphas)) { # returns the optimal elastic net mixing parameter
     # save the minimum cross-validated error for each value in `alphas`
-    cv.errors[a] <- min(cv.glmnet(x = calidat[, xnames],
-                                  y = calidat[, ynames], 
+    cv.errors[a] <- min(cv.glmnet(x = as.matrix(calidat[, xnames]),
+                                  y = as.matrix(calidat[, ynames]), 
                                   foldid = partid,
                                   family = "gaussian", alpha = alphas[a], 
                                   standardize = T, standardize.response = F)$cvm) 
@@ -30,19 +30,19 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
   
   min.alpha <- alphas[which.min(cv.errors)] # alpha value with minimum cross-validated error
   
-  lambda <- cv.glmnet(x = calidat[, xnames],
-                      y = calidat[, ynames], 
+  lambda <- cv.glmnet(x = as.matrix(calidat[, xnames]),
+                      y = as.matrix(calidat[, ynames]), 
                       foldid = partid,
                       family = "gaussian", 
                       alpha = min.alpha, 
                       standardize = T, standardize.response = F)$lambda.min # minimum/optimal tuning parameter (lambda) value
   
-  out <- glmnet(x = calidat[, xnames],
-                y = calidat[, ynames],
+  out <- glmnet(x = as.matrix(calidat[, xnames]),
+                y = as.matrix(calidat[, ynames]),
                 family = "gaussian", alpha = min.alpha, 
                 standardize = T, standardize.response = F) # final model to use for predicting new values
   
-  Ypred <- as.matrix(predict(out, newx = preddat[,xnames], s = lambda)[,1])
+  Ypred <- as.matrix(predict(out, newx = as.matrix(preddat[,xnames]), s = lambda)[,1])
   
   attr(Ypred, "alpha")  <- min.alpha # en mixing parameter
   attr(Ypred, "lambda") <- lambda # tuning parameter
