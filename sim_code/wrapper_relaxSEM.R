@@ -1,13 +1,14 @@
 ## Aditi M. Bhangale
-## Last updated: 9 May 2025
+## Last updated: 27 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
 ### wrapper function for De Rooij, OLS, lavcv, and encv rules
 
-library(here)
-source(here("sim_code", "lavcv_relaxSEM.R"))
-source(here("sim_code", "encv_relaxSEM.R")) 
+# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/sim_code")
+
+source("lavcv_relaxSEM.R")
+source("encv_relaxSEM.R") 
 
 # sampID = 1; nCal = 250; nPred = 250; misspecify = F; lav.CV = T;
 # lav.alpha1 = seq(0,1,0.1); lav.alpha2 = seq(0,1,0.1);

@@ -1,12 +1,13 @@
 ## Aditi M. Bhangale
-## Last updated: 22 May 2025
+## Last updated: 27 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
 ### functions to test the prediction rule in a k-fold cross-validation setting
 
-library(here)
-source(here("sim_code", "part_relaxSEM.R"))
+# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/sim_code")
+
+source("part_relaxSEM.R")
 
 # fit model in lavaan----
 fitmod <- function(dat) {

@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 8 May 2025
+## Last updated: 27 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -11,6 +11,7 @@
 library(mvtnorm)
 library(lavaan)
 library(portableParallelSeeds) # remotes::install_github("wjakethompson/portableParallelSeeds")
+source("mod_xydirect_relaxSEM.R")
 
 # create seed object for data generation and partition generation----
 allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)

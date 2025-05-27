@@ -1,13 +1,14 @@
 ## Aditi M. Bhangale
-## Last updated: 22 May 2025
+## Last updated: 27 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
 ### function to predict using elastic net regression
 
-library(here)
+# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/sim_code")
+
 library(glmnet) # to perform elastic net regression
-source(here("sim_code", "part_relaxSEM.R")) 
+source("part_relaxSEM.R")
 
 # prediction with an elastic net regresison model with cross-validation----
 en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {

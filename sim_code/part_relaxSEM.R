@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 8 May 2025
+## Last updated: 27 May 2025
 ## Fixes and improvements: 4 April 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
@@ -9,8 +9,7 @@
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/sim_code")
 
-library(here)
-source(here("sim_code", "datagen_relaxSEM.R"))
+source("datagen_relaxSEM.R")
 
 # dat <- gendat(sampID = 2, nCal = 250, nPred = 250, misspecify = F, seed = 10824) # dummy data for now
 # calibration <- dat$calibration; prediction <- dat$prediction
