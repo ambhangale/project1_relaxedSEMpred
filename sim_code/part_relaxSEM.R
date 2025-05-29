@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 27 May 2025
+## Last updated: 29 May 2025
 ## Fixes and improvements: 4 April 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
@@ -15,7 +15,7 @@ source("datagen_relaxSEM.R")
 # calibration <- dat$calibration; prediction <- dat$prediction
 
 # function to assign partition IDs per observation----
-partidx <- function(ndat, sampID = NULL, K, nK, seed = NULL) {
+partidx <- function(ndat, sampID = NULL, K, seed = NULL) {
   if (!is.null(sampID)) {
     # set seed based on `sampID`
     setSeeds(projSeeds = allSeeds, run = sampID)
@@ -28,7 +28,7 @@ partidx <- function(ndat, sampID = NULL, K, nK, seed = NULL) {
     }
   }
   
-  partvec <- rep(1:K, nK)
+  partvec <- rep(x = 1:K, length.out = ndat)
   
   # randomly assign observations to one of the K parts such that there are nK 
   # observations per part
@@ -38,7 +38,7 @@ partidx <- function(ndat, sampID = NULL, K, nK, seed = NULL) {
   
 }
 
-# partidx(ndat = 100, sampID = 2, K = 10, nK = 10)
+# partidx(ndat = 103, sampID = 2, K = 10)
 
 #----
 
@@ -59,7 +59,7 @@ partition <- function(partid, dat, K) { # input here is the calibration data
   return(final)
 }
 
-# part.ids <- partidx(ndat = 250, sampID = 2, K = 10, nK = 25)
+# part.ids <- partidx(ndat = 250, sampID = 2, K = 10)
 # partition(partid = part.ids, dat = calibration, K = 10) # test function
 
 #----
