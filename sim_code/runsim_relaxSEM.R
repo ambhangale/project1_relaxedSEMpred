@@ -5,8 +5,9 @@
 # relaxed SEM
 ### runsim
 
-library(here)
-source(here("sim_code", "wrapper_relaxSEM.R"))
+# setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/sim_code")
+
+source("wrapper_relaxSEM.R")
 
 conds <- expand.grid(sampID = 1:100, nCal = c(100, 250, 1e3, 1e4),
                      misspecify = c(F,T))
@@ -21,7 +22,7 @@ resList <- mcmapply(FUN = wrapper.predict.y, sampID = conds$sampID,
 t1 <- Sys.time()
 diff <- difftime(t1, t0, "hour")
 
-saveRDS(resList, file = paste0("PD_resList_xydirect_", Sys.Date(), ".rds"))
+saveRDS(resList, file = paste0("PD_resList_itemsdirect_", Sys.Date(), ".rds"))
 
 # resList <- readRDS()
 
