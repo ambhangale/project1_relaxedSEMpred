@@ -149,8 +149,7 @@ lav.predict.y.alpha <- function(dat, K, partid,
 
 # prediction rule with cross-validation----
 lav.predict.y.cv <- function(calidat, preddat, califit, CV,
-                             alpha1, alpha2,
-                             K, nK, partid, 
+                             alpha1, alpha2, K, partid, 
                              xnames, ynames) {
   
   if (CV) {
@@ -158,8 +157,8 @@ lav.predict.y.cv <- function(calidat, preddat, califit, CV,
         length(alpha1) > 1L && length(alpha2) > 1L && 
         all(0L <= alpha1) && all(alpha1 <= 1L) && 
         all(0L <= alpha2) && all(alpha2 <= 1L)) {
-      alpha.vals <- lav.predict.y.alpha(dat = calidat, K = K, nK = nK,
-                                        partid = partid, alpha1 = alpha1, alpha2 = alpha2,
+      alpha.vals <- lav.predict.y.alpha(dat = calidat, K = K, partid = partid, 
+                                        alpha1 = alpha1, alpha2 = alpha2,
                                         xnames = xnames, ynames = ynames)
     } else {
       stop("specify numeric vectors with length > 1L and only containing values between 
@@ -191,7 +190,7 @@ lav.predict.y.cv <- function(calidat, preddat, califit, CV,
 # t0 <- Sys.time()
 # bar <- lav.predict.y.cv(calidat = calibration, preddat = prediction,
 #                         califit = fit, CV = T,
-#                     alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1), K = 10, nK = 25,
+#                     alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1), K = 10,
 #                     partid = part.ids, xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
 # diff <- difftime(t1,t0,"sec")
