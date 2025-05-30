@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 27 May 2025
+## Last updated: 30 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -12,12 +12,12 @@ source("encv_relaxSEM.R")
 
 # sampID = 1; nCal = 250; nPred = 250; misspecify = F; lav.CV = T;
 # lav.alpha1 = seq(0,1,0.1); lav.alpha2 = seq(0,1,0.1);
-# en.alphas = seq(0,1,0.1); K = 10; nK = NULL;
+# en.alphas = seq(0,1,0.1); K = 10
 # xnames = c(paste0("x",1:3), paste0("y",1:4)); ynames = "dem65_sum"; seed = NULL
 
 wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
                               lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
-                              en.alphas = seq(0,1,0.1), K = 10, nK = NULL, 
+                              en.alphas = seq(0,1,0.1), K = 10, 
                               xnames = c(paste0("x",1:3), paste0("y",1:4)), 
                               ynames = "dem65_sum",
                               seed = NULL) {
@@ -29,10 +29,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   
   Ytrue <- prediction[,ynames] # true values of outcome variable(s)
   
-  nK <- ifelse(is.null(nK), nCal/K, nK) # compute nK manually if left blank
-  
   # partition IDs to be used for lav.predict.y.cv and en.predict.y.cv
-  partIDx <- partidx(ndat = nCal, sampID = sampID, K = K, nK = nK)
+  partIDx <- partidx(ndat = nCal, sampID = sampID, K = K)
   
   lav.fit <- fitmod(dat = calibration) # lavaan model fitted on complete calibration set
   
@@ -92,7 +90,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   lavcv.Ypred <- lav.predict.y.cv(calidat = calibration, preddat = prediction, 
                                   califit = lav.fit, CV = lav.CV, 
                                   alpha1 = lav.alpha1, alpha2 = lav.alpha2,
-                                  K = K, nK = nK, partid = partIDx,
+                                  K = K, partid = partIDx,
                                   xnames = xnames, ynames = ynames)
   lavcv.t1 <- Sys.time()
   lavcv.bias <- lavcv.Ypred - Ytrue
@@ -150,7 +148,6 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   attr(final, "misspecify")   <- misspecify
   attr(final, "lav.CV")       <- lav.CV
   attr(final, "K")            <- K
-  attr(final, "nK")           <- nK
   attr(final, "PD.lv")        <- PD.lv
   attr(final, "PD.ov")        <- PD.ov
   attr(final, "exact.fit")    <- exact.fit
