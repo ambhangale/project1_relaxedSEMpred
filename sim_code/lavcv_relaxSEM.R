@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 27 May 2025
+## Last updated: 30 May 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -62,22 +62,19 @@ lav.predict.y <- function(calidat, preddat, califit,
 #----
 
 # prediction for the K partitions----
-lav.predict.y.part <- function(dat, K, nK, partid, 
-                           alpha1, alpha2, xnames, ynames) {
+lav.predict.y.part <- function(dat, K, partid, 
+                               alpha1, alpha2, xnames, ynames) {
   partdat <- partition(partid = partid, dat = dat, K = K) # partitioned data
   
   # row and column names
-  # FIXME JDK: would abandon this in favour of array, see previous comment 
-  mat.rows <- do.call("c", lapply(1:K, 
-                                  function(k) apply(expand.grid(k, 1:nK), 1, 
-                                                    paste0, collapse = ".")))
+  mat.rows <- do.call("c", 
+                      lapply(1:K, function(k) 
+                        paste0(k, ".", 1:nrow(partdat[[k]]$test))))
   mat.cols <- apply(expand.grid(ynames, as.character(alpha1), as.character(alpha2)), 
                     1, paste0, collapse = ",") 
   # use as.character() above to paste only 0/1 instead of 0.0 and 1.0
   # because in the for loops, a1/a2 are 0/1 not 0.0/0.1
-  # FIXME JDK: below, K*nK will not always work (when n is not divisible by K) 
-  # FIXME JDK: I would recommend using an array instead of dim (n, length(alpha1), length(alpha2), length(ynames)) 
-  sqdevmat <- matrix(NA, K*nK, length(alpha1)*length(alpha2)*length(ynames),
+  sqdevmat <- matrix(NA, nrow(dat), length(alpha1)*length(alpha2)*length(ynames),
                      dimnames = list(mat.rows, mat.cols)) # matrix with squared deviations
   
   for (k in 1:K) {
@@ -86,12 +83,14 @@ lav.predict.y.part <- function(dat, K, nK, partid,
         fitpart <- fitmod(dat = partdat[[k]]$train) # fit to only the training data
         
         predpart <- lav.predict.y(calidat = partdat[[k]]$train,
-                              preddat = partdat[[k]]$test,
-                              califit = fitpart,
-                              alpha1 = a1, alpha2 = a2, xnames = xnames,
-                              ynames = ynames)
+                                  preddat = partdat[[k]]$test,
+                                  califit = fitpart,
+                                  alpha1 = a1, alpha2 = a2, xnames = xnames,
+                                  ynames = ynames)
         
-        sqdevmat[paste0(k, ".", 1:nK), paste0(ynames, ",", a1,",", a2)] <- 
+        sqdevmat[rownames(sqdevmat)[grep(pattern = paste0(k, "\\."), 
+                                         rownames(sqdevmat))], 
+                 paste0(ynames, ",", a1,",", a2)] <- 
           as.matrix((predpart$Ypred - predpart$Ytrue)^2)
       }
     }
@@ -100,7 +99,7 @@ lav.predict.y.part <- function(dat, K, nK, partid,
 }
 
 # t0 <- Sys.time()
-# foo <- lav.predict.y.part(dat = calibration, K = 10, nK = 25, partid = part.ids,
+# foo <- lav.predict.y.part(dat = calibration, K = 10, partid = part.ids,
 #                       alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
 #                       xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
