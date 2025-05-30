@@ -108,9 +108,9 @@ lav.predict.y.part <- function(dat, K, partid,
 #----
 
 # compute RMSEp(r) for each alpha1,alpha2 combination and return alpha1,2 values with min(RMSEp)----
-lav.predict.y.alpha <- function(dat, K, nK, partid, 
-                            alpha1, alpha2, xnames, ynames) {
-  sqdevmat <- lav.predict.y.part(dat = dat, K = K, nK = nK, 
+lav.predict.y.alpha <- function(dat, K, partid, 
+                                alpha1, alpha2, xnames, ynames) {
+  sqdevmat <- lav.predict.y.part(dat = dat, K = K, 
                                  partid = partid, alpha1 = alpha1, alpha2 = alpha2, 
                                  xnames = xnames, ynames = ynames)
   
@@ -125,8 +125,11 @@ lav.predict.y.alpha <- function(dat, K, nK, partid,
       for (a2 in alpha2) {
         
         # compute single RMSE value per alpha1-alpha2 combination
-        RMSEp.val <- sum(sqdevmat[paste0(k, ".", 1:nK), 
-                                  paste0(ynames, ",", a1,",", a2)])/(nK*length(ynames))
+        RMSEp.val <- 
+          sum(sqdevmat[rownames(sqdevmat)[grep(pattern = paste0(k, "\\."), 
+                                               rownames(sqdevmat))],
+                       paste0(ynames, ",", a1,",", a2)])/(length(grep(pattern = paste0(k, "\\."), 
+                                                                      rownames(sqdevmat)))*length(ynames))
         
         RMSEp[RMSEp$alpha1 == a1 & RMSEp$alpha2 == a2, "RMSEp"] <- RMSEp.val
       }
@@ -138,7 +141,7 @@ lav.predict.y.alpha <- function(dat, K, nK, partid,
   return(list(alpha1 = min.RMSE.val$alpha1, alpha2 = min.RMSE.val$alpha2))  
 }
 
-# lav.predict.y.alpha(dat = calibration, K = 10, nK = 25, partid = part.ids,
+# lav.predict.y.alpha(dat = calibration, K = 10, partid = part.ids,
 #                 alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
 #                 xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
