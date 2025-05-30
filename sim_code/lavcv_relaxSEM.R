@@ -10,8 +10,8 @@
 source("part_relaxSEM.R")
 
 # fit model in lavaan----
-fitmod <- function(dat) {
-  mod <- cs.mod
+fitmod <- function(dat, mod = an.mod) {
+  mod <- mod
   
   fit <- sem(mod, data = dat, meanstructure = T)
   
