@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 30 May 2025
+## Last updated: 20 June 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -88,7 +88,7 @@ lav.predict.y.part <- function(dat, K, partid,
                                   alpha1 = a1, alpha2 = a2, xnames = xnames,
                                   ynames = ynames)
         
-        sqdevmat[rownames(sqdevmat)[grep(pattern = paste0(k, "\\."), 
+        sqdevmat[rownames(sqdevmat)[grep(pattern = paste0("^", k, "\\."), 
                                          rownames(sqdevmat))], 
                  paste0(ynames, ",", a1,",", a2)] <- 
           as.matrix((predpart$Ypred - predpart$Ytrue)^2)
