@@ -192,20 +192,20 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y, misspecify,
     LAMBDA[1:n_x, paste0("eta_x1")] <- runif(n_x, min = 0.2, max = 1)
     } else if (n_eta_x == 3L) {
       for (xx in 1:n_eta_x) { # only conditions wherein all factors have equal number of indicators supported for now
-        if(xx == 1) {
+        if(xx == 1L) {
           LAMBDA[paste0("x", 1:(n_x/n_eta_x)), paste0("eta_x", xx)] <- 
             runif(n_x/n_eta_x, min = 0.2, max = 1)
-        } else if (xx == 2) {
+        } else if (xx == 2L) {
           LAMBDA[paste0("x", (n_x/n_eta_x + 1):(n_x-n_x/n_eta_x)), paste0("eta_x", xx)] <- 
             runif(n_x/n_eta_x, min = 0.2, max = 1)
-        } else if (xx == 3) {
+        } else if (xx == 3L) {
           LAMBDA[paste0("x", (n_x-n_x/n_eta_x+1):n_x), paste0("eta_x", xx)] <- 
             runif(n_x/n_eta_x, min = 0.2, max = 1)
         }
       }
     } else stop("only `n_eta_x = 1 or 3` supported for now")
   
-  if (n_eta_y == 1) {
+  if (n_eta_y == 1L) {
     LAMBDA[paste0("y",1:n_y), "eta_y1"] <- runif(n_y, min = 0.2, max = 1)
     } else stop("only `n_eta_y = 1` supported for now")
   
