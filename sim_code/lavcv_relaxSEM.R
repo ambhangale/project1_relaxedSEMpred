@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 20 June 2025
+## Last updated: 14 July 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -10,15 +10,53 @@
 source("part_relaxSEM.R")
 
 # fit model in lavaan----
-fitmod <- function(dat, mod = an.mod) {
-  mod <- mod
+fitmod <- function(dat, n_x, n_eta_x, n_y,  n_eta_y) {
+  obsxnames <- paste0("x", 1:n_x)
+  obsynames <- paste0("y", 1:n_y)
+  lvxnames <- paste0("eta_x", 1:n_eta_x)
+  lvynames <- paste0("eta_y", 1:n_eta_y)
   
-  fit <- sem(mod, data = dat, meanstructure = T)
+  # factor loadings
+  if (n_eta_x == 1L) {
+    FLx <- paste0(lvxnames, "=~", paste0(obsxnames, collapse = "+"), " \n")
+  } else if (n_eta_x == 3L) {
+    for (xx in 1:n_eta_x) { # only conditions wherein all factors have equal number of indicators supported for now
+      if(xx == 1) {
+        FLx1 <- paste0(lvxnames[xx], "=~", paste0(obsxnames[1:(n_x/n_eta_x)], collapse = "+"), " \n")
+      } else if (xx == 2) {
+        FLx2 <- paste0(lvxnames[xx], "=~", paste0(obsxnames[(n_x/n_eta_x + 1):(n_x-n_x/n_eta_x)], 
+                                                  collapse = "+"), " \n")
+      } else if (xx == 3) {
+        FLx3 <- paste0(lvxnames[xx], "=~", paste0(obsxnames[(n_x-n_x/n_eta_x+1):n_x], 
+                                                  collapse = "+"), " \n")
+      }
+    }
+    
+    FLx <- paste0(FLx1, FLx2, FLx3, collapse = "\n")
+    
+  } else stop("only `n_eta_x = 1 or 3` supported for now")
+  
+  if (n_eta_y == 1L) {
+    FLy <- paste0(lvynames, "=~", paste0(obsynames, collapse = "+"), " \n")
+  } else stop("only `n_eta_y = 1` supported for now")
+  
+  FL <- paste0(FLx, FLy, collapse = " \n")
+  
+  # regression slopes
+  if (n_eta_x == 1L & n_eta_y == 1L) {
+    B <- paste0(lvynames, "~", lvxnames, " \n")
+  } else if (n_eta_x == 3L & n_eta_y == 1L) {
+    B <- paste0(lvynames, "~", paste(lvxnames, collapse = "+"), " \n")
+  } else stop("only `n_eta_x = 1 or 3` with `n_eta_y = 1` supported for now")
+  
+  mod <- paste(FL, B, collapse = " \n") # complete model
+  
+  fit <- sem(mod = mod, dat = dat, meanstructure = T) # factor and indicator variances will be added by default
   
   return(fit)
 }
 
-# fitmod(calibration)
+# fitmod(calibration, n_x = 27, n_eta_x = 3, n_y = 9, n_eta_y = 1)
 
 #----
 
