@@ -101,7 +101,8 @@ lav.predict.y <- function(calidat, preddat, califit,
 
 # prediction for the K partitions----
 lav.predict.y.part <- function(dat, K, partid, 
-                               alpha1, alpha2, xnames, ynames) {
+                               alpha1, alpha2, n_x, n_eta_x, n_y,  n_eta_y,
+                               xnames, ynames) {
   partdat <- partition(partid = partid, dat = dat, K = K) # partitioned data
   
   # row and column names
@@ -118,7 +119,9 @@ lav.predict.y.part <- function(dat, K, partid,
   for (k in 1:K) {
     for (a1 in alpha1) {
       for (a2 in alpha2) {
-        fitpart <- fitmod(dat = partdat[[k]]$train) # fit to only the training data
+        fitpart <- fitmod(dat = partdat[[k]]$train,
+                          n_x = n_x, n_eta_x = n_eta_x, 
+                          n_y = n_y,  n_eta_y = n_eta_y) # fit to only the training data
         
         predpart <- lav.predict.y(calidat = partdat[[k]]$train,
                                   preddat = partdat[[k]]$test,
