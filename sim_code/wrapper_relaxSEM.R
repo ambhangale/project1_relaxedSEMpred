@@ -156,7 +156,17 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
                        RMSEpr = sqrt(colSums(encv.bias^2)/nPred),
                        runTime = encv.diff)
   
-  #FIXME figure out all the misspecify stuff
+  # save Ytrue and Ypred for all methods
+  colnames(Ytrue) <- paste0("Ytrue.", colnames(Ytrue))
+  colnames(DeRooij.Ypred) <- paste0("DeRooij.", colnames(DeRooij.Ypred))
+  colnames(OLS.Ypred) <- paste0("OLS.", colnames(OLS.Ypred))
+  colnames(lavcv.Ypred) <- paste0("lavcv.", colnames(lavcv.Ypred))
+  colnames(encv.Ypred) <- paste0("encv.", colnames(encv.Ypred))
+  Y <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+             misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
+             Ytrue, DeRooij.Ypred, OLS.Ypred, lavcv.Ypred, encv.Ypred)
+  
+  # save RMSEp and RMSEpr
   RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
                  misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                  Reduce(function(x,y) merge(x, y, all = T), 
@@ -170,7 +180,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   t1 <- Sys.time()
   diff <- difftime(t1, t0, "sec")
   
-  final <- list(RMSEp = RMSEp, RMSEpr = RMSEpr)
+  final <- list(Y = Y, RMSEp = RMSEp, RMSEpr = RMSEpr)
   
   attr(final, "sampID")        <- sampID
   attr(final, "nCal")          <- nCal
