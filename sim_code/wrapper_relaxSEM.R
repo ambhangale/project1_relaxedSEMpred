@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 30 May 2025
+## Last updated: 15 July 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -15,15 +15,32 @@ source("encv_relaxSEM.R")
 # en.alphas = seq(0,1,0.1); K = 10
 # xnames = c(paste0("x",1:3), paste0("y",1:4)); ynames = "dem65_sum"; seed = NULL
 
-wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
+wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
                               lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
+                              lav.equal.alphas,
                               en.alphas = seq(0,1,0.1), K = 10, 
                               xnames = c(paste0("x",1:3), paste0("y",1:4)), 
                               ynames = "dem65_sum",
-                              seed = NULL) {
+                              seed = NULL) { #TODO add `equal.alphas` argument
+  
+  #FIXME remove `xnames` and `ynames` argument -- maybe create these inside the function (acc to n_x and n_y)
+  
+  covmat.attr <- attributes(covmat)
+  
+  # details about model
+  n_x <- covmat.attr$n_x
+  n_eta_x <- covmat.attr$n_eta_x
+  n_y <- covmat.attr$n_y
+  n_eta_y <- covmat.attr$n_eta_y
+  
+  # details about misspecification
+  misspecify <- covmat.attr$misspecify
+  miss.part <- covmat.attr$miss.part
+  miss.strength <- covmat.attr$miss.strength
+  
   t0 <- Sys.time()
   dat <- gendat(sampID = sampID, nCal = nCal, nPred = nPred, 
-                misspecify = misspecify) # always require `sampID` when called in this wrapper function
+                covmat = covmat) # always require `sampID` when called in this wrapper function
   calibration <- dat$calibration # calibration set
   prediction <- dat$prediction # prediction set
   
@@ -33,6 +50,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
   partIDx <- partidx(ndat = nCal, sampID = sampID, K = K)
   
   lav.fit <- fitmod(dat = calibration) # lavaan model fitted on complete calibration set
+  #FIXME update according to updated `fitmod()` function
   
   # check if cov.lv and cov.ov are positive definite
   PD.lv <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.lv"))$values > 0), F, T)
@@ -91,7 +109,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
                                   califit = lav.fit, CV = lav.CV, 
                                   alpha1 = lav.alpha1, alpha2 = lav.alpha2,
                                   K = K, partid = partIDx,
-                                  xnames = xnames, ynames = ynames)
+                                  xnames = xnames, ynames = ynames)  #TODO add `equal.alphas` argument
   lavcv.t1 <- Sys.time()
   lavcv.bias <- lavcv.Ypred - Ytrue
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
@@ -129,6 +147,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred, misspecify, lav.CV = TRUE,
                        RMSEpr = sqrt(colSums(encv.bias^2)/nPred),
                        runTime = encv.diff)
   
+  #FIXME figure out all the misspecify stuff
   RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify,
                  Reduce(function(x,y) merge(x, y, all = T), 
                         list (DeRooij.RMSEp, OLS.RMSEp, lavcv.RMSEp, encv.RMSEp)))
