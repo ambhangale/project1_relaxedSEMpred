@@ -9,6 +9,8 @@
 
 source("part_relaxSEM.R")
 
+library(lavaan)
+
 # fit model in lavaan----
 fitmod <- function(dat, n_x, n_eta_x, n_y,  n_eta_y) {
   obsxnames <- paste0("x", 1:n_x)
@@ -101,7 +103,8 @@ lav.predict.y <- function(calidat, preddat, califit,
 
 # prediction for the K partitions----
 lav.predict.y.part <- function(dat, K, partid, 
-                               alpha1, alpha2, n_x, n_eta_x, n_y,  n_eta_y,
+                               alpha1, alpha2, equal.alphas = F, 
+                               n_x, n_eta_x, n_y,  n_eta_y,
                                xnames, ynames) {
   partdat <- partition(partid = partid, dat = dat, K = K) # partitioned data
   
@@ -109,16 +112,27 @@ lav.predict.y.part <- function(dat, K, partid,
   mat.rows <- do.call("c", 
                       lapply(1:K, function(k) 
                         paste0(k, ".", 1:nrow(partdat[[k]]$test))))
-  mat.cols <- apply(expand.grid(ynames, as.character(alpha1), as.character(alpha2)), 
-                    1, paste0, collapse = ",") 
-  # use as.character() above to paste only 0/1 instead of 0.0 and 1.0
-  # because in the for loops, a1/a2 are 0/1 not 0.0/0.1
-  sqdevmat <- matrix(NA, nrow(dat), length(alpha1)*length(alpha2)*length(ynames),
-                     dimnames = list(mat.rows, mat.cols)) # matrix with squared deviations
+  if (!equal.alphas) {
+    mat.cols <- apply(expand.grid(ynames, as.character(alpha1), as.character(alpha2)), 
+                      1, paste0, collapse = ",") 
+    # use as.character() above to paste only 0/1 instead of 0.0 and 1.0
+    # because in the for loops, a1/a2 are 0/1 not 0.0/0.1
+    sqdevmat <- matrix(NA, nrow(dat), length(alpha1)*length(alpha2)*length(ynames),
+                       dimnames = list(mat.rows, mat.cols)) # matrix with squared deviations  
+  } else {
+    mat.cols <- apply(expand.grid(ynames, 
+                                  paste0(as.character(alpha1), ",", as.character(alpha2))), 
+                      1, paste0, collapse = ",")
+    sqdevmat <- matrix(NA, nrow(dat), length(alpha1)*length(ynames),
+                       dimnames = list(mat.rows, mat.cols)) # `ncol` computed this way because only equal alphas are considered
+  }
   
   for (k in 1:K) {
     for (a1 in alpha1) {
       for (a2 in alpha2) {
+        if (equal.alphas && a1 != a2) {
+          next
+        }
         fitpart <- fitmod(dat = partdat[[k]]$train,
                           n_x = n_x, n_eta_x = n_eta_x, 
                           n_y = n_y,  n_eta_y = n_eta_y) # fit to only the training data
@@ -150,9 +164,12 @@ lav.predict.y.part <- function(dat, K, partid,
 
 # compute RMSEp(r) for each alpha1,alpha2 combination and return alpha1,2 values with min(RMSEp)----
 lav.predict.y.alpha <- function(dat, K, partid, 
-                                alpha1, alpha2, xnames, ynames) {
+                                alpha1, alpha2, n_x, n_eta_x, n_y,  n_eta_y,
+                                xnames, ynames) {
   sqdevmat <- lav.predict.y.part(dat = dat, K = K, 
                                  partid = partid, alpha1 = alpha1, alpha2 = alpha2, 
+                                 n_x = n_x, n_eta_x = n_eta_x, 
+                                 n_y = n_y,  n_eta_y = n_eta_y,
                                  xnames = xnames, ynames = ynames)
   
   RMSEp  <- expand.grid(alpha1 = alpha1, alpha2 = alpha2, RMSEp = NA)
