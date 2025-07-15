@@ -18,14 +18,14 @@ source("encv_relaxSEM.R")
 wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
                               lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
                               lav.equal.alphas,
-                              en.alphas = seq(0,1,0.1), K = 10, 
-                              xnames = c(paste0("x",1:3), paste0("y",1:4)), 
-                              ynames = "dem65_sum",
-                              seed = NULL) { #TODO add `equal.alphas` argument
+                              en.alphas = seq(0,1,0.1), K = 10, seed = NULL) {
   
-  #FIXME remove `xnames` and `ynames` argument -- maybe create these inside the function (acc to n_x and n_y)
+  covmat.attr <- attributes(covmat) # attributes of covmat used to generate data
   
-  covmat.attr <- attributes(covmat)
+  # xnames and ynames
+  allnames <- covmat.attr$dimnames[[1]]
+  xnames <- allnames[grep("x", allnames)]
+  ynames <- allnames[grep("y", allnames)]
   
   # details about model
   n_x <- covmat.attr$n_x
