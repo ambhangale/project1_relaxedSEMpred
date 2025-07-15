@@ -164,15 +164,22 @@ lav.predict.y.part <- function(dat, K, partid,
 
 # compute RMSEp(r) for each alpha1,alpha2 combination and return alpha1,2 values with min(RMSEp)----
 lav.predict.y.alpha <- function(dat, K, partid, 
-                                alpha1, alpha2, n_x, n_eta_x, n_y,  n_eta_y,
+                                alpha1, alpha2, equal.alphas,
+                                n_x, n_eta_x, n_y,  n_eta_y,
                                 xnames, ynames) {
   sqdevmat <- lav.predict.y.part(dat = dat, K = K, 
-                                 partid = partid, alpha1 = alpha1, alpha2 = alpha2, 
+                                 partid = partid, alpha1 = alpha1, alpha2 = alpha2,
+                                 equal.alphas = equal.alphas,
                                  n_x = n_x, n_eta_x = n_eta_x, 
                                  n_y = n_y,  n_eta_y = n_eta_y,
                                  xnames = xnames, ynames = ynames)
   
-  RMSEp  <- expand.grid(alpha1 = alpha1, alpha2 = alpha2, RMSEp = NA)
+  RMSEp  <- if (!equal.alphas) {
+    expand.grid(alpha1 = alpha1, alpha2 = alpha2, RMSEp = NA)
+  } else {
+    as.data.frame(cbind(alpha1 = alpha1, alpha2 = alpha2, RMSEp = NA))
+  }
+  
   # RMSEp <- matrix(NA, length(alpha1)*length(alpha2), 3,
   #                 dimnames = list(NULL, c("alpha1", "alpha2", "RMSEp")))
   
@@ -181,7 +188,9 @@ lav.predict.y.alpha <- function(dat, K, partid,
   for (k in 1:K) {
     for (a1 in alpha1) {
       for (a2 in alpha2) {
-        
+        if (equal.alphas && a1 != a2) {
+          next
+        }
         # compute single RMSE value per alpha1-alpha2 combination
         RMSEp.val <- 
           sum(sqdevmat[rownames(sqdevmat)[grep(pattern = paste0(k, "\\."), 
@@ -207,7 +216,9 @@ lav.predict.y.alpha <- function(dat, K, partid,
 
 # prediction rule with cross-validation----
 lav.predict.y.cv <- function(calidat, preddat, califit, CV,
-                             alpha1, alpha2, K, partid, 
+                             alpha1, alpha2, equal.alphas, 
+                             n_x, n_eta_x, n_y,  n_eta_y,
+                             K, partid, 
                              xnames, ynames) {
   
   if (CV) {
@@ -217,6 +228,9 @@ lav.predict.y.cv <- function(calidat, preddat, califit, CV,
         all(0L <= alpha2) && all(alpha2 <= 1L)) {
       alpha.vals <- lav.predict.y.alpha(dat = calidat, K = K, partid = partid, 
                                         alpha1 = alpha1, alpha2 = alpha2,
+                                        equal.alphas = equal.alphas,
+                                        n_x = n_x, n_eta_x = n_eta_x,
+                                        n_y = n_y, n_eta_y = n_eta_y,
                                         xnames = xnames, ynames = ynames)
     } else {
       stop("specify numeric vectors with length > 1L and only containing values between 
