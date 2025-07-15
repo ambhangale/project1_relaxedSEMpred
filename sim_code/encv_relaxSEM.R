@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 27 May 2025
+## Last updated: 15 July 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -11,7 +11,7 @@ library(glmnet) # to perform elastic net regression
 source("part_relaxSEM.R")
 
 # prediction with an elastic net regresison model with cross-validation----
-en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
+en.predict.y.cv <- function(calidat, preddat, alphas, partid, n_y, xnames, ynames) {
 
   cv.errors <- rep(NA, length(alphas)) 
   
@@ -24,7 +24,8 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
     cv.errors[a] <- min(cv.glmnet(x = as.matrix(calidat[, xnames]),
                                   y = as.matrix(calidat[, ynames]), 
                                   foldid = partid,
-                                  family = "gaussian", alpha = alphas[a], 
+                                  family = ifelse(n_y == 1L, "gaussian", "mgaussian"), 
+                                  alpha = alphas[a], 
                                   standardize = T, standardize.response = F)$cvm) 
     # above, use default lambda sequence because that's what Mark did in the original simulation 
   }
@@ -34,16 +35,22 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, xnames, ynames) {
   lambda <- cv.glmnet(x = as.matrix(calidat[, xnames]),
                       y = as.matrix(calidat[, ynames]), 
                       foldid = partid,
-                      family = "gaussian", 
+                      family = ifelse(n_y == 1L, "gaussian", "mgaussian"), 
                       alpha = min.alpha, 
                       standardize = T, standardize.response = F)$lambda.min # minimum/optimal tuning parameter (lambda) value
   
   out <- glmnet(x = as.matrix(calidat[, xnames]),
                 y = as.matrix(calidat[, ynames]),
-                family = "gaussian", alpha = min.alpha, 
+                family = ifelse(n_y == 1L, "gaussian", "mgaussian"), 
+                alpha = min.alpha, 
                 standardize = T, standardize.response = F) # final model to use for predicting new values
   
-  Ypred <- as.matrix(predict(out, newx = as.matrix(preddat[,xnames]), s = lambda)[,1])
+  Ypred <- if (n_y == 1L) {
+    as.matrix(predict(out, newx = as.matrix(preddat[,xnames]), s = lambda)[,1])
+  } else {
+    as.matrix(predict(out, newx = as.matrix(preddat[,xnames]), s = lambda)[,,1])
+  }
+  
   
   attr(Ypred, "alpha")  <- min.alpha # en mixing parameter
   attr(Ypred, "lambda") <- lambda # tuning parameter
