@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 14 July 2025
+## Last updated: 15 July 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -103,7 +103,7 @@ lav.predict.y <- function(calidat, preddat, califit,
 
 # prediction for the K partitions----
 lav.predict.y.part <- function(dat, K, partid, 
-                               alpha1, alpha2, equal.alphas = F, 
+                               alpha1, alpha2, equal.alphas, 
                                n_x, n_eta_x, n_y,  n_eta_y,
                                xnames, ynames) {
   partdat <- partition(partid = partid, dat = dat, K = K) # partitioned data
