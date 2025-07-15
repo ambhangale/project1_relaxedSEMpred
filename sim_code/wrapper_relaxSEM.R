@@ -17,7 +17,7 @@ source("encv_relaxSEM.R")
 
 wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
                               lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
-                              lav.equal.alphas,
+                              lav.equal.alphas = F,
                               en.alphas = seq(0,1,0.1), K = 10, seed = NULL) {
   
   covmat.attr <- attributes(covmat) # attributes of covmat used to generate data
