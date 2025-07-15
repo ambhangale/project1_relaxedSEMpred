@@ -58,11 +58,15 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   PD.ov <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.ov"))$values > 0), F, T)
   
   # check whether test for exact fit was rejected or not
-  fit.measures <- fitMeasures(lav.fit)
-  exact.fit    <- ifelse(fit.measures["pvalue"] < .05, "reject", "fail_to_reject")
-  RMSEA        <- fit.measures["rmsea"]
-  RMSEA.lowCI  <- fit.measures["rmsea.ci.lower"]
-  RMSEA.upCI   <- fit.measures["rmsea.ci.upper"]
+  if (lav.fit@Fit@converged) {
+    fit.measures <- fitMeasures(lav.fit)
+    exact.fit    <- ifelse(fit.measures["pvalue"] < .05, "reject", "fail_to_reject")
+    RMSEA        <- fit.measures["rmsea"]
+    RMSEA.lowCI  <- fit.measures["rmsea.ci.lower"]
+    RMSEA.upCI   <- fit.measures["rmsea.ci.upper"] 
+  } else {
+    exact.fit <- RMSEA <- RMSEA.lowCI <- RMSEA.upCI <- NA
+  }
   
   # Predictions using De Rooij et al. (2022) rule
   DeRooij.t0 <- Sys.time()
@@ -109,8 +113,11 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   lavcv.Ypred <- lav.predict.y.cv(calidat = calibration, preddat = prediction, 
                                   califit = lav.fit, CV = lav.CV, 
                                   alpha1 = lav.alpha1, alpha2 = lav.alpha2,
+                                  equal.alphas = lav.equal.alphas, 
+                                  n_x = n_x, n_eta_x = n_eta_x,
+                                  n_y = n_y, n_eta_y = n_eta_y,
                                   K = K, partid = partIDx,
-                                  xnames = xnames, ynames = ynames)  #TODO add `equal.alphas` argument
+                                  xnames = xnames, ynames = ynames)
   lavcv.t1 <- Sys.time()
   lavcv.bias <- lavcv.Ypred - Ytrue
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
@@ -133,7 +140,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   # Predictions using elastic net regression (with cross-validation)
   encv.t0 <- Sys.time()
   encv.Ypred <- en.predict.y.cv(calidat = calibration, preddat = prediction,
-                                alphas = en.alphas, partid = partIDx,
+                                alphas = en.alphas, partid = partIDx, 
+                                n_y = n_y,
                                 xnames = xnames, ynames = ynames)
   encv.t1 <- Sys.time()
   encv.bias <- encv.Ypred - Ytrue
@@ -149,11 +157,13 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
                        runTime = encv.diff)
   
   #FIXME figure out all the misspecify stuff
-  RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify,
+  RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+                 misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                  Reduce(function(x,y) merge(x, y, all = T), 
                         list (DeRooij.RMSEp, OLS.RMSEp, lavcv.RMSEp, encv.RMSEp)))
   
-  RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, misspecify = misspecify,
+  RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+                  misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                  Reduce(function(x,y) merge(x, y, all = T), 
                         list (DeRooij.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
   
@@ -162,26 +172,28 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   
   final <- list(RMSEp = RMSEp, RMSEpr = RMSEpr)
   
-  attr(final, "sampID")       <- sampID
-  attr(final, "nCal")         <- nCal
-  attr(final, "nPred")        <- nPred
-  attr(final, "misspecify")   <- misspecify
-  attr(final, "lav.CV")       <- lav.CV
-  attr(final, "K")            <- K
-  attr(final, "PD.lv")        <- PD.lv
-  attr(final, "PD.ov")        <- PD.ov
-  attr(final, "exact.fit")    <- exact.fit
-  attr(final, "RMSEA")        <- RMSEA
-  attr(final, "RMSEA.lowCI")  <- RMSEA.lowCI
-  attr(final, "RMSEA.upCI")   <- RMSEA.upCI
-  attr(final, "xnames")       <- xnames
-  attr(final, "ynames")       <- ynames
-  attr(final, "lav.alpha1")   <- attr(lavcv.Ypred, "alpha1")
-  attr(final, "lav.alpha2")   <- attr(lavcv.Ypred, "alpha2")
-  attr(final, "en.alpha")     <- attr(encv.Ypred, "alpha")
-  attr(final, "en.lambda")    <- attr(encv.Ypred, "lambda")
-  attr(final, "seed")         <- ifelse(!is.null(seed), seed, NA)
-  attr(final, "runtime")      <- diff
+  attr(final, "sampID")        <- sampID
+  attr(final, "nCal")          <- nCal
+  attr(final, "nPred")         <- nPred
+  attr(final, "misspecify")    <- misspecify
+  attr(final, "miss.part")     <- miss.part
+  attr(final, "miss.strength") <- miss.strength
+  attr(final, "lav.CV")        <- lav.CV
+  attr(final, "K")             <- K
+  attr(final, "PD.lv")         <- PD.lv
+  attr(final, "PD.ov")         <- PD.ov
+  attr(final, "exact.fit")     <- exact.fit
+  attr(final, "RMSEA")         <- RMSEA
+  attr(final, "RMSEA.lowCI")   <- RMSEA.lowCI
+  attr(final, "RMSEA.upCI")    <- RMSEA.upCI
+  attr(final, "xnames")        <- xnames
+  attr(final, "ynames")        <- ynames
+  attr(final, "lav.alpha1")    <- attr(lavcv.Ypred, "alpha1")
+  attr(final, "lav.alpha2")    <- attr(lavcv.Ypred, "alpha2")
+  attr(final, "en.alpha")      <- attr(encv.Ypred, "alpha")
+  attr(final, "en.lambda")     <- attr(encv.Ypred, "lambda")
+  attr(final, "seed")          <- ifelse(!is.null(seed), seed, NA)
+  attr(final, "runtime")       <- diff
   
   return(final) 
 }
