@@ -49,8 +49,9 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   # partition IDs to be used for lav.predict.y.cv and en.predict.y.cv
   partIDx <- partidx(ndat = nCal, sampID = sampID, K = K)
   
-  lav.fit <- fitmod(dat = calibration) # lavaan model fitted on complete calibration set
-  #FIXME update according to updated `fitmod()` function
+  lav.fit <- fitmod(dat = calibration, 
+                    n_x = n_x, n_eta_x = n_eta_x,
+                    n_y = n_y, n_eta_y = n_eta_y) # lavaan model fitted on complete calibration set
   
   # check if cov.lv and cov.ov are positive definite
   PD.lv <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.lv"))$values > 0), F, T)
