@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 15 July 2025
+## Last updated: 16 July 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -166,6 +166,13 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
              misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
              Ytrue, DeRooij.Ypred, OLS.Ypred, lavcv.Ypred, encv.Ypred)
   
+  # save alpha values for lavcv
+  lavcv.alphas <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+                        misspecify = misspecify, miss.part = miss.part, 
+                        miss.strength = miss.strength,
+                        alpha1 = attr(lavcv.Ypred, "alpha1"), 
+                        alpha2 = attr(lavcv.Ypred, "alpha2"))
+  
   # save RMSEp and RMSEpr
   RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
                  misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
@@ -180,7 +187,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   t1 <- Sys.time()
   diff <- difftime(t1, t0, "sec")
   
-  final <- list(Y = Y, RMSEp = RMSEp, RMSEpr = RMSEpr)
+  final <- list(Y = Y, RMSEp = RMSEp, RMSEpr = RMSEpr, lavcv.alphas = lavcv.alphas)
   
   attr(final, "sampID")        <- sampID
   attr(final, "nCal")          <- nCal
