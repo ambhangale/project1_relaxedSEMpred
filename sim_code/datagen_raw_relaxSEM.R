@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 14 July 2025
+## Last updated: 20 August 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -93,12 +93,12 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, lambda, beta, psi, theta,
     dimnames(mis.psi) <- list(c(lvnames,"mis.eta_x1"), c(lvnames,"mis.eta_x1"))
     
     # add regression slope of outcome factor on new single-indicator factor
-    mis.B.val <- ifelse(miss.strength == "weak", 
+    mis.beta.val <- ifelse(miss.strength == "weak", 
                         sign(runif(1, min = -1, max = 1)) * runif(1, min = 0.15, max = 0.25),
                              sign(runif(1, min = -1, max = 1)) * runif(1, min = 0.25, max = 0.40))
-    mis.B <- rbind(cbind(B, rep(0, length(lvnames))), 
-                  c(rep(0, length(lvnames)), mis.B.val))
-    dimnames(mis.B) <- list(c(lvnames,"mis.eta_x1"), c(lvnames,"mis.eta_x1"))
+    mis.beta <- rbind(cbind(beta, rep(0, length(lvnames))), 
+                  c(rep(0, length(lvnames)), mis.beta.val))
+    dimnames(mis.beta) <- list(c(lvnames,"mis.eta_x1"), c(lvnames,"mis.eta_x1"))
     
     
   } else if (n_eta_x == 3) {
@@ -171,9 +171,8 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, lambda, beta, psi, theta,
 
 # generate random covariance matrices----
 genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y, misspecify,
-                      miss.part = c("xx:rescov", "xx:crossload", "xy:direct", 
-                                    "both:cov", "both:load"), 
-                      miss.strength = c("weak", "strong")) {
+                      miss.part = NULL, 
+                      miss.strength = NULL) {
   
   #TODO add check for if n_x is divisible by n_eta_x and n_y is divisible by n_eta_y
   #TODO add check for if n_eta_y is 1 -- only n_eta_y = 1 supported for now
@@ -315,6 +314,7 @@ gendat <- function(sampID = NULL, nCal, nPred, covmat, seed = NULL) {
                                    pre0.9_9994 = T)) # calibration set
   prediction  <- as.matrix(rmvnorm(n = nPred, sigma = covmat,
                                    pre0.9_9994 = T)) # prediction set
+  colnames(calibration) <- colnames(prediction) <- colnames(covmat) # assign names to variables
   
   datlist <- list(calibration = calibration, prediction = prediction)
   
