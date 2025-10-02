@@ -20,7 +20,7 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 #----
 
 # n_x = 9; n_eta_x = 3; n_y = 9; n_eta_y = 1
-# beta = 0.3; lambda = 0.7; r = 0.3
+# beta = 0.3; lambda = 0.7; psi.cov = 0.2; r = 0.3
 # miss.strength = "strong"
 
 # misspecification types----
@@ -170,7 +170,7 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
 
 # generate random covariance matrices----
 genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L, 
-                      beta = 0.3, lambda = 0.7, r = 0.3,
+                      beta = 0.3, lambda = 0.7, psi.cov = 0.2, r = 0.3,
                       misspecify, miss.part = NULL, miss.strength = NULL) { #FIXME add more arguments as necessary
   
   # check if n_x is divisible by n_eta_x, otherwise stop
@@ -196,6 +196,13 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   PSI <- diag(1, nrow = n_eta_x + n_eta_y)
   dimnames(PSI) <- list(lvnames, lvnames)
   PSI[lvnames[grep("_y", lvnames)], lvnames[grep("_y", lvnames)]] <- 1-beta^2
+  for (x in lvnames[grep("_x", lvnames)]) {
+    for (xx in lvnames[grep("_x", lvnames)]) {
+      if (x != xx) {
+        PSI[x,xx] <- PSI[xx,x] <- psi.cov # fix factor covariances to some non-zero value
+      }
+    }
+  }
   
   # LAMBDA; factor loading matrix (measurement part)
   LAMBDA <- matrix(0, nrow = n_x + n_y, ncol = n_eta_x + n_eta_y, 
