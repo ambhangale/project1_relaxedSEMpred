@@ -19,7 +19,7 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 # 2 streams. stream 1 to be used for data generation and stream 2 to be used for partitioning
 #----
 
-# n_x = 9; n_eta_x = 3; n_y = 9; n_eta_y = 1
+# n_x = 3; n_eta_x = 1; n_y = 9; n_eta_y = 1
 # beta = 0.3; lambda = 0.7; psi.cov = 0.2; r = 0.3
 # miss.strength = "strong"
 
@@ -77,35 +77,36 @@ xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
 xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA, 
                      beta, miss.strength, lvnames, obsnames) {
   
-  # FIXME --- can only add new factor for second indicator of each factor!!!!
-  
-  if (n_eta_x == 1) {
+  if (n_eta_x == 1L) {
     # add new column to LAMBDA - create a new single-indicator factor
     mis.LAMBDA <- matrix(0, nrow = n_x + n_y, ncol = n_eta_x, 
                          dimnames = list(obsnames,"mis.eta_x1"))
-    mis.LAMBDA["x1", "mis.eta_x1"] <- 1
+    mis.LAMBDA["x1", "mis.eta_x1"] <- 1L
+    mis.LAMBDA.val <- LAMBDA["x1", "eta_x1"]
+    LAMBDA["x1", "eta_x1"] <- 0L
     mis.LAMBDA <- cbind(LAMBDA, mis.LAMBDA)
     
-    # set residual variance to 0 (due to new single-indicator factor)
-    THETA["x1", "x1"] <- 0
-    
     # add residual variance for the new single-indicator factor
-    mis.PSI.val <- 1L # all exogenous factors have factor variance of 1
-    #FIXME should these single indcator factor (above). have a smaller factor variance?
+    ## factor variance of the new single-indicator factor will be the residual indicator variance
+    mis.PSI.val <- THETA["x1", "x1"]
     mis.PSI <- rbind(cbind(PSI, rep(0, length(lvnames))), 
                      c(rep(0, length(lvnames)), mis.PSI.val))
     dimnames(mis.PSI) <- list(c(lvnames,"mis.eta_x1"), c(lvnames,"mis.eta_x1"))
     
+    # set residual variance to 0 (due to new single-indicator factor)
+    THETA["x1", "x1"] <- 0L
+    
     # add regression slope of outcome factor on new single-indicator factor
+    ## rows are outcomes, columns are predictors
     mis.B.val <- ifelse(miss.strength == "weak", 
                            0.5*beta,
                            0.9*beta)
-    mis.B <- rbind(cbind(B, rep(0, length(lvnames))), 
-                      c(rep(0, length(lvnames)), mis.BETA.val))
+    mis.B <- rbind(cbind(B, c(0, mis.B.val)), 
+                      c(mis.LAMBDA.val, rep(0, length(lvnames))))
     dimnames(mis.B) <- list(c(lvnames,"mis.eta_x1"), c(lvnames,"mis.eta_x1"))
     
     
-  } else if (n_eta_x == 3) {
+  } else if (n_eta_x == 3L) {
     mis.lvnames <- c(lvnames, paste0("mis.eta_x", 
                                      c(1, 
                                        (n_x/n_eta_x + 1), 
@@ -285,7 +286,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   
   # population covariance matrix
   SIGMA.pop <- LAMBDA %*% PHI %*% t(LAMBDA) + THETA 
-  R.pop <- cov2cor(SIGMA.pop)
+  R.pop <- cov2cor(SIGMA.pop) #FIXME do i want to return R.pop at all?
   
   attr(SIGMA.pop, "n_x") <- n_x
   attr(SIGMA.pop, "n_eta_x") <- n_eta_x
@@ -298,19 +299,10 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   return(list(SIGMA.pop = SIGMA.pop, R.pop = R.pop))
 }
 
-# foo <- genCovmat(n_x = 27, n_eta_x = 3, n_y = 9, n_eta_y = 1, misspecify = T,
-#                  miss.part = "both:load", miss.strength = "strong")$SIGMA.pop
-# dim(foo)
-
 #----
 
 # generate data from covariance matrices----
 gendat <- function() {
 }
-
-# sigma <- genCovmat(n_x = 27, n_eta_x = 3, n_y = 9, n_eta_y = 1, misspecify = T, 
-#                     miss.part = "both:cov", miss.strength = "strong")$SIGMA.pop
-# 
-# dat <- gendat(sampID = 1, nCal = 250, nPred = 1e5, covmat = sigma)
 
 #----
