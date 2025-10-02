@@ -210,31 +210,25 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   
   ## for x factors
   if (n_eta_x == 1L) {
-    LAMBDA["x1", "eta_x1"] <- 1L
-    LAMBDA[paste0("x", 2:n_x), "eta_x1"] <- lambda
+    LAMBDA[paste0("x", 1:n_x), "eta_x1"] <- lambda
   } else if (n_eta_x == 3L) {
     for (xx in 1:n_eta_x) { # only conditions wherein all factors have equal number of indicators supported for now
       if(xx == 1L) {
-        LAMBDA["x1", paste0("eta_x", xx)] <- 1L
-        LAMBDA[paste0("x", 2:(n_x/n_eta_x)), paste0("eta_x", xx)] <- lambda
+        LAMBDA[paste0("x", 1:(n_x/n_eta_x)), paste0("eta_x", xx)] <- lambda
       } else if (xx == 2L) {
-        LAMBDA[paste0("x", (n_x/n_eta_x + 1)), paste0("eta_x", xx)] <- 1L
-        LAMBDA[paste0("x", (n_x/n_eta_x + 2):(n_x-n_x/n_eta_x)), paste0("eta_x", xx)] <- lambda
+        LAMBDA[paste0("x", (n_x/n_eta_x + 1):(n_x-n_x/n_eta_x)), paste0("eta_x", xx)] <- lambda
       } else if (xx == 3L) {
-        LAMBDA[paste0("x", (n_x-n_x/n_eta_x+1)), paste0("eta_x", xx)] <- 1L
-        LAMBDA[paste0("x", (n_x-n_x/n_eta_x+2):n_x), paste0("eta_x", xx)] <- lambda
+        LAMBDA[paste0("x", (n_x-n_x/n_eta_x+1):n_x), paste0("eta_x", xx)] <- lambda
       }
     }
   }
   
   ## for y factor
-  LAMBDA["y1", "eta_y1"] <- 1L
-  LAMBDA[paste0("y",2:n_y), "eta_y1"] <- lambda
+  LAMBDA[paste0("y",1:n_y), "eta_y1"] <- lambda
   
   # PHI; calculate from LAMBDA and B, factor covariances incorporating structural part
   Iden <- diag(1, nrow = n_eta_x + n_eta_y)
   PHI <- solve(Iden - B) %*% PSI %*% t(solve(Iden - B))
-  #FIXME my exogenous factors need to be correlated with one another, right?
   
   # THETA; residual variances of indicators
   THETA.dash <- diag(LAMBDA%*%PHI%*%t(LAMBDA))
