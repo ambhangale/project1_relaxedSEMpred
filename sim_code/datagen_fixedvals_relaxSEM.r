@@ -19,7 +19,7 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 # 2 streams. stream 1 to be used for data generation and stream 2 to be used for partitioning
 #----
 
-# n_x = 3; n_eta_x = 1; n_y = 9; n_eta_y = 1
+# n_x = 9; n_eta_x = 3; n_y = 9; n_eta_y = 1
 # beta = 0.3; lambda = 0.7; psi.cov = 0.2; r = 0.3
 # miss.strength = "strong"
 
@@ -115,22 +115,24 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
     # add new columns to LAMBDA -- create single-indicator factors
     mis.LAMBDA <- matrix(0, nrow = n_x + n_y, ncol = n_eta_x,
                          dimnames = list(obsnames, mis.lvnames[grep("mis.", mis.lvnames)]))
-    mis.LAMBDA["x1", "mis.eta_x1"] <- 1
+    mis.LAMBDA["x1", "mis.eta_x1"] <- 1L
     mis.LAMBDA[paste0("x", (n_x/n_eta_x + 1)), 
-               paste0("mis.eta_x", (n_x/n_eta_x + 1))] <- 1
+               paste0("mis.eta_x", (n_x/n_eta_x + 1))] <- 1L
     mis.LAMBDA[paste0("x", (n_x-n_x/n_eta_x+1)), 
-               paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))] <- 1
-    
+               paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))] <- 1L
+    mis.LAMBDA.vals <- c(LAMBDA["x1", "eta_x1"],
+                         LAMBDA[paste0("x", (n_x/n_eta_x + 1)), "eta_x2"],
+                         LAMBDA[paste0("x", (n_x-n_x/n_eta_x+1)), "eta_x3"])
+    names(mis.LAMBDA.vals) <- mis.lvnames[grep("mis.", mis.lvnames)]
+    LAMBDA["x1", "eta_x1"] <- LAMBDA[paste0("x", (n_x/n_eta_x + 1)), "eta_x2"] <- 
+      LAMBDA[paste0("x", (n_x-n_x/n_eta_x+1)), "eta_x3"] <- 0L
     mis.LAMBDA <- cbind(LAMBDA, mis.LAMBDA)
     
-    # set residual variances to 0
-    THETA["x1", "x1"] <- 0
-    THETA[paste0("x", (n_x/n_eta_x + 1)), paste0("x", (n_x/n_eta_x + 1))] <- 0
-    THETA[paste0("x", (n_x-n_x/n_eta_x+1)),  paste0("x", (n_x-n_x/n_eta_x+1))] <- 0
-    
     # add residual variance for new single-indicator factors
-    mis.PSI.vals <- rep(1L, n_eta_x) # all exogenous variables have factor variance of 1
-    #FIXME should these single indcator factors (above). have a smaller factor variance?
+    ## factor variances of the new single-indicator factors will be the residual indicator variances
+    mis.PSI.vals <- c(THETA["x1", "x1"],
+                        THETA[paste0("x", (n_x/n_eta_x + 1)), paste0("x", (n_x/n_eta_x + 1))],
+                        THETA[paste0("x", (n_x-n_x/n_eta_x+1)),  paste0("x", (n_x-n_x/n_eta_x+1))])
     names(mis.PSI.vals) <- mis.lvnames[grep("mis.", mis.lvnames)]
     
     mis.PSI <- matrix(0, nrow = 2*n_eta_x + n_eta_y, ncol = 2*n_eta_x + n_eta_y,
@@ -144,19 +146,33 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
             paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))] <- 
       mis.PSI.vals[paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))]
     
+    # set residual variances to 0
+    THETA["x1", "x1"] <- 
+      THETA[paste0("x", (n_x/n_eta_x + 1)), paste0("x", (n_x/n_eta_x + 1))] <- 
+      THETA[paste0("x", (n_x-n_x/n_eta_x+1)),  paste0("x", (n_x-n_x/n_eta_x+1))] <- 0L
+    
     # add regression slopes of outcome factor on new single-indicator factors
+    ## rows are outcomes, columns are predictors
     mis.B.vals <- rep(ifelse(miss.strength == "weak", 0.5*beta, 0.9*beta), n_eta_x)
     names(mis.B.vals) <- mis.lvnames[grep("mis.", mis.lvnames)]
     
     mis.B <- matrix(0, nrow = 2*n_eta_x + n_eta_y, ncol = 2*n_eta_x + n_eta_y,
                        dimnames = list(mis.lvnames, mis.lvnames))
     mis.B[lvnames, lvnames] <- B
+    
+    mis.B["mis.eta_x1", "eta_x1"] <- 
+      mis.LAMBDA.vals[grep("x1", mis.lvnames[grep("mis.", mis.lvnames)])]
+    mis.B[paste0("mis.eta_x", (n_x/n_eta_x + 1)), "eta_x2"] <- 
+      mis.LAMBDA.vals[grep(paste0("x", (n_x/n_eta_x + 1)), mis.lvnames[grep("mis.", mis.lvnames)])]
+    mis.B[paste0("mis.eta_x", (n_x-n_x/n_eta_x+1)), "eta_x3"] <-
+      mis.LAMBDA.vals[grep(paste0("x", (n_x-n_x/n_eta_x+1)), mis.lvnames[grep("mis.", mis.lvnames)])]
+    
+    ####
     mis.B["eta_y1", "mis.eta_x1"] <- mis.B.vals["mis.eta_x1"]
     mis.B["eta_y1", paste0("mis.eta_x", (n_x/n_eta_x + 1))] <- 
       mis.B.vals[paste0("mis.eta_x", (n_x/n_eta_x + 1))]
     mis.B["eta_y1", paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))] <- 
       mis.B.vals[paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))]
-    
   }
   
   # recompute phi
