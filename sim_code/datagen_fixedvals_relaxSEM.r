@@ -25,6 +25,8 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 
 # misspecification types----
 xxrescov <- function(n_x, n_eta_x, THETA, THETA.star, miss.strength) {
+  if(n_eta_x != 3L) stop("xx misspecification not supported for n_eta_x = 1L")
+  
   if (miss.strength == "weak") {
     # rescov between the second indicator of the first factor 
     # and the second indicator of the second factor
@@ -54,12 +56,14 @@ xxrescov <- function(n_x, n_eta_x, THETA, THETA.star, miss.strength) {
 }
 
 xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
+  if(n_eta_x != 3L) stop("xx misspecification not supported for n_eta_x = 1L")
+  
   if(miss.strength == "weak") {
     # loading between first factor and second indicator of second factor
     # AND
     # loading between second factor and third indicator of third factor
     LAMBDA[paste0("x", (n_x/n_eta_x + 2)), "eta_x1"] <- 
-      LAMBDA[paste0("x", (n_x-n_x/n_eta_x+3)), "eta_x2"] <- 0.5*lambda
+      LAMBDA[paste0("x", (n_x-n_x/n_eta_x + 3)), "eta_x2"] <- 0.5*lambda
     
   } else if (miss.strength == "strong") {
     # loading between first factor and second indicator of second factor
@@ -67,7 +71,7 @@ xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
     # loading between second factor and third indicator of third factor
     
     LAMBDA[paste0("x", (n_x/n_eta_x + 2)), "eta_x1"] <- 
-      LAMBDA[paste0("x", (n_x-n_x/n_eta_x+3)), "eta_x2"] <- 0.9*lambda
+      LAMBDA[paste0("x", (n_x-n_x/n_eta_x + 3)), "eta_x2"] <- 0.9*lambda
     
   } else stop("specify a valid misspecification strength in `miss.strength`")
   
@@ -315,7 +319,22 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
 }
 
 # test function
+## correctly specified
+genCovmat(n_x = 4, n_eta_x = 1, n_y = 1, misspecify = F)
+genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = F)
+genCovmat(n_x = 24, n_eta_x = 3, n_y = 4, misspecify = F)
 
+## "xx:rescov"
+genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = T, 
+          miss.part = "xx:rescov", miss.strength = "strong")
+genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T, 
+          miss.part = "xx:rescov", miss.strength = "weak")
+
+## "xx:crossload"
+genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = T, 
+          miss.part = "xx:crossload", miss.strength = "strong")
+genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T, 
+          miss.part = "xx:crossload", miss.strength = "weak")
 
 #----
 
