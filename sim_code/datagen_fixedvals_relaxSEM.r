@@ -307,9 +307,9 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
                                 LAMBDA = LAMBDA, B = B, PSI = PSI, 
                                 THETA = THETA, beta, miss.strength = miss.strength,
                                 lvnames = lvnames, obsnames = obsnames)
-        LAMBDA <- direct.vals$mis.lambda
-        PHI <- direct.vals$mis.phi
-        THETA <- direct.vals$mis.theta
+        LAMBDA <- direct.vals$mis.LAMBDA
+        PHI <- direct.vals$mis.PHI
+        THETA <- direct.vals$mis.THETA
         
       } else stop("specify valid `miss.part`")
     }
@@ -354,6 +354,18 @@ genCovmat(n_x = 12, n_eta_x = 3, n_y = 1, misspecify = T,
           miss.part = "xy:direct", miss.strength = "strong")
 genCovmat(n_x = 24, n_eta_x = 3, n_y = 4, misspecify = T, 
           miss.part = "xy:direct", miss.strength = "weak")
+
+## "both:cov"
+genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = T, 
+          miss.part = "both:cov", miss.strength = "strong")
+genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T, 
+          miss.part = "both:cov", miss.strength = "weak")
+
+# "both:load"
+genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = T, 
+          miss.part = "both:load", miss.strength = "strong")
+genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T, 
+          miss.part = "both:load", miss.strength = "weak")
 
 #----
 
