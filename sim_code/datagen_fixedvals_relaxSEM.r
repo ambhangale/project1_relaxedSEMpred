@@ -19,7 +19,7 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 # 2 streams. stream 1 to be used for data generation and stream 2 to be used for partitioning
 #----
 
-# n_x = 9; n_eta_x = 3; n_y = 9; n_eta_y = 1
+# n_x = 12; n_eta_x = 3; n_y = 9; n_eta_y = 1
 # beta = 0.3; lambda = 0.7; psi.cov = 0.2; r = 0.3
 # miss.strength = "strong"
 
@@ -245,7 +245,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   }
   
   ## for y factor
-  LAMBDA[paste0("y",1:n_y), "eta_y1"] <- lambda
+    LAMBDA[paste0("y",1:n_y), "eta_y1"] <- lambda
   
   # PHI; calculate from LAMBDA and B, factor covariances incorporating structural part
   Iden <- diag(1, nrow = n_eta_x + n_eta_y)
@@ -256,6 +256,16 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   THETA.star <- THETA.dash*(1/r - 1)
   THETA <- diag(THETA.star, nrow = n_x + n_y)
   dimnames(THETA) <- list(obsnames, obsnames)
+  
+  # if the y-part of the model is a single-indicator factor model
+  ## fix factor variance to residual indicator variance; 
+  ## fix residual indicator variance to 0L
+  ## fix factor loading for single-indicator factor to 1L
+  if (n_y == 1L) {
+    PHI["eta_y1", "eta_y1"] <- THETA.star["y1"]
+    THETA["y1", "y1"] <- 0L
+    LAMBDA["y1", "eta_y1"] <- 1L
+  }
   
   # introduce misspecification
   if(misspecify == T) {
@@ -335,6 +345,14 @@ genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = T,
           miss.part = "xx:crossload", miss.strength = "strong")
 genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T, 
           miss.part = "xx:crossload", miss.strength = "weak")
+
+## "xy:direct"
+genCovmat(n_x = 4, n_eta_x = 1, n_y = 1, misspecify = T, 
+          miss.part = "xy:direct", miss.strength = "strong")
+genCovmat(n_x = 12, n_eta_x = 3, n_y = 1, misspecify = T, 
+          miss.part = "xy:direct", miss.strength = "strong")
+genCovmat(n_x = 24, n_eta_x = 3, n_y = 4, misspecify = T, 
+          miss.part = "xy:direct:crossload", miss.strength = "weak")
 
 #----
 
