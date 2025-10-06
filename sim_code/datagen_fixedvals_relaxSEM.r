@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 2 October 2025
+## Last updated: 6 October 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -188,7 +188,7 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
 # generate random covariance matrices----
 genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L, 
                       beta = 0.3, lambda = 0.7, psi.cov = 0.2, r = 0.3,
-                      misspecify, miss.part = NULL, miss.strength = NULL) { #FIXME add more arguments as necessary
+                      misspecify, miss.part = NULL, miss.strength = NULL) { 
   
   # check if n_x is divisible by n_eta_x, otherwise stop
   if (n_x %% n_eta_x != 0) stop("`n_eta_x` must be divisble by `n_x`")
@@ -203,7 +203,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   obsnames <- c(paste0("x", 1:n_x), paste0("y", 1:n_y)) # indicator labels
   lvnames <- c(paste0("eta_x", 1:n_eta_x), paste0("eta_y", 1:n_eta_y)) # factor labels
   
-  # B; matrix of regresion coefficients (structural relations)
+  # B; matrix of regression coefficients (structural relations)
   B <- matrix(0, nrow = n_eta_x + n_eta_y, 
               ncol = n_eta_x + n_eta_y, 
               dimnames = list(lvnames, lvnames)) # rows are outcomes, columns are predictors
@@ -223,7 +223,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   
   # LAMBDA; factor loading matrix (measurement part)
   LAMBDA <- matrix(0, nrow = n_x + n_y, ncol = n_eta_x + n_eta_y, 
-                   dimnames = list(obsnames, lvnames))
+                   dimnames = list(obsnames, lvnames)) # rows are outcomes, columns are predictors
   
   ## for x factors
   if (n_eta_x == 1L) {
@@ -301,8 +301,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   }
   
   # population covariance matrix
-  SIGMA.pop <- LAMBDA %*% PHI %*% t(LAMBDA) + THETA 
-  R.pop <- cov2cor(SIGMA.pop) #FIXME do i want to return R.pop at all?
+  SIGMA.pop <- LAMBDA %*% PHI %*% t(LAMBDA) + THETA
   
   attr(SIGMA.pop, "n_x") <- n_x
   attr(SIGMA.pop, "n_eta_x") <- n_eta_x
@@ -312,8 +311,11 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   attr(SIGMA.pop, "miss.part") <- ifelse(!is.null(miss.part), miss.part, NA)
   attr(SIGMA.pop, "miss.strength") <- ifelse(!is.null(miss.strength), miss.strength, NA)
   
-  return(list(SIGMA.pop = SIGMA.pop, R.pop = R.pop))
+  return(SIGMA.pop)
 }
+
+# test function
+
 
 #----
 
