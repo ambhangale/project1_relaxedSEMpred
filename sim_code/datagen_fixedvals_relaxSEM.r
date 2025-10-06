@@ -86,7 +86,7 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
     mis.LAMBDA <- matrix(0, nrow = n_x + n_y, ncol = n_eta_x, 
                          dimnames = list(obsnames,"mis.eta_x1"))
     mis.LAMBDA["x1", "mis.eta_x1"] <- 1L
-    mis.LAMBDA.val <- LAMBDA["x1", "eta_x1"]
+    mis.LAMBDA.val <- LAMBDA["x1", "eta_x1"] # this lambda value will now be in the B matrix
     LAMBDA["x1", "eta_x1"] <- 0L
     mis.LAMBDA <- cbind(LAMBDA, mis.LAMBDA)
     
@@ -165,7 +165,7 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
     mis.B[lvnames, lvnames] <- B
     
     mis.B["mis.eta_x1", "eta_x1"] <- 
-      mis.LAMBDA.vals[grep("x1", mis.lvnames[grep("mis.", mis.lvnames)])]
+      mis.LAMBDA.vals[grep("\\_x1\\b", mis.lvnames[grep("mis.", mis.lvnames)])]
     mis.B[paste0("mis.eta_x", (n_x/n_eta_x + 1)), "eta_x2"] <- 
       mis.LAMBDA.vals[grep(paste0("x", (n_x/n_eta_x + 1)), mis.lvnames[grep("mis.", mis.lvnames)])]
     mis.B[paste0("mis.eta_x", (n_x-n_x/n_eta_x+1)), "eta_x3"] <-
@@ -258,11 +258,12 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   dimnames(THETA) <- list(obsnames, obsnames)
   
   # if the y-part of the model is a single-indicator factor model
-  ## fix factor variance to residual indicator variance; 
+  ## fix factor variance to residual indicator variance, then recompute PHI;
   ## fix residual indicator variance to 0L
   ## fix factor loading for single-indicator factor to 1L
   if (n_y == 1L) {
-    PHI["eta_y1", "eta_y1"] <- THETA.star["y1"]
+    PSI["eta_y1", "eta_y1"] <- THETA.star["y1"]
+    PHI <- solve(Iden - B) %*% PSI %*% t(solve(Iden - B))
     THETA["y1", "y1"] <- 0L
     LAMBDA["y1", "eta_y1"] <- 1L
   }
@@ -352,7 +353,7 @@ genCovmat(n_x = 4, n_eta_x = 1, n_y = 1, misspecify = T,
 genCovmat(n_x = 12, n_eta_x = 3, n_y = 1, misspecify = T, 
           miss.part = "xy:direct", miss.strength = "strong")
 genCovmat(n_x = 24, n_eta_x = 3, n_y = 4, misspecify = T, 
-          miss.part = "xy:direct:crossload", miss.strength = "weak")
+          miss.part = "xy:direct", miss.strength = "weak")
 
 #----
 
