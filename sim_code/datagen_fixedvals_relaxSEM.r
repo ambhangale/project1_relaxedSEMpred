@@ -414,5 +414,5 @@ gendat <- function(sampID = NULL, nCal, nPred = 1e4, covmat, seed = NULL) {
 #                  miss.part = "both:load", miss.strength = "weak")
 # dat <- gendat(sampID = 1, nCal = 250, covmat = sig)
 
-
 #----
+
