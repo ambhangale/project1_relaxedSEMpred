@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 29 May 2025
+## Last updated: 8 October 2025
 ## Fixes and improvements: 4 April 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
@@ -11,7 +11,9 @@
 
 source("datagen_relaxSEM.R")
 
-# dat <- gendat(sampID = 2, nCal = 250, nPred = 250, misspecify = F, seed = 10824) # dummy data for now
+# sig <- genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T,
+#                  miss.part = "both:load", miss.strength = "weak")
+# dat <- gendat(sampID = 1, nCal = 250, covmat = sig)
 # calibration <- dat$calibration; prediction <- dat$prediction
 
 # function to assign partition IDs per observation----
@@ -60,6 +62,7 @@ partition <- function(partid, dat, K) { # input here is the calibration data
 }
 
 # part.ids <- partidx(ndat = 250, sampID = 2, K = 10)
+# part.ids <- partidx(ndat = 250, sampID = 2, K = 25)
 # partition(partid = part.ids, dat = calibration, K = 10) # test function
 
 #----
