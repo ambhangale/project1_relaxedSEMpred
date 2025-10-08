@@ -53,7 +53,7 @@ fitmod <- function(dat, n_x, n_eta_x, n_y,  n_eta_y) {
   
   mod <- paste(FL, B, collapse = " \n") # complete model
   
-  fit <- sem(mod = mod, dat = dat, meanstructure = T) # factor and indicator variances will be added by default
+  fit <- sem(mod = mod, dat = dat, meanstructure = T, std.lv = T) # use UVI constraint
   
   return(fit)
 }
