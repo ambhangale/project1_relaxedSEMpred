@@ -24,7 +24,7 @@ SRMR <- function(S, sigma.hat, M = NULL, mu.hat = NULL, include.mean = F) {
       if (!(length(M) > 1L & length(mu.hat) > 1L)) stop("`M` and `mu.hat` must be vectors if `S` and `sigma.hat` are square matrices")
       if (!(length(M) == length(mu.hat)))  stop("`M` and `mu.hat` must have the same length")
       
-      res2 <- lapply(1:p, function(i) (M[i]-mu.hat[i])^2/(S[i,i]*S[i,i]))
+      res2 <- lapply(1:p, function(i) (M[i]-mu.hat[i])^2/S[i,i]^2)
       num2 <- do.call("sum", res2) # numerator 2 (mean structure)
       
       num <- num1 + num2
@@ -61,32 +61,42 @@ SRMR <- function(S, sigma.hat, M = NULL, mu.hat = NULL, include.mean = F) {
 ## however, it will not work for non-symmetric matrices (and hence, does not work for the yx component)
 
 # all the elements in yx are unique, so i have to compute the Frobenius norm and standardise it
-SRMR.yx <- function(S, Syx, sigmayx.hat, M = NULL, mu.hat = NULL, ynames, xnames, include.mean = F) { # TODO add include.mean argument
+SRMR.yx <- function(S, Syx, sigmayx.hat, M = NULL, mu.hat = NULL, ynames, xnames, include.mean = F) {
   if(is.matrix(Syx) & is.matrix(sigmayx.hat) & is.matrix(S)) {
-    
-    den <- nrow(Syx) * ncol(Syx) # number of unique elements
-    
     # squared fitted residuals
     res1 <- lapply(ynames, function(y) 
       lapply(xnames, function(x) (Syx[y,x]-sigmayx.hat[y,x])^2/(S[y,y]*S[x,x])))
     num1 <- do.call("sum", do.call("c", res1)) # numerator
     
     if (include.mean) {
-      #FIXME fix code below this
-      res2 <- lapply(1:p, function(i) lapply(1:i, function(j) (M[i]-mu.hat[i])^2/(S[i,i]*S[i,i])))
-      num2 <- do.call("sum", do.call("c", res2)) # numerator 2 (mean structure)
+      res2 <- lapply(1:length(M), function(i) (M[i]-mu.hat[i])^2/S[i,i]^2)
+      num2 <- do.call("sum", res2) # numerator 2 (mean structure)
+      
+      num <- num1 + num2
+      den <- nrow(Syx)*ncol(Syx) + length(M) # number of unique elements
+      #TODO check if `den` is actually correct in this situation
     } else {
      num <- num1 
+     den <- nrow(Syx) * ncol(Syx) # number of unique elements
     }
   } else {
-    ## relevant when n_y = 1L
-    
-    den <- length(Syx)
-    
+    ## relevant when n_y = 1L and Syx is a vector
     var.y <- S[ynames, ynames]
     
-    res <- lapply(xnames, function(x) (Syx[x]-sigmayx.hat[x])^2/(var.y*S[x,x]))
-    num <- do.call("sum", res) # numerator
+    res1 <- lapply(xnames, function(x) (Syx[x]-sigmayx.hat[x])^2/(var.y*S[x,x]))
+    num1 <- do.call("sum", res1) # numerator
+    
+    if (include.mean) {
+      res2 <- lapply(1:length(M), function(i) (M[i]-mu.hat[i])^2/S[i,i]^2)
+      num2 <- do.call("sum", res2) # numerator 2 (mean structure)
+      
+      num <- num1 + num2
+      den <- length(Syx) + length(M)
+      #TODO check if `den` is actually correct in this situation
+    } else {
+      num <- num1
+      den <- length(Syx)
+    }
   }
   
   SRMR <- sqrt(num/den) 
