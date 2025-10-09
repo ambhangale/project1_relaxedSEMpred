@@ -61,19 +61,15 @@ SRMR <- function(S, sigma.hat, M = NULL, mu.hat = NULL, include.mean = F) {
 ## however, it will not work for non-symmetric matrices (and hence, does not work for the yx component)
 
 # all the elements in yx are unique, so i have to compute the Frobenius norm and standardise it
-SRMR.yx <- function(S, Syx, sigmayx.hat, ynames, xnames) { #TODO add `include.mean` argument
+SRMR.yx <- function(S, Syx, sigmayx.hat, ynames, xnames) { # TODO add include.mean argument
   if(is.matrix(Syx) & is.matrix(sigmayx.hat) & is.matrix(S)) {
     
     den <- nrow(Syx) * ncol(Syx) # number of unique elements
     
     # squared fitted residuals
-    num <- 0
-    for (y in ynames) {
-      for (x in xnames) {
-        num <- num + (Syx[y, x] - sigmayx.hat[y, x])^2 / (S[y, y] * S[x, x])
-        print(num)
-      }
-    }
+    res <- lapply(ynames, function(y) 
+      lapply(xnames, function(x) (Syx[y,x]-sigmayx.hat[y,x])^2/(S[y,y]*S[x,x])))
+    num <- do.call("sum", do.call("c", res)) # numerator
   } else {
     den <- length(Syx)
     
@@ -83,7 +79,7 @@ SRMR.yx <- function(S, Syx, sigmayx.hat, ynames, xnames) { #TODO add `include.me
     num <- do.call("sum", res) # numerator
   }
   
-  SRMR <- sqrt(num/den)
+  SRMR <- sqrt(num/den) 
   
   return(SRMR)
 }
