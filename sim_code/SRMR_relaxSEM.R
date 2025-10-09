@@ -11,7 +11,7 @@
 SRMR <- function(S, sigma.hat) {
   if(is.matrix(S) & is.matrix(sigma.hat)) {
     if (!all(dim(S) == dim(sigma.hat)))  stop("`S` and `sigma.hat` must have the same dimensions")
-    if(!(nrow(S) == ncol(S) | nrow(sigma.hat) == ncol(sigma.hat))) stop("please specify symmetric matrices only")
+    if(!(nrow(S) == ncol(S) | nrow(sigma.hat) == ncol(sigma.hat))) stop("please specify square matrices only")
     
     p <- nrow(S) # when S is not a matrix
     den <- p*(p+1)*0.5 # denominator
