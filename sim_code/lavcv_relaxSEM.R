@@ -13,7 +13,7 @@ source("SRMR_relaxSEM.R")
 library(lavaan)
 
 # fit model in lavaan----
-fitmod <- function(dat, n_x, n_eta_x, n_y,  n_eta_y) {
+fitmod <- function(dat, n_x, n_eta_x, n_y, n_eta_y) {
   obsxnames <- paste0("x", 1:n_x)
   obsynames <- paste0("y", 1:n_y)
   lvxnames <- paste0("eta_x", 1:n_eta_x)
@@ -66,7 +66,7 @@ fitmod <- function(dat, n_x, n_eta_x, n_y,  n_eta_y) {
 # prediction rule----
 lav.predict.y <- function(preddat, califit, 
                       alpha1, alpha2, xnames, ynames, srmr = F) {
-  # extract sample estimates from fitted model object
+  # extract sample statistics from fitted model object
   SampStats <- lavInspect(califit, "sampstat")
   S         <- SampStats$cov
   S_xx      <- S[xnames, xnames]
@@ -80,12 +80,14 @@ lav.predict.y <- function(preddat, califit,
   Ytrue <- preddat[,ynames] # true Y values from prediction dataset
   # Ytrue will be used to compute squared deviations in `lav.predict.y.part()`
   
+  # model implied mean vector and covariance matrix
   ImpliedStats <- lavInspect(califit, "implied")
-  Sigma_xx     <- ImpliedStats$cov[xnames, xnames]
-  Sigma_yx     <- ImpliedStats$cov[ynames, xnames] ## using _yx to avoid using t()
+  Sigma        <- ImpliedStats$cov
+  Sigma_xx     <- Sigma[xnames, xnames]
+  Sigma_yx     <- Sigma[ynames, xnames] ## using _yx to avoid using t()
   Mu           <- ImpliedStats$mean
-  Mu_x         <- ImpliedStats$mean[xnames]
-  Mu_y         <- ImpliedStats$mean[ynames]
+  Mu_x         <- Mu[xnames]
+  Mu_y         <- Mu[ynames]
   
   if (0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
     Ypred <- t(Mu_y + ((1-alpha2)*Sigma_yx + alpha2*S_yx) %*% 
