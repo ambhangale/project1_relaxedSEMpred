@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 15 July 2025
+## Last updated: October 10 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -8,6 +8,7 @@
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/sim_code")
 
 source("part_relaxSEM.R")
+source("SRMR_relaxSEM.R")
 
 library(lavaan)
 
@@ -64,11 +65,15 @@ fitmod <- function(dat, n_x, n_eta_x, n_y,  n_eta_y) {
 
 # prediction rule----
 lav.predict.y <- function(calidat, preddat, califit, 
-                      alpha1, alpha2, xnames, ynames) {
-  # rescale covariance matrix to scale as `lavaan` does
-  S <- (cov(calidat)*(nrow(calidat)-1)) / nrow(calidat)
-  S_xx <- S[xnames, xnames]
-  S_yx <- S[ynames, xnames] ## using _yx to avoid using t()
+                      alpha1, alpha2, xnames, ynames, srmr = F) {
+  # extract sample estimates from fitted model object
+  SampStats <- lavInspect(califit, "sampstat")
+  S         <- SampStats$cov
+  S_xx      <- S[xnames, xnames]
+  S_yx      <- S[ynames, xnames] ## using _yx to avoid using t()
+  M         <- SampStats$mean
+  M_x       <- SampStats$mean[xnames]
+  M_y       <- SampStats$mean[ynames]
   
   # values from prediction dataset
   X0    <- preddat[,xnames] # to be inputted into formulae
@@ -78,6 +83,7 @@ lav.predict.y <- function(calidat, preddat, califit,
   ImpliedStats <- lavInspect(califit, "implied")
   Sigma_xx     <- ImpliedStats$cov[xnames, xnames]
   Sigma_yx     <- ImpliedStats$cov[ynames, xnames] ## using _yx to avoid using t()
+  Mu           <- ImpliedStats$mean
   Mu_x         <- ImpliedStats$mean[xnames]
   Mu_y         <- ImpliedStats$mean[ynames]
   
@@ -88,6 +94,10 @@ lav.predict.y <- function(calidat, preddat, califit,
   } else {
     stop("specify values between 0 and 1 for `alpha1` and `alpha2`")
   }
+  
+  if (srmr) {
+    fullSRMR <- SRMR(S = S, sigma.hat = ImpliedStats$cov, ) #TODO complete
+  } 
   
   final <- list(Ypred = Ypred, Ytrue = Ytrue)
   
