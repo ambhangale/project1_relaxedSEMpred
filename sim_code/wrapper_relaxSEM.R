@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 16 July 2025
+## Last updated: 10 October 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -18,7 +18,8 @@ source("encv_relaxSEM.R")
 wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
                               lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
                               lav.equal.alphas = F,
-                              en.alphas = seq(0,1,0.1), K = 10, seed = NULL) {
+                              en.alphas = seq(0,1,0.1), K = 10, seed = NULL,
+                              save.out = F) {
   
   covmat.attr <- attributes(covmat) # attributes of covmat used to generate data
   
@@ -124,6 +125,10 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, 
                        exact.fit = exact.fit, RMSEA = RMSEA,
                        RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
+                       lav.fullSRMR = attr(lavcv.Ypred, "fullSRMR"),
+                       lav.xxSRMR = attr(lavcv.Ypred, "xxSRMR"), 
+                       lav.yySRMR = attr(lavcv.Ypred, "yySRMR"), 
+                       lav.yxSRMR = attr(lavcv.Ypred, "yxSRMR"), 
                        lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                        lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                        RMSEp = sqrt(sum((lavcv.bias)^2)/(length(ynames)*nPred)),
@@ -131,6 +136,11 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, 
                         exact.fit = exact.fit, RMSEA = RMSEA,
                         RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
+                        lav.xxSRMR = attr(lavcv.Ypred, "xxSRMR"), 
+                        lav.yySRMR = attr(lavcv.Ypred, "yySRMR"), 
+                        lav.yxSRMR = attr(lavcv.Ypred, "yxSRMR"), 
+                        lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
+                        lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                         lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                         lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                         yname = ynames,
@@ -181,8 +191,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   
   RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
                   misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
-                 Reduce(function(x,y) merge(x, y, all = T), 
-                        list (DeRooij.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
+                  Reduce(function(x,y) merge(x, y, all = T), 
+                         list (DeRooij.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
   
   t1 <- Sys.time()
   diff <- difftime(t1, t0, "sec")
@@ -211,6 +221,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
   attr(final, "en.lambda")     <- attr(encv.Ypred, "lambda")
   attr(final, "seed")          <- ifelse(!is.null(seed), seed, NA)
   attr(final, "runtime")       <- diff
+  
+  if(save.out) saveRDS(final, paste0("ID", sampID, ".rds")) # FIXME just placeholder for now
   
   return(final) 
 }
