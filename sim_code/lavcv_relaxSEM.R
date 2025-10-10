@@ -71,9 +71,10 @@ lav.predict.y <- function(preddat, califit,
   S         <- SampStats$cov
   S_xx      <- S[xnames, xnames]
   S_yx      <- S[ynames, xnames] ## using _yx to avoid using t()
-  M         <- SampStats$mean
-  M_x       <- SampStats$mean[xnames]
-  M_y       <- SampStats$mean[ynames]
+  S_yy      <- S[ynames, ynames]
+  # M         <- SampStats$mean
+  # M_x       <- SampStats$mean[xnames]
+  # M_y       <- SampStats$mean[ynames]
   
   # values from prediction dataset
   X0    <- preddat[,xnames] # to be inputted into formulae
@@ -85,6 +86,7 @@ lav.predict.y <- function(preddat, califit,
   Sigma        <- ImpliedStats$cov
   Sigma_xx     <- Sigma[xnames, xnames]
   Sigma_yx     <- Sigma[ynames, xnames] ## using _yx to avoid using t()
+  Sigma_yy     <- Sigma[ynames, ynames]
   Mu           <- ImpliedStats$mean
   Mu_x         <- Mu[xnames]
   Mu_y         <- Mu[ynames]
@@ -97,9 +99,20 @@ lav.predict.y <- function(preddat, califit,
     stop("specify values between 0 and 1 for `alpha1` and `alpha2`")
   }
   
-  if (srmr) {
-    fullSRMR <- SRMR(S = S, sigma.hat = ImpliedStats$cov, ) #TODO complete
-  } 
+  if (srmr) { # currently only implemented when `include.mean = F` as mean structure is saturated 
+    fullSRMR  <- SRMR(S = S, sigma.hat = Sigma)
+    xxSRMR    <- SRMR(S = S_xx, sigma.hat = Sigma_xx)
+    yySRMR    <- SRMR(S = S_yy, sigma.hat = Sigma_yy)
+    yxSRMR    <- SRMR.yx(S = S, Syx = S_yx, sigmayx.hat = Sigma_yx, 
+                         ynames = ynames, xnames = xnames)
+  } else {
+    fullSRMR <- xxSRMR <- yySRMR <- yxSRMR <- NULL
+  }
+  
+  attr(Ypred, "fullSRMR") <- ifelse(!is.null(fullSRMR), fullSRMR, NA)
+  attr(Ypred, "xxSRMR")   <- ifelse(!is.null(xxSRMR), xxSRMR, NA)
+  attr(Ypred, "yySRMR")   <- ifelse(!is.null(yySRMR), yySRMR, NA)
+  attr(Ypred, "yxSRMR")   <- ifelse(!is.null(yxSRMR), yxSRMR, NA)
   
   final <- list(Ypred = Ypred, Ytrue = Ytrue)
   
@@ -260,7 +273,7 @@ lav.predict.y.cv <- function(calidat, preddat, califit, CV,
   Ypred <- lav.predict.y(preddat = preddat,
                          califit = califit, alpha1 = alpha.vals$alpha1,
                          alpha2 = alpha.vals$alpha2,
-                         xnames = xnames, ynames = ynames)$Ypred
+                         xnames = xnames, ynames = ynames, srmr = T)$Ypred
   
   attr(Ypred, "CV")     <- CV # was cross-validation performed?
   attr(Ypred, "alpha1") <- alpha.vals$alpha1 # for xx part
