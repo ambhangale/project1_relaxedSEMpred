@@ -64,7 +64,7 @@ fitmod <- function(dat, n_x, n_eta_x, n_y,  n_eta_y) {
 #----
 
 # prediction rule----
-lav.predict.y <- function(calidat, preddat, califit, 
+lav.predict.y <- function(preddat, califit, 
                       alpha1, alpha2, xnames, ynames, srmr = F) {
   # extract sample estimates from fitted model object
   SampStats <- lavInspect(califit, "sampstat")
@@ -147,8 +147,7 @@ lav.predict.y.part <- function(dat, K, partid,
                           n_x = n_x, n_eta_x = n_eta_x, 
                           n_y = n_y,  n_eta_y = n_eta_y) # fit to only the training data
         
-        predpart <- lav.predict.y(calidat = partdat[[k]]$train,
-                                  preddat = partdat[[k]]$test,
+        predpart <- lav.predict.y(preddat = partdat[[k]]$test,
                                   califit = fitpart,
                                   alpha1 = a1, alpha2 = a2, xnames = xnames,
                                   ynames = ynames)
@@ -256,7 +255,7 @@ lav.predict.y.cv <- function(calidat, preddat, califit, CV,
     }
   }
   
-  Ypred <- lav.predict.y(calidat = calidat, preddat = preddat,
+  Ypred <- lav.predict.y(preddat = preddat,
                          califit = califit, alpha1 = alpha.vals$alpha1,
                          alpha2 = alpha.vals$alpha2,
                          xnames = xnames, ynames = ynames)$Ypred
