@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 7 October 2025
+## Last updated: 23 October 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -25,32 +25,40 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 
 # misspecification types----
 xxrescov <- function(n_x, n_eta_x, THETA, THETA.star, miss.strength) {
-  if(n_eta_x != 3L) stop("xx misspecification not supported for n_eta_x = 1L")
-  
-  if (miss.strength == "weak") {
+  if (n_eta_x == 1L) {
+    # if n_eta_x = 1L
+    # rescov between the last two indcators of the single x-factor
+    if (miss.strength == "weak") {
+      
+      THETA[paste0("x",n_x-1), paste0("x",n_x)] <- 
+        THETA[paste0("x",n_x), paste0("x",n_x-1)] <- 0.3*min(THETA.star)
+    } else if (miss.strength == "strong") {
+      
+      THETA[paste0("x",n_x-1), paste0("x",n_x)] <- 
+        THETA[paste0("x",n_x), paste0("x",n_x-1)] <- 0.6*min(THETA.star)
+    } else stop("specify a valid misspecification strength in `miss.strength`")
+  } else {
+    # if n_eta_x = 3L,
     # rescov between the second indicator of the first factor 
     # and the second indicator of the second factor
     # AND
     # rescov between the third indicator of the second factor 
     # and the third indicator of the third factor
     
-    THETA["x2", paste0("x", (n_x/n_eta_x + 2))] <-  THETA[paste0("x", (n_x/n_eta_x + 2)), "x2"] <- 
-      THETA[paste0("x", (n_x/n_eta_x + 3)), paste0("x", (n_x-n_x/n_eta_x+3))] <- 
-      THETA[paste0("x", (n_x-n_x/n_eta_x+3)), paste0("x", (n_x/n_eta_x + 3))] <- 
-      0.3*min(THETA.star)
-    
-  } else if (miss.strength == "strong") {
-    # rescov between the second indicator of the first factor 
-    # and the second indicator of the second factor
-    # AND
-    # rescov between the third indicator of the second factor 
-    # and the third indicator of the third factor
-    
-    THETA["x2", paste0("x", (n_x/n_eta_x + 2))] <- THETA[paste0("x", (n_x/n_eta_x + 2)), "x2"] <- 
-      THETA[paste0("x", (n_x/n_eta_x + 3)), paste0("x", (n_x-n_x/n_eta_x+3))] <- 
-      THETA[paste0("x", (n_x-n_x/n_eta_x+3)), paste0("x", (n_x/n_eta_x + 3))] <- 
-      0.6*min(THETA.star)
-  } else stop("specify a valid misspecification strength in `miss.strength`")
+    if (miss.strength == "weak") {
+      
+      THETA["x2", paste0("x", (n_x/n_eta_x + 2))] <-  THETA[paste0("x", (n_x/n_eta_x + 2)), "x2"] <- 
+        THETA[paste0("x", (n_x/n_eta_x + 3)), paste0("x", (n_x-n_x/n_eta_x+3))] <- 
+        THETA[paste0("x", (n_x-n_x/n_eta_x+3)), paste0("x", (n_x/n_eta_x + 3))] <- 
+        0.3*min(THETA.star)
+    } else if (miss.strength == "strong") {
+      
+      THETA["x2", paste0("x", (n_x/n_eta_x + 2))] <- THETA[paste0("x", (n_x/n_eta_x + 2)), "x2"] <- 
+        THETA[paste0("x", (n_x/n_eta_x + 3)), paste0("x", (n_x-n_x/n_eta_x+3))] <- 
+        THETA[paste0("x", (n_x-n_x/n_eta_x+3)), paste0("x", (n_x/n_eta_x + 3))] <- 
+        0.6*min(THETA.star)
+    } else stop("specify a valid misspecification strength in `miss.strength`") 
+  } 
   
   return(THETA)
 }
