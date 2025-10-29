@@ -378,7 +378,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
 #----
 
 # generate data from covariance matrices----
-gendat <- function(sampID = NULL, nCal, nPred = 1e4, covmat, seed = NULL) {
+gendat <- function(sampID = NULL, nCal, nPred, covmat, seed = NULL) {
   
   if (!is.null(sampID)) {
     # set seed based on `sampID`
