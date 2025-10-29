@@ -15,7 +15,7 @@ source("encv_relaxSEM.R")
 # en.alphas = seq(0,1,0.1); K = 10
 # xnames = c(paste0("x",1:3), paste0("y",1:4)); ynames = "dem65_sum"; seed = NULL
 
-wrapper.predict.y <- function(sampID, nCal, nPred, covmat, lav.CV = TRUE,
+wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                               lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
                               lav.equal.alphas = F,
                               en.alphas = seq(0,1,0.1), K = 10, seed = NULL,
