@@ -13,7 +13,7 @@ source("SRMR_relaxSEM.R")
 library(lavaan)
 
 # fit model in lavaan----
-fitmod <- function(dat, n_x, n_eta_x, n_y, n_eta_y) {
+fitmod <- function(dat, n_x, n_eta_x, n_y, n_eta_y, SAM = FALSE) {
   obsxnames <- paste0("x", 1:n_x)
   obsynames <- paste0("y", 1:n_y)
   lvxnames <- paste0("eta_x", 1:n_eta_x)
@@ -54,7 +54,11 @@ fitmod <- function(dat, n_x, n_eta_x, n_y, n_eta_y) {
   
   mod <- paste(FL, B, collapse = " \n") # complete model
   
-  fit <- sem(mod = mod, dat = dat, meanstructure = T, std.lv = T) # use UVI constraint
+  fit <- if (!SAM) {
+    sem(mod = mod, dat = dat, meanstructure = T, std.lv = T) # use UVI constraint
+  } else {
+    sam(mod = mod, dat = dat, meanstructure = T, std.lv = T) # SAM, use UVI constraint
+  }
   
   return(fit)
 }
