@@ -58,6 +58,9 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   PD.lv <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.lv"))$values > 0), F, T)
   PD.ov <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.ov"))$values > 0), F, T)
   
+  # save number of estimated parameters 
+  npar <- lav.fit@Fit@npar
+  
   # check whether test for exact fit was rejected or not
   if (lav.fit@Fit@converged) {
     fit.measures <- fitMeasures(lav.fit)
@@ -76,18 +79,38 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   DeRooij.t1 <- Sys.time()
   DeRooij.bias <- DeRooij.Ypred - Ytrue
   DeRooij.diff <- difftime(DeRooij.t1, DeRooij.t0, "sec")
-  DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, 
+  DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                          exact.fit = exact.fit, RMSEA = RMSEA,
                          RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                          RMSEp = sqrt(sum((DeRooij.bias)^2)/(length(ynames)*nPred)),
                          runTime = DeRooij.diff)
-  DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov,
+  DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                           exact.fit = exact.fit, RMSEA = RMSEA,
                           RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                           yname = ynames,
                           RMSEpr = sqrt(colSums(DeRooij.bias^2)/nPred),
                           runTime = DeRooij.diff)
   
+  # Predictions using the structural after measurement approach
+  SAM.t0 <- Sys.time()
+  lav.fit.sam <- fitmod(dat = calibration, 
+                        n_x = n_x, n_eta_x = n_eta_x,
+                        n_y = n_y, n_eta_y = n_eta_y, SAM = T)
+  PD.lv.sam <- ifelse(!all(eigen(lavInspect(lav.fit.sam, "cov.lv"))$values > 0), F, T)
+  PD.ov.sam <- ifelse(!all(eigen(lavInspect(lav.fit.sam, "cov.ov"))$values > 0), F, T)
+  
+  SAM.Ypred <- lavPredictY(object = lav.fit.sam, newdata = prediction, 
+                           ynames = ynames, xnames = xnames)
+  SAM.t1 <- Sys.time()
+  SAM.bias <- SAM.Ypred - Ytrue
+  SAM.diff <- difftime(SAM.t1, SAM.t0, "sec")
+  SAM.RMSEp <- cbind(method = "SAM", PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
+                     RMSEp = sqrt(sum((SAM.bias)^2)/(length(ynames)*nPred)),
+                     runTime = SAM.diff)
+  SAM.RMSEpr <- cbind(method = "SAM", PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
+                      yname = ynames,
+                      RMSEpr = sqrt(colSums(SAM.bias^2)/nPred),
+                      runTime = SAM.diff)
   
   # Predictions using ordinary least squares regression
   OLS.t0 <- Sys.time()
@@ -122,7 +145,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   lavcv.t1 <- Sys.time()
   lavcv.bias <- lavcv.Ypred - Ytrue
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
-  lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, 
+  lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                        exact.fit = exact.fit, RMSEA = RMSEA,
                        RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                        lav.fullSRMR = attr(lavcv.Ypred, "fullSRMR"),
@@ -133,7 +156,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                        lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                        RMSEp = sqrt(sum((lavcv.bias)^2)/(length(ynames)*nPred)),
                        runTime = lavcv.diff)
-  lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, 
+  lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                         exact.fit = exact.fit, RMSEA = RMSEA,
                         RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                         lav.xxSRMR = attr(lavcv.Ypred, "xxSRMR"), 
@@ -173,12 +196,13 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   } 
   colnames(Ytrue) <- paste0("Ytrue.", colnames(Ytrue))
   colnames(DeRooij.Ypred) <- paste0("DeRooij.", colnames(DeRooij.Ypred))
+  colnames(SAM.Ypred) <- paste0("SAM.", colnames(SAM.Ypred))
   colnames(OLS.Ypred) <- paste0("OLS.", colnames(OLS.Ypred))
   colnames(lavcv.Ypred) <- paste0("lavcv.", colnames(lavcv.Ypred))
   colnames(encv.Ypred) <- paste0("encv.", colnames(encv.Ypred)) 
   Y <- as.data.frame(cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
              misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
-             Ytrue, DeRooij.Ypred, OLS.Ypred, lavcv.Ypred, encv.Ypred))
+             Ytrue, DeRooij.Ypred, SAM.Ypred, OLS.Ypred, lavcv.Ypred, encv.Ypred))
   
   # save alpha values for lavcv
   lavcv.alphas <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
@@ -191,12 +215,12 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
                  misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                  Reduce(function(x,y) merge(x, y, all = T), 
-                        list (DeRooij.RMSEp, OLS.RMSEp, lavcv.RMSEp, encv.RMSEp)))
+                        list (DeRooij.RMSEp, SAM.RMSEp, OLS.RMSEp, lavcv.RMSEp, encv.RMSEp)))
   
   RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
                   misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                   Reduce(function(x,y) merge(x, y, all = T), 
-                         list (DeRooij.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
+                         list (DeRooij.RMSEpr, SAM.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
   
   t1 <- Sys.time()
   diff <- difftime(t1, t0, "sec")
@@ -213,6 +237,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "K")             <- K
   attr(final, "PD.lv")         <- PD.lv
   attr(final, "PD.ov")         <- PD.ov
+  attr(final, "PD.lv.sam")     <- PD.lv.sam
+  attr(final, "PD.ov.sam")     <- PD.ov.sam
   attr(final, "exact.fit")     <- exact.fit
   attr(final, "RMSEA")         <- RMSEA
   attr(final, "RMSEA.lowCI")   <- RMSEA.lowCI
