@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 15 July 2025
+## Last updated: 30 October 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -50,7 +50,7 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, n_y, xnames, yname
   } else {
     as.matrix(predict(out, newx = as.matrix(preddat[,xnames]), s = lambda)[,,1])
   }
-  
+  colnames(Ypred) <- ynames
   
   attr(Ypred, "alpha")  <- min.alpha # en mixing parameter
   attr(Ypred, "lambda") <- lambda # tuning parameter

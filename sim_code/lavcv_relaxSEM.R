@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: October 10 2025
+## Last updated: 30 October 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -274,6 +274,7 @@ lav.predict.y.cv <- function(calidat, preddat, califit, CV,
                          califit = califit, alpha1 = alpha.vals$alpha1,
                          alpha2 = alpha.vals$alpha2,
                          xnames = xnames, ynames = ynames, srmr = T)$Ypred
+  colnames(Ypred) <- ynames
   
   attr(Ypred, "CV")     <- CV # was cross-validation performed?
   attr(Ypred, "alpha1") <- alpha.vals$alpha1 # for xx part
