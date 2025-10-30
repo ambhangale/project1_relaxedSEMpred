@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 10 October 2025
+## Last updated: 30 October 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -167,14 +167,18 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                        runTime = encv.diff)
   
   # save Ytrue and Ypred for all methods
+  if (n_y == 1L){
+    Ytrue <- as.data.frame(Ytrue)
+    colnames(Ytrue) <- ynames
+  } 
   colnames(Ytrue) <- paste0("Ytrue.", colnames(Ytrue))
   colnames(DeRooij.Ypred) <- paste0("DeRooij.", colnames(DeRooij.Ypred))
   colnames(OLS.Ypred) <- paste0("OLS.", colnames(OLS.Ypred))
   colnames(lavcv.Ypred) <- paste0("lavcv.", colnames(lavcv.Ypred))
-  colnames(encv.Ypred) <- paste0("encv.", colnames(encv.Ypred))
-  Y <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+  colnames(encv.Ypred) <- paste0("encv.", colnames(encv.Ypred)) 
+  Y <- as.data.frame(cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
              misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
-             Ytrue, DeRooij.Ypred, OLS.Ypred, lavcv.Ypred, encv.Ypred)
+             Ytrue, DeRooij.Ypred, OLS.Ypred, lavcv.Ypred, encv.Ypred))
   
   # save alpha values for lavcv
   lavcv.alphas <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
