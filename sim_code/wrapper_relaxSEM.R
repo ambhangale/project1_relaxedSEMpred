@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 30 October 2025
+## Last updated: 31 October 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -65,11 +65,13 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   if (lav.fit@Fit@converged) {
     fit.measures <- fitMeasures(lav.fit)
     exact.fit    <- ifelse(fit.measures["pvalue"] < .05, "reject", "fail_to_reject")
+    df           <- fit.measures["df"]
+    CFI          <- fit.measures["cfi"]
     RMSEA        <- fit.measures["rmsea"]
     RMSEA.lowCI  <- fit.measures["rmsea.ci.lower"]
     RMSEA.upCI   <- fit.measures["rmsea.ci.upper"] 
   } else {
-    exact.fit <- RMSEA <- RMSEA.lowCI <- RMSEA.upCI <- NA
+    exact.fit <- df <- CFI <- RMSEA <- RMSEA.lowCI <- RMSEA.upCI <- NA
   }
   
   # Predictions using De Rooij et al. (2022) rule
@@ -79,13 +81,13 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   DeRooij.t1 <- Sys.time()
   DeRooij.bias <- DeRooij.Ypred - Ytrue
   DeRooij.diff <- difftime(DeRooij.t1, DeRooij.t0, "sec")
-  DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
-                         exact.fit = exact.fit, RMSEA = RMSEA,
+  DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
+                         df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                          RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                          RMSEp = sqrt(sum((DeRooij.bias)^2)/(length(ynames)*nPred)),
                          runTime = DeRooij.diff)
-  DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
-                          exact.fit = exact.fit, RMSEA = RMSEA,
+  DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
+                          df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                           RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                           yname = ynames,
                           RMSEpr = sqrt(colSums(DeRooij.bias^2)/nPred),
@@ -146,7 +148,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   lavcv.bias <- lavcv.Ypred - Ytrue
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
   lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
-                       exact.fit = exact.fit, RMSEA = RMSEA,
+                       df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                        RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                        lav.fullSRMR = attr(lavcv.Ypred, "fullSRMR"),
                        lav.xxSRMR = attr(lavcv.Ypred, "xxSRMR"), 
@@ -157,7 +159,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                        RMSEp = sqrt(sum((lavcv.bias)^2)/(length(ynames)*nPred)),
                        runTime = lavcv.diff)
   lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
-                        exact.fit = exact.fit, RMSEA = RMSEA,
+                        df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                         RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                         lav.fullSRMR = attr(lavcv.Ypred, "fullSRMR"),
                         lav.xxSRMR = attr(lavcv.Ypred, "xxSRMR"), 
@@ -241,6 +243,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "PD.lv.sam")     <- PD.lv.sam
   attr(final, "PD.ov.sam")     <- PD.ov.sam
   attr(final, "exact.fit")     <- exact.fit
+  attr(final, "df")            <- df
+  attr(final, "CFI")           <- CFI
   attr(final, "RMSEA")         <- RMSEA
   attr(final, "RMSEA.lowCI")   <- RMSEA.lowCI
   attr(final, "RMSEA.upCI")    <- RMSEA.upCI
