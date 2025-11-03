@@ -19,46 +19,25 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 # 2 streams. stream 1 to be used for data generation and stream 2 to be used for partitioning
 #----
 
-# n_x = 12; n_eta_x = 3; n_y = 9; n_eta_y = 1
+# n_x = 4; n_eta_x = 1; n_y = 9; n_eta_y = 1
 # beta = 0.3; lambda = 0.7; psi.cov = 0.2; r = 0.3
 # miss.strength = "strong"
 
 # misspecification types----
 xxrescov <- function(n_x, n_eta_x, THETA, THETA.star, miss.strength) {
-  if (n_eta_x == 1L) {
-    # if n_eta_x = 1L
-    # rescov between the last two indcators of the single x-factor
-    if (miss.strength == "weak") {
-      
-      THETA[paste0("x",n_x-1), paste0("x",n_x)] <- 
-        THETA[paste0("x",n_x), paste0("x",n_x-1)] <- 0.3*min(THETA.star)
-    } else if (miss.strength == "strong") {
-      
-      THETA[paste0("x",n_x-1), paste0("x",n_x)] <- 
-        THETA[paste0("x",n_x), paste0("x",n_x-1)] <- 0.6*min(THETA.star)
-    } else stop("specify a valid misspecification strength in `miss.strength`")
-  } else {
-    # if n_eta_x = 3L,
-    # rescov between the second indicator of the first factor 
-    # and the second indicator of the second factor
-    # AND
-    # rescov between the third indicator of the second factor 
-    # and the third indicator of the third factor
-    
-    if (miss.strength == "weak") {
-      
-      THETA["x2", paste0("x", (n_x/n_eta_x + 2))] <-  THETA[paste0("x", (n_x/n_eta_x + 2)), "x2"] <- 
-        THETA[paste0("x", (n_x/n_eta_x + 3)), paste0("x", (n_x-n_x/n_eta_x+3))] <- 
-        THETA[paste0("x", (n_x-n_x/n_eta_x+3)), paste0("x", (n_x/n_eta_x + 3))] <- 
-        0.3*min(THETA.star)
-    } else if (miss.strength == "strong") {
-      
-      THETA["x2", paste0("x", (n_x/n_eta_x + 2))] <- THETA[paste0("x", (n_x/n_eta_x + 2)), "x2"] <- 
-        THETA[paste0("x", (n_x/n_eta_x + 3)), paste0("x", (n_x-n_x/n_eta_x+3))] <- 
-        THETA[paste0("x", (n_x-n_x/n_eta_x+3)), paste0("x", (n_x/n_eta_x + 3))] <- 
-        0.6*min(THETA.star)
-    } else stop("specify a valid misspecification strength in `miss.strength`") 
-  } 
+  
+  nRC <- round(n_x*(n_x-1)*0.5/6) # number of residual covariances to introduce
+  uniq.el <- combn(1:n_x, 2, simplify = F) # unique elements in THETA_xx
+  
+  # residual covariances to introduce
+  RC <- sample(uniq.el, nRC)
+  
+  for (rc in 1:length(RC)) {
+    THETA[paste0("x",RC[[rc]][1]), paste0("x",RC[[rc]][2])] <- 
+      THETA[paste0("x",RC[[rc]][2]), paste0("x",RC[[rc]][1])] <- ifelse(miss.strength == "weak", 
+                                              0.3*min(THETA.star), 
+                                              0.6*min(THETA.star))
+  }
   
   return(THETA)
 }
@@ -281,11 +260,11 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
     if (is.null(miss.part) | is.null(miss.strength)) {
       stop("specify which part of the model to misspecify and strength of misspecification")
     } else {
+      if(!(miss.strength == "weak" || miss.strength == "strong")) stop("specify a valid misspecification strength in `miss.strength`") 
+      if(!(miss.part %in% c("xx:rescov", "xx:crossload", "xy:direct", "both:cov", "both:load"))) stop("specify a valid misspecification type in `miss.part`")
+      
       ## set seed for randomly selecting parts of model to misspecify
       set.seed(as.numeric(paste0(n_x,n_eta_x,n_y,n_eta_y))) 
-      
-      # miss.part = c("xx:rescov", "xx:crossload", "xy:direct", 
-      #               "both:cov", "both:load")
       if (miss.part == "xx:rescov") {
         THETA <- xxrescov(n_x = n_x, n_eta_x = n_eta_x, THETA = THETA, 
                           THETA.star = THETA.star, miss.strength = miss.strength)
