@@ -19,7 +19,7 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 # 2 streams. stream 1 to be used for data generation and stream 2 to be used for partitioning
 #----
 
-# n_x = 4; n_eta_x = 1; n_y = 9; n_eta_y = 1
+# n_x = 24; n_eta_x = 3; n_y = 9; n_eta_y = 1
 # beta = 0.3; lambda = 0.7; psi.cov = 0.2; r = 0.3
 # miss.strength = "strong"
 
@@ -43,24 +43,23 @@ xxrescov <- function(n_x, n_eta_x, THETA, THETA.star, miss.strength) {
 }
 
 xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
-  if(n_eta_x != 3L) stop("xx misspecification not supported for n_eta_x = 1L")
+  if (n_eta_x != 3L) stop("xx misspecification not supported for n_eta_x = 1L")
+  if (!(n_x == 12L || n_x == 24L)) stop("xxcrossload misspecificaiton only supported for n_x == 12L | 24L for now")
   
-  if(miss.strength == "weak") {
-    # loading between first factor and second indicator of second factor
-    # AND
-    # loading between second factor and third indicator of third factor
-    LAMBDA[paste0("x", (n_x/n_eta_x + 2)), "eta_x1"] <- 
-      LAMBDA[paste0("x", (n_x-n_x/n_eta_x + 3)), "eta_x2"] <- 0.5*lambda
-    
-  } else if (miss.strength == "strong") {
-    # loading between first factor and second indicator of second factor
-    # AND
-    # loading between second factor and third indicator of third factor
-    
-    LAMBDA[paste0("x", (n_x/n_eta_x + 2)), "eta_x1"] <- 
-      LAMBDA[paste0("x", (n_x-n_x/n_eta_x + 3)), "eta_x2"] <- 0.9*lambda
-    
-  } else stop("specify a valid misspecification strength in `miss.strength`")
+  nCL <- ifelse(n_x == 12L, 1, 2) # number of cross-loadings to introduce per factor
+  
+  for (xx in 1:n_eta_x) {
+    if(xx == 1L) {
+      LAMBDA[paste0("x", sample((n_x/n_eta_x + 1):n_x, nCL)), 
+             paste0("eta_x", xx)] <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
+    } else if (xx == 2L) {
+      LAMBDA[paste0("x", sample(c(1:(n_x/n_eta_x),(n_x-n_x/n_eta_x+1):n_x), nCL)), 
+             paste0("eta_x", xx)] <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
+    } else if (xx == 3L) {
+      LAMBDA[paste0("x", sample(1:(n_x-n_x/n_eta_x), nCL)), 
+             paste0("eta_x", xx)] <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
+    }
+  }
   
   return(LAMBDA)
 }
@@ -190,6 +189,8 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   # check if n_eta_x = 1 or 3, otherwise stop
   if (!(n_eta_x == 1L || n_eta_x == 3L)) stop("only `n_eta_x == 1L or 3L` supported for now")
   
+  # check if each factor has 4 or 8 indicators, otherwise warning
+  if (!(n_x/n_eta_x == 4L || n_x/n_eta_x == 8L)) warning("all misspecification calculations only implemented for n_x/n_eta_x == 4L | 8L for now")
   
   obsnames <- c(paste0("x", 1:n_x), paste0("y", 1:n_y)) # indicator labels
   lvnames <- c(paste0("eta_x", 1:n_eta_x), paste0("eta_y", 1:n_eta_y)) # factor labels
@@ -265,6 +266,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
       
       ## set seed for randomly selecting parts of model to misspecify
       set.seed(as.numeric(paste0(n_x,n_eta_x,n_y,n_eta_y))) 
+      
       if (miss.part == "xx:rescov") {
         THETA <- xxrescov(n_x = n_x, n_eta_x = n_eta_x, THETA = THETA, 
                           THETA.star = THETA.star, miss.strength = miss.strength)
