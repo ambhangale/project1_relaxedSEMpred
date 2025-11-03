@@ -281,6 +281,9 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
     if (is.null(miss.part) | is.null(miss.strength)) {
       stop("specify which part of the model to misspecify and strength of misspecification")
     } else {
+      ## set seed for randomly selecting parts of model to misspecify
+      set.seed(as.numeric(paste0(n_x,n_eta_x,n_y,n_eta_y))) 
+      
       # miss.part = c("xx:rescov", "xx:crossload", "xy:direct", 
       #               "both:cov", "both:load")
       if (miss.part == "xx:rescov") {
