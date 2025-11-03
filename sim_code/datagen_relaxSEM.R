@@ -13,13 +13,10 @@ library(mvtnorm)
 library(portableParallelSeeds) # remotes::install_github("wjakethompson/portableParallelSeeds")
 
 # create seed object for data generation and partition generation----
-allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 3, seed = 10824)
+allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 
 # possible to run sampIDs 1:5000. adjust nReps if we want to go higher.
-# 2 streams. 
-## stream 1 to be used for data generation 
-## stream 2 to be used for partitioning
-## stream 3 to be used for xx misspecification
+# 2 streams. stream 1 to be used for data generation and stream 2 to be used for partitioning
 #----
 
 # n_x = 12; n_eta_x = 3; n_y = 9; n_eta_y = 1
