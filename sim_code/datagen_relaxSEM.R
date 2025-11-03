@@ -27,7 +27,14 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 xxrescov <- function(n_x, n_eta_x, THETA, THETA.star, miss.strength) {
   
   nRC <- round(n_x*(n_x-1)*0.5/6) # number of residual covariances to introduce
-  uniq.el <- combn(1:n_x, 2, simplify = F) # unique elements in THETA_xx
+  # unique elements in THETA_xx
+  ## skip first indicator of each factor as the xy:direct misspecification is from these indicators
+  uniq.el <- if (n_eta_x == 1L) {
+    combn(2:n_x, 2, simplify = F)
+  } else{
+    combn(c(2:(n_x/n_eta_x), (n_x/n_eta_x + 2):(n_x-n_x/n_eta_x), (n_x-n_x/n_eta_x+2):n_x),
+          2, simplify = F)
+  }
   
   # residual covariances to introduce
   RC <- sample(uniq.el, nRC)
@@ -48,15 +55,16 @@ xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
   
   nCL <- ifelse(n_x == 12L, 1, 2) # number of cross-loadings to introduce per factor
   
+  ## skip first indicator of each factor as the xy:direct misspecification is from these indicators
   for (xx in 1:n_eta_x) {
     if(xx == 1L) {
-      LAMBDA[paste0("x", sample((n_x/n_eta_x + 1):n_x, nCL)), 
+      LAMBDA[paste0("x", sample(c((n_x/n_eta_x + 2):(n_x-n_x/n_eta_x), (n_x-n_x/n_eta_x+2):n_x), nCL)), 
              paste0("eta_x", xx)] <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
     } else if (xx == 2L) {
-      LAMBDA[paste0("x", sample(c(1:(n_x/n_eta_x),(n_x-n_x/n_eta_x+1):n_x), nCL)), 
+      LAMBDA[paste0("x", sample(c(2:(n_x/n_eta_x),(n_x-n_x/n_eta_x+2):n_x), nCL)), 
              paste0("eta_x", xx)] <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
     } else if (xx == 3L) {
-      LAMBDA[paste0("x", sample(1:(n_x-n_x/n_eta_x), nCL)), 
+      LAMBDA[paste0("x", sample(c(2:(n_x/n_eta_x),(n_x/n_eta_x + 2):(n_x-n_x/n_eta_x)), nCL)), 
              paste0("eta_x", xx)] <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
     }
   }
