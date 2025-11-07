@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 5 November 2025
+## Last updated: 7 November 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -25,27 +25,34 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 
 # misspecification types----
 xxrescov <- function(n_x, n_eta_x, THETA, THETA.star, miss.strength) {
+  theta.val <- ifelse(miss.strength == "weak",
+                      0.3*min(THETA.star),
+                      0.6*min(THETA.star)) # value of the residual covariance
   
-  nRC <- round(n_x*(n_x-1)*0.5/6) # number of residual covariances to introduce
-  # unique elements in THETA_xx
-  ## skip first indicator of each factor as the xy:direct misspecification is from these indicators
-  uniq.el <- if (n_eta_x == 1L) {
-    combn(2:n_x, 2, simplify = F)
-  } else{
-    combn(c(2:(n_x/n_eta_x), (n_x/n_eta_x + 2):(n_x-n_x/n_eta_x), (n_x-n_x/n_eta_x+2):n_x),
-          2, simplify = F)
+  if (n_eta_x == 1L) {
+    RC <- if (n_x == 4L) list(c(2,3)) else list(c(2,3), c(4,5), c(6,7), c(2,7)) # residual covariances to introduce
+    
+    for (rc in 1:length(RC)) {
+      THETA[paste0("x",RC[[rc]][1]), paste0("x",RC[[rc]][2])] <-
+        THETA[paste0("x",RC[[rc]][2]), paste0("x",RC[[rc]][1])] <- theta.val
+    }
+  } else {
+    # if n_eta_x = 3L,
+    ## if n_x = 12L, rescov between 2nd and 3rd indicators of each factor
+    ## if n_x = 24L, rescov between 2nd,3rd,7th,8th indicators of each factor
+    
+    RC <- if (n_x == 12L) c(2,3) else c(2,3,7,8)
+    
+    for(rc in RC) {
+      THETA[paste0("x",rc),paste0("x",(n_x/n_eta_x+rc))] <- 
+        THETA[paste0("x",(n_x/n_eta_x+rc)),paste0("x",rc)] <-
+        THETA[paste0("x",rc),paste0("x",(n_x-n_x/n_eta_x+rc))] <- 
+        THETA[paste0("x",(n_x-n_x/n_eta_x+rc)),paste0("x",rc)] <-
+        THETA[paste0("x",(n_x/n_eta_x+rc)),paste0("x",(n_x-n_x/n_eta_x+rc))] <-
+        THETA[paste0("x",(n_x-n_x/n_eta_x+rc)),paste0("x",(n_x/n_eta_x+rc))] <- theta.val
+    }
+    
   }
-  
-  # residual covariances to introduce
-  RC <- sample(uniq.el, nRC)
-  
-  for (rc in 1:length(RC)) {
-    THETA[paste0("x",RC[[rc]][1]), paste0("x",RC[[rc]][2])] <- 
-      THETA[paste0("x",RC[[rc]][2]), paste0("x",RC[[rc]][1])] <- ifelse(miss.strength == "weak", 
-                                              0.3*min(THETA.star), 
-                                              0.6*min(THETA.star))
-  }
-  
   return(THETA)
 }
 
