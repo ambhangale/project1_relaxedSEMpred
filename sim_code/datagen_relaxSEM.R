@@ -328,9 +328,12 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
       } else stop("specify valid `miss.part`")
     }
   }
+  if (!(all(eigen(THETA)$values) >= 0)) stop ("THETA matrix is not positive (semi-)definite")
+  if (!(all(eigen(PHI)$values) >= 0)) stop ("PHI matrix is not positive (semi-)definite")
   
   # population covariance matrix
   SIGMA.pop <- LAMBDA %*% PHI %*% t(LAMBDA) + THETA
+  if (!(all(eigen(SIGMA.pop)$values) >= 0)) stop ("SIGMA matrix is not positive (semi-)definite")
   
   attr(SIGMA.pop, "n_x") <- n_x
   attr(SIGMA.pop, "n_eta_x") <- n_eta_x
