@@ -265,14 +265,14 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   dimnames(THETA) <- list(obsnames, obsnames)
   
   # if the y-part of the model is a single-indicator factor model
-  ## fix factor variance to residual indicator variance, then recompute PHI;
-  ## fix residual indicator variance to 0L
   ## fix factor loading for single-indicator factor to 1L
+  ## fix residual indicator variance to (1-r)*obs.var
+  ## fix factor variance to r*obs.var, then recompute PHI
   if (n_y == 1L) {
-    PSI["eta_y1", "eta_y1"] <- THETA.star["y1"]
-    PHI <- solve(Iden - B) %*% PSI %*% t(solve(Iden - B))
-    THETA["y1", "y1"] <- 0L
     LAMBDA["y1", "eta_y1"] <- 1L
+    THETA["y1", "y1"] <- (1-r)*obs.var
+    PSI["eta_y1", "eta_y1"] <- r*obs.var
+    PHI <- solve(Iden - B) %*% PSI %*% t(solve(Iden - B))
   }
   
   # introduce misspecification
