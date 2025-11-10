@@ -283,9 +283,6 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
       if(!(miss.strength == "weak" || miss.strength == "strong")) stop("specify a valid misspecification strength in `miss.strength`") 
       if(!(miss.part %in% c("xx:rescov", "xx:crossload", "xy:direct", "both:cov", "both:load"))) stop("specify a valid misspecification type in `miss.part`")
       
-      ## set seed for randomly selecting parts of model to misspecify
-      set.seed(as.numeric(paste0(n_x,n_eta_x,n_y,n_eta_y))) 
-      
       if (miss.part == "xx:rescov") {
         THETA <- xxrescov(n_x = n_x, n_eta_x = n_eta_x, THETA = THETA, 
                           THETA.star = THETA.star, miss.strength = miss.strength)
