@@ -62,18 +62,18 @@ xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
   
   lambda.val <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
   
-  CL <- rep(list(c(2,7)), 3)
+  CL <- c(2,7)
   
   for (xx in 1:n_eta_x) {
     if (xx == 1L) {
-      LAMBDA[paste0("x", n_x/n_eta_x+CL[[xx]][1]),  paste0("eta_x", xx)] <- lambda.val
-      if (n_x == 24L) LAMBDA[paste0("x", n_x-n_x/n_eta_x+CL[[xx]][2]), paste0("eta_x", xx)] <- lambda.val
+      LAMBDA[paste0("x", n_x/n_eta_x+CL[1]),  paste0("eta_x", xx)] <- lambda.val
+      if (n_x == 24L) LAMBDA[paste0("x", n_x-n_x/n_eta_x+CL[2]), paste0("eta_x", xx)] <- lambda.val
     } else if (xx == 2L) {
-      LAMBDA[paste0("x", n_x-n_x/n_eta_x+CL[[xx]][1]), paste0("eta_x", xx)] <- lambda.val
-      if (n_x == 24L) LAMBDA[paste0("x", CL[[xx]][2]),  paste0("eta_x", xx)] <- lambda.val
+      LAMBDA[paste0("x", n_x-n_x/n_eta_x+CL[1]), paste0("eta_x", xx)] <- lambda.val
+      if (n_x == 24L) LAMBDA[paste0("x", CL[2]),  paste0("eta_x", xx)] <- lambda.val
     } else if (xx == 3L) {
-      LAMBDA[paste0("x", CL[[xx]][1]),  paste0("eta_x", xx)] <- lambda.val
-      if (n_x == 24L) LAMBDA[paste0("x", n_x/n_eta_x+CL[[xx]][2]),  paste0("eta_x", xx)] <- lambda.val
+      LAMBDA[paste0("x", CL[1]),  paste0("eta_x", xx)] <- lambda.val
+      if (n_x == 24L) LAMBDA[paste0("x", n_x/n_eta_x+CL[2]),  paste0("eta_x", xx)] <- lambda.val
     }
   }
   
@@ -193,7 +193,7 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
 
 # generate random covariance matrices----
 genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L, 
-                      beta = 0.3, lambda = 0.7, psi.cov = 0.2, r = 0.3,
+                      beta = 0.3, lambda = 0.7, psi.cov = 0.2, r = 0.3, # TODO ?? obs.var = 1,
                       misspecify, miss.part = NULL, miss.strength = NULL) { 
   
   # check if n_x is divisible by n_eta_x, otherwise stop
