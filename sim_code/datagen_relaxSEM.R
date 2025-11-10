@@ -81,107 +81,110 @@ xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
 }
 
 xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA, 
-                     beta, miss.strength, lvnames, obsnames) {
+                     beta, r, obs.var, miss.strength, lvnames, obsnames) {
+  
+  mis.PSI.val <- r*obs.var # factor variance for single-indicator factors
+  mis.THETA.val <- (1-r)*obs.var # residual indicator variance for single-indicator factors
+  mis.B.val <- ifelse(miss.strength == "weak", 0.5*beta, 0.9*beta) # structural coefficient for direct effects
   
   if (n_eta_x == 1L) {
-    # add new column to LAMBDA - create a new single-indicator factor
-    mis.LAMBDA <- matrix(0, nrow = n_x + n_y, ncol = n_eta_x, 
-                         dimnames = list(obsnames,"mis.eta_x1"))
-    mis.LAMBDA["x1", "mis.eta_x1"] <- 1L
-    mis.LAMBDA.val <- LAMBDA["x1", "eta_x1"] # this lambda value will now be in the B matrix
-    LAMBDA["x1", "eta_x1"] <- 0L
-    mis.LAMBDA <- cbind(LAMBDA, mis.LAMBDA)
+    DE <- if (n_x == 4L) 1 else c(1,8)
+    mis.lvnames <- c(lvnames,paste0("mis.eta_x", DE))
+    mis.LAMBDA.val <- c() # vector of lambda values
     
-    # add residual variance for the new single-indicator factor
-    ## factor variance of the new single-indicator factor will be the residual indicator variance
-    mis.PSI.val <- THETA["x1", "x1"]
-    mis.PSI <- rbind(cbind(PSI, rep(0, length(lvnames))), 
-                     c(rep(0, length(lvnames)), mis.PSI.val))
-    dimnames(mis.PSI) <- list(c(lvnames,"mis.eta_x1"), c(lvnames,"mis.eta_x1"))
+    # create mis.LAMBDA matrix for new single indicator factor(s)
+    mis.LAMBDA <- matrix(0, nrow = n_x + n_y, 
+                         ncol = n_eta_x + n_eta_y + length(DE), 
+                         dimnames = list(obsnames, mis.lvnames))
+    mis.LAMBDA[rownames(LAMBDA), colnames(LAMBDA)] <- LAMBDA 
     
-    # set residual variance to 0 (due to new single-indicator factor)
-    THETA["x1", "x1"] <- 0L
+    # create mis.PSI and mis.B matrices
+    mis.PSI <- mis.B <- matrix(0, nrow = n_eta_x + n_eta_y + length(DE), 
+                               ncol = n_eta_x + n_eta_y + length(DE), 
+                               dimnames = list(mis.lvnames, mis.lvnames))
     
-    # add regression slope of outcome factor on new single-indicator factor
-    ## rows are outcomes, columns are predictors
-    mis.B.val <- ifelse(miss.strength == "weak", 
-                           0.5*beta,
-                           0.9*beta)
-    mis.B <- rbind(cbind(B, c(0, mis.B.val)), 
-                      c(mis.LAMBDA.val, rep(0, length(lvnames))))
-    dimnames(mis.B) <- list(c(lvnames,"mis.eta_x1"), c(lvnames,"mis.eta_x1"))
+    mis.PSI[rownames(PSI), colnames(PSI)] <- PSI 
+    mis.B[rownames(B), colnames(B)] <- B 
     
+    for (de in DE) {
+      mis.LAMBDA[paste0("x", de), paste0("mis.eta_x", de)] <- 1L
+      mis.LAMBDA.val[which(DE==de)] <- mis.LAMBDA[paste0("x", de), paste0("eta_x1")] # this lambda value will now be in the B matrix
+      mis.LAMBDA[paste0("x", de), paste0("eta_x1")] <- 0L
+      
+      # set residual variance to (1-r)*obs.var (due to new single-indicator factor)
+      THETA[paste0("x", de), paste0("x", de)] <- mis.THETA.val
+      
+      # set factor variance to c*obs.var (due to new single indicator factor)
+      mis.PSI[paste0("mis.eta_x", de), paste0("mis.eta_x", de)] <- mis.PSI.val
+      
+      # add regression slope of outcome factor on new single-indicator factor
+      # and the factor loading on the single-indicator factors
+      ## rows are outcomes, columns are predictors
+      mis.B[paste0("mis.eta_x", de), "eta_x1"] <- mis.LAMBDA.val[which(DE==de)]
+      mis.B["eta_y1", paste0("mis.eta_x", de)] <- mis.B.val 
+    }
     
   } else if (n_eta_x == 3L) {
-    mis.lvnames <- c(lvnames, paste0("mis.eta_x", 
-                                     c(1, 
-                                       (n_x/n_eta_x + 1), 
-                                       (n_x-n_x/n_eta_x+1))))
+    DE <- if (n_x == 12L) c(1,4) else c(1,4,5)
+    mis.lvnames <- c(lvnames, 
+                     paste0("mis.eta_x", c(DE, (n_x/n_eta_x+DE), (n_x-n_x/n_eta_x+DE))))
+    mis.LAMBDA.val <- vector(mode = "list", length = n_eta_x)
     
-    # add new columns to LAMBDA -- create single-indicator factors
-    mis.LAMBDA <- matrix(0, nrow = n_x + n_y, ncol = n_eta_x,
-                         dimnames = list(obsnames, mis.lvnames[grep("mis.", mis.lvnames)]))
-    mis.LAMBDA["x1", "mis.eta_x1"] <- 1L
-    mis.LAMBDA[paste0("x", (n_x/n_eta_x + 1)), 
-               paste0("mis.eta_x", (n_x/n_eta_x + 1))] <- 1L
-    mis.LAMBDA[paste0("x", (n_x-n_x/n_eta_x+1)), 
-               paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))] <- 1L
-    mis.LAMBDA.vals <- c(LAMBDA["x1", "eta_x1"],
-                         LAMBDA[paste0("x", (n_x/n_eta_x + 1)), "eta_x2"],
-                         LAMBDA[paste0("x", (n_x-n_x/n_eta_x+1)), "eta_x3"])
-    names(mis.LAMBDA.vals) <- mis.lvnames[grep("mis.", mis.lvnames)]
-    LAMBDA["x1", "eta_x1"] <- LAMBDA[paste0("x", (n_x/n_eta_x + 1)), "eta_x2"] <- 
-      LAMBDA[paste0("x", (n_x-n_x/n_eta_x+1)), "eta_x3"] <- 0L
-    mis.LAMBDA <- cbind(LAMBDA, mis.LAMBDA)
+    # create mis.LAMBDA matrix for new single indicator factor(s)
+    mis.LAMBDA <- matrix(0, nrow = n_x + n_y, 
+                         ncol = n_eta_x + n_eta_y + n_eta_x*length(DE), 
+                         dimnames = list(obsnames, mis.lvnames))
+    mis.LAMBDA[rownames(LAMBDA), colnames(LAMBDA)] <- LAMBDA 
     
-    # add residual variance for new single-indicator factors
-    ## factor variances of the new single-indicator factors will be the residual indicator variances
-    mis.PSI.vals <- c(THETA["x1", "x1"],
-                        THETA[paste0("x", (n_x/n_eta_x + 1)), paste0("x", (n_x/n_eta_x + 1))],
-                        THETA[paste0("x", (n_x-n_x/n_eta_x+1)),  paste0("x", (n_x-n_x/n_eta_x+1))])
-    names(mis.PSI.vals) <- mis.lvnames[grep("mis.", mis.lvnames)]
+    # create mis.PSI and mis.B matrices
+    mis.PSI <- mis.B <- matrix(0, nrow = n_eta_x + n_eta_y + n_eta_x*length(DE), 
+                               ncol = n_eta_x + n_eta_y + n_eta_x*length(DE), 
+                               dimnames = list(mis.lvnames, mis.lvnames))
     
-    mis.PSI <- matrix(0, nrow = 2*n_eta_x + n_eta_y, ncol = 2*n_eta_x + n_eta_y,
-                      dimnames = list(mis.lvnames, mis.lvnames))
-    mis.PSI[lvnames, lvnames] <- PSI
-    mis.PSI["mis.eta_x1", "mis.eta_x1"] <- mis.PSI.vals["mis.eta_x1"]
-    mis.PSI[paste0("mis.eta_x", (n_x/n_eta_x + 1)), 
-            paste0("mis.eta_x", (n_x/n_eta_x + 1))] <- 
-      mis.PSI.vals[paste0("mis.eta_x", (n_x/n_eta_x + 1))]
-    mis.PSI[paste0("mis.eta_x", (n_x-n_x/n_eta_x+1)), 
-            paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))] <- 
-      mis.PSI.vals[paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))]
+    mis.PSI[rownames(PSI), colnames(PSI)] <- PSI 
+    mis.B[rownames(B), colnames(B)] <- B 
     
-    # set residual variances to 0
-    THETA["x1", "x1"] <- 
-      THETA[paste0("x", (n_x/n_eta_x + 1)), paste0("x", (n_x/n_eta_x + 1))] <- 
-      THETA[paste0("x", (n_x-n_x/n_eta_x+1)),  paste0("x", (n_x-n_x/n_eta_x+1))] <- 0L
-    
-    # add regression slopes of outcome factor on new single-indicator factors
-    ## rows are outcomes, columns are predictors
-    mis.B.vals <- rep(ifelse(miss.strength == "weak", 0.5*beta, 0.9*beta), n_eta_x)
-    names(mis.B.vals) <- mis.lvnames[grep("mis.", mis.lvnames)]
-    
-    mis.B <- matrix(0, nrow = 2*n_eta_x + n_eta_y, ncol = 2*n_eta_x + n_eta_y,
-                       dimnames = list(mis.lvnames, mis.lvnames))
-    mis.B[lvnames, lvnames] <- B
-    
-    mis.B["mis.eta_x1", "eta_x1"] <- 
-      mis.LAMBDA.vals[grep("\\_x1\\b", mis.lvnames[grep("mis.", mis.lvnames)])]
-    mis.B[paste0("mis.eta_x", (n_x/n_eta_x + 1)), "eta_x2"] <- 
-      mis.LAMBDA.vals[grep(paste0("x", (n_x/n_eta_x + 1)), mis.lvnames[grep("mis.", mis.lvnames)])]
-    mis.B[paste0("mis.eta_x", (n_x-n_x/n_eta_x+1)), "eta_x3"] <-
-      mis.LAMBDA.vals[grep(paste0("x", (n_x-n_x/n_eta_x+1)), mis.lvnames[grep("mis.", mis.lvnames)])]
-    
-    ####
-    mis.B["eta_y1", "mis.eta_x1"] <- mis.B.vals["mis.eta_x1"]
-    mis.B["eta_y1", paste0("mis.eta_x", (n_x/n_eta_x + 1))] <- 
-      mis.B.vals[paste0("mis.eta_x", (n_x/n_eta_x + 1))]
-    mis.B["eta_y1", paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))] <- 
-      mis.B.vals[paste0("mis.eta_x", (n_x-n_x/n_eta_x+1))]
+    for (de in DE) {
+      for (xx in 1:n_eta_x) {
+        if (xx == 1L) {
+          mis.LAMBDA[paste0("x", de), paste0("mis.eta_x", de)] <- 1L
+          mis.LAMBDA.val[[xx]][which(DE==de)] <- mis.LAMBDA[paste0("x", de), paste0("eta_x",xx)] 
+          mis.LAMBDA[paste0("x", de), paste0("eta_x", xx)] <- 0L
+          
+          THETA[paste0("x", de), paste0("x", de)] <- mis.THETA.val
+          
+          mis.PSI[paste0("mis.eta_x", de), paste0("mis.eta_x", de)] <- mis.PSI.val
+          
+          mis.B[paste0("mis.eta_x", de), paste0("eta_x",xx)] <- mis.LAMBDA.val[[xx]][which(DE==de)]
+          mis.B["eta_y1", paste0("mis.eta_x", de)] <- mis.B.val 
+        } else if (xx == 2L) {
+          mis.LAMBDA[paste0("x", (n_x/n_eta_x+de)), paste0("mis.eta_x", (n_x/n_eta_x+de))] <- 1L
+          mis.LAMBDA.val[[xx]][which(DE==de)] <- mis.LAMBDA[paste0("x", (n_x/n_eta_x+de)), paste0("eta_x",xx)] 
+          mis.LAMBDA[paste0("x", (n_x/n_eta_x+de)), paste0("eta_x", xx)] <- 0L
+          
+          THETA[paste0("x", (n_x/n_eta_x+de)), paste0("x", (n_x/n_eta_x+de))] <- mis.THETA.val
+          
+          mis.PSI[paste0("mis.eta_x", (n_x/n_eta_x+de)), paste0("mis.eta_x", (n_x/n_eta_x+de))] <- mis.PSI.val
+          
+          mis.B[paste0("mis.eta_x", (n_x/n_eta_x+de)), paste0("eta_x",xx)] <- mis.LAMBDA.val[[xx]][which(DE==de)]
+          mis.B["eta_y1", paste0("mis.eta_x", (n_x/n_eta_x+de))] <- mis.B.val 
+        } else if (xx == 3L) {
+          mis.LAMBDA[paste0("x", (n_x-n_x/n_eta_x+de)), paste0("mis.eta_x", (n_x-n_x/n_eta_x+de))] <- 1L
+          mis.LAMBDA.val[[xx]][which(DE==de)] <- mis.LAMBDA[paste0("x", (n_x-n_x/n_eta_x+de)), paste0("eta_x",xx)] 
+          mis.LAMBDA[paste0("x", (n_x-n_x/n_eta_x+de)), paste0("eta_x", xx)] <- 0L
+          
+          THETA[paste0("x", (n_x-n_x/n_eta_x+de)), paste0("x", (n_x-n_x/n_eta_x+de))] <- mis.THETA.val
+          
+          mis.PSI[paste0("mis.eta_x", (n_x-n_x/n_eta_x+de)), paste0("mis.eta_x", (n_x-n_x/n_eta_x+de))] <- mis.PSI.val
+          
+          mis.B[paste0("mis.eta_x", (n_x-n_x/n_eta_x+de)), paste0("eta_x",xx)] <- mis.LAMBDA.val[[xx]][which(DE==de)]
+          mis.B["eta_y1", paste0("mis.eta_x", (n_x-n_x/n_eta_x+de))] <- mis.B.val 
+        }
+      }
+    }
   }
   
-  # recompute phi
+  # recompute PHI
   Iden <- diag(1, nrow = nrow(mis.B))
   mis.PHI <- solve(Iden - mis.B) %*% mis.PSI %*% t(solve(Iden - mis.B))
   
@@ -193,7 +196,7 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
 
 # generate random covariance matrices----
 genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L, 
-                      beta = 0.3, lambda = 0.7, psi.cov = 0.2, r = 0.3, # TODO ?? obs.var = 1,
+                      beta = 0.3, lambda = 0.7, psi.cov = 0.2, r = 0.3, obs.var = 1,
                       misspecify, miss.part = NULL, miss.strength = NULL) { 
   
   # check if n_x is divisible by n_eta_x, otherwise stop
@@ -292,8 +295,9 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
       } else if (miss.part == "xy:direct") {
         direct.vals <- xydirect(n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                                 LAMBDA = LAMBDA, B = B, PSI = PSI, 
-                                THETA = THETA, beta, miss.strength = miss.strength,
-                                lvnames = lvnames, obsnames = obsnames)
+                                THETA = THETA, beta = beta, r = r, obs.var = obs.var,
+                                miss.strength = miss.strength,
+                                lvnames = lvnames, obsnames = obsnames) 
         LAMBDA <- direct.vals$mis.LAMBDA
         PHI <- direct.vals$mis.PHI
         THETA <- direct.vals$mis.THETA
@@ -302,7 +306,8 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
                           THETA.star = THETA.star, miss.strength = miss.strength)
         direct.vals <- xydirect(n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                                 LAMBDA = LAMBDA, B = B, PSI = PSI, 
-                                THETA = THETA, beta, miss.strength = miss.strength,
+                                THETA = THETA, beta = beta, r = r, obs.var = obs.var, 
+                                miss.strength = miss.strength,
                                 lvnames = lvnames, obsnames = obsnames)
         LAMBDA <- direct.vals$mis.LAMBDA
         PHI <- direct.vals$mis.PHI
@@ -313,8 +318,9 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
                               LAMBDA = LAMBDA, miss.strength = miss.strength)
         direct.vals <- xydirect(n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                                 LAMBDA = LAMBDA, B = B, PSI = PSI, 
-                                THETA = THETA, beta, miss.strength = miss.strength,
-                                lvnames = lvnames, obsnames = obsnames)
+                                THETA = THETA, beta = beta, r = r, obs.var = obs.var, 
+                                miss.strength = miss.strength,
+                                lvnames = lvnames, obsnames = obsnames) 
         LAMBDA <- direct.vals$mis.LAMBDA
         PHI <- direct.vals$mis.PHI
         THETA <- direct.vals$mis.THETA
