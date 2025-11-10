@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 7 November 2025
+## Last updated: 10 November 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -60,19 +60,20 @@ xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
   if (n_eta_x != 3L) stop("xx misspecification not supported for n_eta_x = 1L")
   if (!(n_x == 12L || n_x == 24L)) stop("xxcrossload misspecificaiton only supported for n_x == 12L | 24L for now")
   
-  nCL <- ifelse(n_x == 12L, 1, 2) # number of cross-loadings to introduce per factor
+  lambda.val <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
   
-  ## skip first indicator of each factor as the xy:direct misspecification is from these indicators
+  CL <- rep(list(c(2,7)), 3)
+  
   for (xx in 1:n_eta_x) {
-    if(xx == 1L) {
-      LAMBDA[paste0("x", sample(c((n_x/n_eta_x + 2):(n_x-n_x/n_eta_x), (n_x-n_x/n_eta_x+2):n_x), nCL)), 
-             paste0("eta_x", xx)] <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
+    if (xx == 1L) {
+      LAMBDA[paste0("x", n_x/n_eta_x+CL[[xx]][1]),  paste0("eta_x", xx)] <- lambda.val
+      if (n_x == 24L) LAMBDA[paste0("x", n_x-n_x/n_eta_x+CL[[xx]][2]), paste0("eta_x", xx)] <- lambda.val
     } else if (xx == 2L) {
-      LAMBDA[paste0("x", sample(c(2:(n_x/n_eta_x),(n_x-n_x/n_eta_x+2):n_x), nCL)), 
-             paste0("eta_x", xx)] <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
+      LAMBDA[paste0("x", n_x-n_x/n_eta_x+CL[[xx]][1]), paste0("eta_x", xx)] <- lambda.val
+      if (n_x == 24L) LAMBDA[paste0("x", CL[[xx]][2]),  paste0("eta_x", xx)] <- lambda.val
     } else if (xx == 3L) {
-      LAMBDA[paste0("x", sample(c(2:(n_x/n_eta_x),(n_x/n_eta_x + 2):(n_x-n_x/n_eta_x)), nCL)), 
-             paste0("eta_x", xx)] <- ifelse(miss.strength == "weak", 0.5*lambda, 0.9*lambda)
+      LAMBDA[paste0("x", CL[[xx]][1]),  paste0("eta_x", xx)] <- lambda.val
+      if (n_x == 24L) LAMBDA[paste0("x", n_x/n_eta_x+CL[[xx]][2]),  paste0("eta_x", xx)] <- lambda.val
     }
   }
   
