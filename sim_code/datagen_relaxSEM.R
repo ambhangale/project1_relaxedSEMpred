@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 10 November 2025
+## Last updated: 12 November 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -333,6 +333,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   attr(SIGMA.pop, "lambda") <- lambda
   attr(SIGMA.pop, "psi.cov") <- psi.cov
   attr(SIGMA.pop, "r") <- r
+  attr(SIGMA.pop, "obs.var") <- obs.var
   attr(SIGMA.pop, "misspecify") <- misspecify
   attr(SIGMA.pop, "miss.part") <- ifelse(!is.null(miss.part), miss.part, NA)
   attr(SIGMA.pop, "miss.strength") <- ifelse(!is.null(miss.strength), miss.strength, NA)

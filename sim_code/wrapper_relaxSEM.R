@@ -33,6 +33,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   n_eta_x <- covmat.attr$n_eta_x
   n_y <- covmat.attr$n_y
   n_eta_y <- covmat.attr$n_eta_y
+  beta <- covmat.attr$beta
+  r <- covmat.attr$r
   
   # details about misspecification
   misspecify <- covmat.attr$misspecify
@@ -209,18 +211,19 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   
   # save alpha values for lavcv
   lavcv.alphas <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+                        beta = beta, r = r,
                         misspecify = misspecify, miss.part = miss.part, 
                         miss.strength = miss.strength,
                         alpha1 = attr(lavcv.Ypred, "alpha1"), 
                         alpha2 = attr(lavcv.Ypred, "alpha2"))
   
   # save RMSEp and RMSEpr
-  RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+  RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, beta = beta, r = r,
                  misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                  Reduce(function(x,y) merge(x, y, all = T), 
                         list (DeRooij.RMSEp, SAM.RMSEp, OLS.RMSEp, lavcv.RMSEp, encv.RMSEp)))
   
-  RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+  RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, beta = beta, r = r,
                   misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                   Reduce(function(x,y) merge(x, y, all = T), 
                          list (DeRooij.RMSEpr, SAM.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
@@ -234,6 +237,11 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "sampID")        <- sampID
   attr(final, "nCal")          <- nCal
   attr(final, "nPred")         <- nPred
+  attr(final, "beta")          <- beta
+  attr(final, "r")             <- r
+  attr(final, "lambda")        <- covmat.attr$lambda
+  attr(final, "psi.cov")       <- covmat.attr$psi.cov
+  attr(final, "obs.var")       <- covmat.attr$obs.var
   attr(final, "misspecify")    <- misspecify
   attr(final, "miss.part")     <- miss.part
   attr(final, "miss.strength") <- miss.strength
