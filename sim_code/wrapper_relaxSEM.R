@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 31 October 2025
+## Last updated: 12 November 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -19,7 +19,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                               lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
                               lav.equal.alphas = F,
                               en.alphas = seq(0,1,0.1), K = 10, seed = NULL,
-                              save.out = F) {
+                              save.Y = F, save.out = F) {
   
   covmat.attr <- attributes(covmat) # attributes of covmat used to generate data
   
@@ -228,7 +228,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   t1 <- Sys.time()
   diff <- difftime(t1, t0, "sec")
   
-  final <- list(Y = Y, RMSEp = RMSEp, RMSEpr = RMSEpr, lavcv.alphas = lavcv.alphas)
+  final <- list(RMSEp = RMSEp, RMSEpr = RMSEpr, lavcv.alphas = lavcv.alphas)
+  if (save.Y) final$Y <- Y
   
   attr(final, "sampID")        <- sampID
   attr(final, "nCal")          <- nCal
