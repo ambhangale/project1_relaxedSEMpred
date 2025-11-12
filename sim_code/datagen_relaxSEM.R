@@ -223,7 +223,8 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   # PSI; factor covariance matrix, not accounting for structural relations
   PSI <- diag(1, nrow = n_eta_x + n_eta_y)
   dimnames(PSI) <- list(lvnames, lvnames)
-  PSI[lvnames[grep("_y", lvnames)], lvnames[grep("_y", lvnames)]] <- 1-beta^2
+  PSI[lvnames[grep("_y", lvnames)], lvnames[grep("_y", lvnames)]] <- ifelse(n_y == 1L, r*obs.var, 1-beta^2)
+  ## fix factor variance to r*obs.var if y is a single-indicator factor 
   for (x in lvnames[grep("_x", lvnames)]) {
     for (xx in lvnames[grep("_x", lvnames)]) {
       if (x != xx) {
@@ -252,7 +253,8 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   }
   
   ## for y factor
-    LAMBDA[paste0("y",1:n_y), "eta_y1"] <- lambda
+    LAMBDA[paste0("y",1:n_y), "eta_y1"] <- ifelse(n_y == 1L, 1L, lambda)
+    ## fix factor loading for single-indicator factor to 1L if y is a single-indicator factor 
   
   # PHI; calculate from LAMBDA and B, factor covariances incorporating structural part
   Iden <- diag(1, nrow = n_eta_x + n_eta_y)
@@ -263,17 +265,8 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   THETA.star <- THETA.dash*(1/r - 1)
   THETA <- diag(THETA.star, nrow = n_x + n_y)
   dimnames(THETA) <- list(obsnames, obsnames)
-  
-  # if the y-part of the model is a single-indicator factor model
-  ## fix factor loading for single-indicator factor to 1L
-  ## fix residual indicator variance to (1-r)*obs.var
-  ## fix factor variance to r*obs.var, then recompute PHI
-  if (n_y == 1L) {
-    LAMBDA["y1", "eta_y1"] <- 1L
-    THETA["y1", "y1"] <- (1-r)*obs.var
-    PSI["eta_y1", "eta_y1"] <- r*obs.var
-    PHI <- solve(Iden - B) %*% PSI %*% t(solve(Iden - B))
-  }
+  if(n_y == 1L) THETA["y1", "y1"] <- (1-r)*obs.var
+  ## fix residual indicator variance to (1-r)*obs.var if y is a single-indicator factor 
   
   # introduce misspecification
   if(misspecify == T) {
