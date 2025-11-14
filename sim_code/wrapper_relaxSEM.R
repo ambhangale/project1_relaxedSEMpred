@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 12 November 2025
+## Last updated: 14 November 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -211,6 +211,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   
   # save alpha values for lavcv
   lavcv.alphas <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+                        n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                         beta = beta, r = r,
                         misspecify = misspecify, miss.part = miss.part, 
                         miss.strength = miss.strength,
@@ -218,12 +219,16 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                         alpha2 = attr(lavcv.Ypred, "alpha2"))
   
   # save RMSEp and RMSEpr
-  RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, beta = beta, r = r,
+  RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+                 n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
+                 beta = beta, r = r,
                  misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                  Reduce(function(x,y) merge(x, y, all = T), 
                         list (DeRooij.RMSEp, SAM.RMSEp, OLS.RMSEp, lavcv.RMSEp, encv.RMSEp)))
   
-  RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, beta = beta, r = r,
+  RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+                  n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
+                  beta = beta, r = r,
                   misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                   Reduce(function(x,y) merge(x, y, all = T), 
                          list (DeRooij.RMSEpr, SAM.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
@@ -237,6 +242,10 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "sampID")        <- sampID
   attr(final, "nCal")          <- nCal
   attr(final, "nPred")         <- nPred
+  attr(final, "n_x")           <- n_x
+  attr(final, "n_eta_x")       <- n_eta_x
+  attr(final, "n_y")           <- n_y
+  attr(final, "n_eta_y")       <- n_eta_y
   attr(final, "beta")          <- beta
   attr(final, "r")             <- r
   attr(final, "lambda")        <- covmat.attr$lambda
