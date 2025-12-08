@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 12 November 2025
+## Last updated: 8 December 2025
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -82,9 +82,7 @@ xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
 
 xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA, 
                      beta, r, obs.var, miss.strength, lvnames, obsnames) {
-  
-  mis.PSI.val <- r*obs.var # factor variance for single-indicator factors
-  mis.THETA.val <- (1-r)*obs.var # residual indicator variance for single-indicator factors
+
   mis.B.val <- ifelse(miss.strength == "weak", 0.5*beta, 0.9*beta) # structural coefficient for direct effects
   
   if (n_eta_x == 1L) {
@@ -111,11 +109,11 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
       mis.LAMBDA.val[which(DE==de)] <- mis.LAMBDA[paste0("x", de), paste0("eta_x1")] # this lambda value will now be in the B matrix
       mis.LAMBDA[paste0("x", de), paste0("eta_x1")] <- 0L
       
-      # set residual variance to (1-r)*obs.var (due to new single-indicator factor)
-      THETA[paste0("x", de), paste0("x", de)] <- mis.THETA.val
-      
-      # set factor variance to c*obs.var (due to new single indicator factor)
-      mis.PSI[paste0("mis.eta_x", de), paste0("mis.eta_x", de)] <- mis.PSI.val
+      # set single-indicator factor variance to residual variance of the indicator
+      # then set residual variance of indicator to zero
+      mis.PSI[paste0("mis.eta_x", de), paste0("mis.eta_x", de)] <- 
+        THETA[paste0("x", de), paste0("x", de)]
+      THETA[paste0("x", de), paste0("x", de)] <- 0L
       
       # add regression slope of outcome factor on new single-indicator factor
       # and the factor loading on the single-indicator factors
@@ -151,9 +149,9 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
           mis.LAMBDA.val[[xx]][which(DE==de)] <- mis.LAMBDA[paste0("x", de), paste0("eta_x",xx)] 
           mis.LAMBDA[paste0("x", de), paste0("eta_x", xx)] <- 0L
           
-          THETA[paste0("x", de), paste0("x", de)] <- mis.THETA.val
-          
-          mis.PSI[paste0("mis.eta_x", de), paste0("mis.eta_x", de)] <- mis.PSI.val
+          mis.PSI[paste0("mis.eta_x", de), paste0("mis.eta_x", de)] <- 
+            THETA[paste0("x", de), paste0("x", de)]
+          THETA[paste0("x", de), paste0("x", de)] <- 0L
           
           mis.B[paste0("mis.eta_x", de), paste0("eta_x",xx)] <- mis.LAMBDA.val[[xx]][which(DE==de)]
           mis.B["eta_y1", paste0("mis.eta_x", de)] <- mis.B.val 
@@ -162,9 +160,9 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
           mis.LAMBDA.val[[xx]][which(DE==de)] <- mis.LAMBDA[paste0("x", (n_x/n_eta_x+de)), paste0("eta_x",xx)] 
           mis.LAMBDA[paste0("x", (n_x/n_eta_x+de)), paste0("eta_x", xx)] <- 0L
           
-          THETA[paste0("x", (n_x/n_eta_x+de)), paste0("x", (n_x/n_eta_x+de))] <- mis.THETA.val
-          
-          mis.PSI[paste0("mis.eta_x", (n_x/n_eta_x+de)), paste0("mis.eta_x", (n_x/n_eta_x+de))] <- mis.PSI.val
+          mis.PSI[paste0("mis.eta_x", (n_x/n_eta_x+de)), paste0("mis.eta_x", (n_x/n_eta_x+de))] <- 
+            THETA[paste0("x", (n_x/n_eta_x+de)), paste0("x", (n_x/n_eta_x+de))]
+          THETA[paste0("x", (n_x/n_eta_x+de)), paste0("x", (n_x/n_eta_x+de))] <- 0L
           
           mis.B[paste0("mis.eta_x", (n_x/n_eta_x+de)), paste0("eta_x",xx)] <- mis.LAMBDA.val[[xx]][which(DE==de)]
           mis.B["eta_y1", paste0("mis.eta_x", (n_x/n_eta_x+de))] <- mis.B.val 
@@ -173,9 +171,9 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
           mis.LAMBDA.val[[xx]][which(DE==de)] <- mis.LAMBDA[paste0("x", (n_x-n_x/n_eta_x+de)), paste0("eta_x",xx)] 
           mis.LAMBDA[paste0("x", (n_x-n_x/n_eta_x+de)), paste0("eta_x", xx)] <- 0L
           
-          THETA[paste0("x", (n_x-n_x/n_eta_x+de)), paste0("x", (n_x-n_x/n_eta_x+de))] <- mis.THETA.val
-          
-          mis.PSI[paste0("mis.eta_x", (n_x-n_x/n_eta_x+de)), paste0("mis.eta_x", (n_x-n_x/n_eta_x+de))] <- mis.PSI.val
+          mis.PSI[paste0("mis.eta_x", (n_x-n_x/n_eta_x+de)), paste0("mis.eta_x", (n_x-n_x/n_eta_x+de))] <- 
+            THETA[paste0("x", (n_x-n_x/n_eta_x+de)), paste0("x", (n_x-n_x/n_eta_x+de))]
+          THETA[paste0("x", (n_x-n_x/n_eta_x+de)), paste0("x", (n_x-n_x/n_eta_x+de))] <- 0L
           
           mis.B[paste0("mis.eta_x", (n_x-n_x/n_eta_x+de)), paste0("eta_x",xx)] <- mis.LAMBDA.val[[xx]][which(DE==de)]
           mis.B["eta_y1", paste0("mis.eta_x", (n_x-n_x/n_eta_x+de))] <- mis.B.val 
