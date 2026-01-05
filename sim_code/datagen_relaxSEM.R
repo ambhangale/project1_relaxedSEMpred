@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 8 December 2025
+## Last updated: 5 January 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -316,8 +316,10 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
       } else stop("specify valid `miss.part`")
     }
   }
-  if (!(all(eigen(THETA)$values >= 0))) stop ("THETA matrix is not positive (semi-)definite")
-  if (!(all(eigen(PHI)$values >= 0))) stop ("PHI matrix is not positive (semi-)definite")
+  if (!(all(eigen(THETA)$values >= -3.14e-14))) warning ("THETA matrix may not be positive (semi-)definite")
+  ## above, use an arbitrary small number because eigendecomposition is subject to errors on real-world computers.
+  ## even though the true eigenvalue is 0, it may be computed as a negligible negative value due to these errors.
+  if (!(all(eigen(PHI)$values >= 0))) warning ("PHI matrix may not be positive (semi-)definite")
   
   # population covariance matrix
   SIGMA.pop <- LAMBDA %*% PHI %*% t(LAMBDA) + THETA
