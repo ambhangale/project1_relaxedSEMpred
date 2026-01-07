@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 5 January 2026
+## Last updated: 6 January 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -20,12 +20,24 @@ sum_result <- function(resList, save.files = T) {
                    "lav.alpha1", "lav.alpha2", "en.alpha", "en.lambda")
   RMSEp[, makeNumeric] <- apply(RMSEp[, makeNumeric], 2, 
                                 function(x) as.numeric(x))
+  
+  RMSEp$nCal <- factor(RMSEp$nCal)
+  RMSEp$beta <- factor(RMSEp$beta, levels = c(0.3, 0.5), labels = c("weak", "strong"))
+  RMSEp$r <- factor(RMSEp$r, levels = c(0.3, 0.7), labels = c("weak", "strong"))
+  RMSEp$n_x <- factor(RMSEp$n_x)
+  RMSEp$n_y <- factor(RMSEp$n_y)
+  RMSEp$n_eta_x <- factor(RMSEp$n_eta_x)
+  RMSEp$misspecify <- factor(RMSEp$misspecify, levels = c(FALSE, TRUE),
+                             labels = c("no", "yes"))
   RMSEp$miss.part <- factor(RMSEp$miss.part, 
                             levels = c(NA, "xx:rescov", "xx:crossload", 
                                        "xy:direct", "both:cov", "both:load"), 
+                            labels = c("none", "meas:rescov", "meas:crossload", 
+                                       "struc:direct", "both:cov", "both:load"), 
                             exclude = NULL)
   RMSEp$miss.strength <- ordered(RMSEp$miss.strength, 
-                                 levels = c(NA, "weak", "strong"), 
+                                 levels = c(NA, "weak", "strong"),
+                                 labels = c("none", "weak", "strong"),
                                  exclude = NULL)
   RMSEp$mod.size <- paste0("n_eta_x=",RMSEp$n_eta_x, ",n_x=",RMSEp$n_x,
                            ",n_eta_y=",RMSEp$n_eta_y,",n_y=",RMSEp$n_y)
@@ -50,13 +62,25 @@ sum_result <- function(resList, save.files = T) {
   makeNumeric <- gsub("RMSEp", "RMSEpr", makeNumeric)
   RMSEpr[, makeNumeric] <- apply(RMSEpr[, makeNumeric], 2, 
                                 function(x) as.numeric(x))
+  
+  RMSEpr$nCal <- factor(RMSEpr$nCal)
+  RMSEpr$beta <- factor(RMSEpr$beta, levels = c(0.3, 0.5), labels = c("weak", "strong"))
+  RMSEpr$r <- factor(RMSEpr$r, levels = c(0.3, 0.7), labels = c("weak", "strong"))
+  RMSEpr$n_x <- factor(RMSEpr$n_x)
+  RMSEpr$n_y <- factor(RMSEpr$n_y)
+  RMSEpr$n_eta_x <- factor(RMSEpr$n_eta_x)
+  RMSEpr$misspecify <- factor(RMSEpr$misspecify, levels = c(FALSE, TRUE),
+                             labels = c("no", "yes"))
   RMSEpr$miss.part <- factor(RMSEpr$miss.part, 
                             levels = c(NA, "xx:rescov", "xx:crossload", 
                                        "xy:direct", "both:cov", "both:load"), 
+                            labels = c("none", "meas:rescov", "meas:crossload", 
+                                       "struc:direct", "both:cov", "both:load"), 
                             exclude = NULL)
   RMSEpr$miss.strength <- ordered(RMSEpr$miss.strength, 
-                                  levels = c(NA, "weak", "strong"), 
-                                  exclude = NULL)
+                                 levels = c(NA, "weak", "strong"),
+                                 labels = c("none", "weak", "strong"),
+                                 exclude = NULL)
   RMSEpr$mod.size <- paste0("n_eta_x=",RMSEpr$n_eta_x, ",n_x=",RMSEpr$n_x,
                            ",n_eta_y=",RMSEpr$n_eta_y,",n_y=",RMSEpr$n_y)
   RMSEpr$mod.size <- factor(RMSEpr$mod.size,
