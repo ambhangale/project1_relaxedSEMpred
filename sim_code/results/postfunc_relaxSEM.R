@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 6 January 2026
+## Last updated: 7 January 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -35,7 +35,7 @@ sum_result <- function(resList, save.files = T) {
                             labels = c("none", "meas:rescov", "meas:crossload", 
                                        "struc:direct", "both:cov", "both:load"), 
                             exclude = NULL)
-  RMSEp$miss.strength <- ordered(RMSEp$miss.strength, 
+  RMSEp$miss.strength <- factor(RMSEp$miss.strength, 
                                  levels = c(NA, "weak", "strong"),
                                  labels = c("none", "weak", "strong"),
                                  exclude = NULL)
@@ -77,7 +77,7 @@ sum_result <- function(resList, save.files = T) {
                             labels = c("none", "meas:rescov", "meas:crossload", 
                                        "struc:direct", "both:cov", "both:load"), 
                             exclude = NULL)
-  RMSEpr$miss.strength <- ordered(RMSEpr$miss.strength, 
+  RMSEpr$miss.strength <- factor(RMSEpr$miss.strength, 
                                  levels = c(NA, "weak", "strong"),
                                  labels = c("none", "weak", "strong"),
                                  exclude = NULL)
