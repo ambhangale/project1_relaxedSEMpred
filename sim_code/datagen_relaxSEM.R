@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 5 January 2026
+## Last updated: 20 March 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -396,11 +396,14 @@ gendat <- function(sampID = NULL, nCal, nPred, covmat, seed = NULL) {
     }
   }
   
+  ## following Danielle Navarro's advice regarding `rmvnorm()` and the `pre0.9_9994` argument: 
+  ## https://blog.djnavarro.net/posts/2025-05-18_multivariate-normal-sampling-floating-point/
+  
+  ### `pre0.9_9994 = FALSE` by default
+  
   # generate mean-centered data with the covariance matrix generated from `genCovmat()`
-  calibration <- as.matrix(rmvnorm(n = nCal, sigma = covmat,
-                                   pre0.9_9994 = T)) # calibration set
-  prediction  <- as.matrix(rmvnorm(n = nPred, sigma = covmat,
-                                   pre0.9_9994 = T)) # prediction set
+  calibration <- as.matrix(rmvnorm(n = nCal, sigma = covmat)) # calibration set
+  prediction  <- as.matrix(rmvnorm(n = nPred, sigma = covmat)) # prediction set
   colnames(calibration) <- colnames(prediction) <- colnames(covmat) # assign names to variables
   
   datlist <- list(calibration = calibration, prediction = prediction)
