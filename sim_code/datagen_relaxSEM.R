@@ -20,7 +20,7 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 #----
 
 # n_x = 24; n_eta_x = 3; n_y = 9; n_eta_y = 1
-# beta = 0.3; lambda = 0.7; psi.cov = 0.2; r = 0.3
+# beta = 0.3; lambda = 0.7; psi.xx = 0.2; r = 0.3
 # miss.strength = "strong"
 
 # misspecification types----
@@ -194,7 +194,7 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
 
 # generate random covariance matrices----
 genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L, 
-                      beta = NULL, Rsq = NULL, psi.cov = 0.2, 
+                      beta = NULL, Rsq = NULL, psi.xx = 0.2, 
                       lambda = 0.7, r = 0.3, obs.var = 1,
                       misspecify, miss.part = NULL, miss.strength = NULL) { 
   
@@ -217,9 +217,9 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   
   # if beta or Rsq provided, use it to calculate the other
   if(!is.null(beta) && is.null(Rsq)) Rsq <- ifelse(n_eta_x == 1L, beta^2, 
-                                                   n_eta_x*beta^2 + 2*n_eta_x*beta^2*psi.cov)
+                                                   n_eta_x*beta^2 + 2*n_eta_x*beta^2*psi.xx)
   if(is.null(beta) && !is.null(Rsq)) beta <- ifelse(n_eta_x == 1L, sqrt(Rsq), 
-                                                    sqrt(Rsq/(n_eta_x*(1 + 2*psi.cov)))) # consider only positive beta values for now
+                                                    sqrt(Rsq/(n_eta_x*(1 + 2*psi.xx)))) # consider only positive beta values for now
   
   obsnames <- c(paste0("x", 1:n_x), paste0("y", 1:n_y)) # indicator labels
   lvnames <- c(paste0("eta_x", 1:n_eta_x), paste0("eta_y", 1:n_eta_y)) # factor labels
@@ -238,7 +238,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   for (x in lvnames[grep("_x", lvnames)]) {
     for (xx in lvnames[grep("_x", lvnames)]) {
       if (x != xx) {
-        PSI[x,xx] <- PSI[xx,x] <- psi.cov # fix factor covariances to some non-zero value
+        PSI[x,xx] <- PSI[xx,x] <- psi.xx # fix factor covariances to some non-zero value
       }
     }
   }
@@ -344,7 +344,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   attr(SIGMA.pop, "beta") <- beta
   attr(SIGMA.pop, "Rsq") <- Rsq
   attr(SIGMA.pop, "lambda") <- lambda
-  attr(SIGMA.pop, "psi.cov") <- psi.cov
+  attr(SIGMA.pop, "psi.xx") <- psi.xx
   attr(SIGMA.pop, "r") <- r
   attr(SIGMA.pop, "obs.var") <- obs.var
   attr(SIGMA.pop, "misspecify") <- misspecify
