@@ -331,11 +331,11 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   if (!(all(eigen(THETA)$values >= -3.14e-14))) warning ("THETA matrix may not be positive (semi-)definite")
   ## above, use an arbitrary small number because eigenvalue decomposition is subject to errors on real-world computers.
   ## even though the true eigenvalue is 0, it may be computed as a negligible negative value due to these errors.
-  if (!(all(eigen(PHI)$values >= 0))) warning ("PHI matrix may not be positive (semi-)definite")
+  if (!(all(eigen(PHI)$values >= -3.14e-14))) warning ("PHI matrix may not be positive (semi-)definite")
   
   # population covariance matrix
   SIGMA.pop <- LAMBDA %*% PHI %*% t(LAMBDA) + THETA
-  if (!(all(eigen(SIGMA.pop)$values >= 0))) stop ("SIGMA matrix is not positive (semi-)definite")
+  if (!(all(eigen(SIGMA.pop)$values >= -3.14e-14))) stop ("SIGMA matrix is not positive (semi-)definite")
 
   #FIXME: update all eigen checks. use a very small near-zero value instead of zero
   
