@@ -336,8 +336,6 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   # population covariance matrix
   SIGMA.pop <- LAMBDA %*% PHI %*% t(LAMBDA) + THETA
   if (!(all(eigen(SIGMA.pop)$values >= -3.14e-14))) stop ("SIGMA matrix is not positive (semi-)definite")
-
-  #FIXME: update all eigen checks. use a very small near-zero value instead of zero
   
   attr(SIGMA.pop, "n_x") <- n_x
   attr(SIGMA.pop, "n_eta_x") <- n_eta_x
