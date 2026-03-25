@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 20 March 2026
+## Last updated: 25 March 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -194,20 +194,32 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
 
 # generate random covariance matrices----
 genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L, 
-                      beta = 0.3, lambda = 0.7, psi.cov = 0.2, r = 0.3, obs.var = 1,
+                      beta = NULL, Rsq = NULL, psi.cov = 0.2, 
+                      lambda = 0.7, r = 0.3, obs.var = 1,
                       misspecify, miss.part = NULL, miss.strength = NULL) { 
   
-  # check if n_x is divisible by n_eta_x, otherwise stop
+  # check if n_x is divisible by n_eta_x. if not, stop
   if (n_x %% n_eta_x != 0) stop("`n_eta_x` must be divisble by `n_x`")
   
-  # check if n_eta_y = 1L, otherwise stop
+  # check if n_eta_y = 1L. if not, stop
   if (n_eta_y != 1L) stop("only `n_eta_y == 1L` supported for now")
   
-  # check if n_eta_x = 1 or 3, otherwise stop
+  # check if n_eta_x = 1 or 3. if not, stop
   if (!(n_eta_x == 1L || n_eta_x == 3L)) stop("only `n_eta_x == 1L or 3L` supported for now")
   
   # check if each factor has 4 or 8 indicators, otherwise warning
   if (!(n_x/n_eta_x == 4L || n_x/n_eta_x == 8L)) warning("all misspecification calculations only implemented for n_x/n_eta_x == 4L | 8L for now")
+  
+  # check if beta or Rsq provided. if not, stop. 
+  if (is.null(beta) && is.null(Rsq)) stop("provide a value for either `beta` or `Rsq`")
+  # if both are provided, ensure that they correspond to the same 'strength'
+  if(!is.null(beta) && !is.null(Rsq)) warning("ensure the values provided correspond to the equivalent strength of the structural model")
+  
+  # if beta or Rsq provided, use it to calculate the other
+  if(!is.null(beta) && is.null(Rsq)) Rsq <- ifelse(n_eta_x == 1L, beta^2, 
+                                                   n_eta_x*beta^2 + 2*n_eta_x*beta^2*psi.cov)
+  if(is.null(beta) && !is.null(Rsq)) beta <- ifelse(n_eta_x == 1L, sqrt(Rsq), 
+                                                    sqrt(Rsq/(n_eta_x*(1 + 2*psi.cov)))) # consider only positive beta values for now
   
   obsnames <- c(paste0("x", 1:n_x), paste0("y", 1:n_y)) # indicator labels
   lvnames <- c(paste0("eta_x", 1:n_eta_x), paste0("eta_y", 1:n_eta_y)) # factor labels
@@ -221,7 +233,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   # PSI; factor covariance matrix, not accounting for structural relations
   PSI <- diag(1, nrow = n_eta_x + n_eta_y)
   dimnames(PSI) <- list(lvnames, lvnames)
-  PSI[lvnames[grep("_y", lvnames)], lvnames[grep("_y", lvnames)]] <- ifelse(n_y == 1L, r*obs.var, 1-beta^2)
+  PSI[lvnames[grep("_y", lvnames)], lvnames[grep("_y", lvnames)]] <- ifelse(n_y == 1L, r*obs.var, 1-Rsq)
   ## fix factor variance to r*obs.var if y is a single-indicator factor 
   for (x in lvnames[grep("_x", lvnames)]) {
     for (xx in lvnames[grep("_x", lvnames)]) {
@@ -317,19 +329,22 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
     }
   }
   if (!(all(eigen(THETA)$values >= -3.14e-14))) warning ("THETA matrix may not be positive (semi-)definite")
-  ## above, use an arbitrary small number because eigendecomposition is subject to errors on real-world computers.
+  ## above, use an arbitrary small number because eigenvalue decomposition is subject to errors on real-world computers.
   ## even though the true eigenvalue is 0, it may be computed as a negligible negative value due to these errors.
   if (!(all(eigen(PHI)$values >= 0))) warning ("PHI matrix may not be positive (semi-)definite")
   
   # population covariance matrix
   SIGMA.pop <- LAMBDA %*% PHI %*% t(LAMBDA) + THETA
   if (!(all(eigen(SIGMA.pop)$values >= 0))) stop ("SIGMA matrix is not positive (semi-)definite")
+
+  #FIXME: update all eigen checks. use a very small near-zero value instead of zero
   
   attr(SIGMA.pop, "n_x") <- n_x
   attr(SIGMA.pop, "n_eta_x") <- n_eta_x
   attr(SIGMA.pop, "n_y") <- n_y
   attr(SIGMA.pop, "n_eta_y") <- n_eta_y
   attr(SIGMA.pop, "beta") <- beta
+  attr(SIGMA.pop, "Rsq") <- Rsq
   attr(SIGMA.pop, "lambda") <- lambda
   attr(SIGMA.pop, "psi.cov") <- psi.cov
   attr(SIGMA.pop, "r") <- r
