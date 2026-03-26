@@ -99,7 +99,7 @@ lav.predict.y <- function(preddat, califit,
   
   if (0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
     Ypred <- t(Mu_y + ((1-alpha2)*Sigma_yx + alpha2*S_yx) %*% 
-                 solve((1-alpha1)*Sigma_xx + alpha1*S_xx) %*% 
+                 chol2inv(chol((1-alpha1)*Sigma_xx + alpha1*S_xx)) %*% 
                  (t(X0) - Mu_x))
   } else {
     stop("specify values between 0 and 1 for `alpha1` and `alpha2`")
