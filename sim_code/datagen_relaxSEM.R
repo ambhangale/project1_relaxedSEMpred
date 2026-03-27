@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 26 March 2026
+## Last updated: 27 March 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -267,8 +267,8 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
     ## fix factor loading for single-indicator factor to 1L if y is a single-indicator factor 
   
   # PHI; calculate from LAMBDA and B, factor covariances incorporating structural part
-  Iden <- diag(1, nrow = n_eta_x + n_eta_y)
-  PHI <- solve(Iden - B) %*% PSI %*% t(solve(Iden - B))
+  IdenB.inv <- solve(diag(nrow = n_eta_x + n_eta_y) - B)
+  PHI <- IdenB.inv %*% PSI %*% t(IdenB.inv)
   
   # THETA; residual variances of indicators
   THETA.dash <- diag(LAMBDA%*%PHI%*%t(LAMBDA))
