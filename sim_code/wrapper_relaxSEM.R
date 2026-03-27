@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 14 November 2025
+## Last updated: 27 March 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -81,18 +81,18 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   DeRooij.Ypred <- lavPredictY(object = lav.fit, newdata = prediction, 
                                ynames = ynames, xnames = xnames)
   DeRooij.t1 <- Sys.time()
-  DeRooij.bias <- DeRooij.Ypred - Ytrue
+  DeRooij.residuals <- DeRooij.Ypred - Ytrue
   DeRooij.diff <- difftime(DeRooij.t1, DeRooij.t0, "sec")
   DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
                          df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                          RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
-                         RMSEp = sqrt(sum((DeRooij.bias)^2)/(length(ynames)*nPred)),
+                         RMSEp = sqrt(sum((DeRooij.residuals)^2)/(length(ynames)*nPred)),
                          runTime = DeRooij.diff)
   DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
                           df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                           RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                           yname = ynames,
-                          RMSEpr = sqrt(colSums(DeRooij.bias^2)/nPred),
+                          RMSEpr = sqrt(colSums(DeRooij.residuals^2)/nPred),
                           runTime = DeRooij.diff)
   
   # Predictions using the structural after measurement approach
@@ -106,14 +106,14 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   SAM.Ypred <- lavPredictY(object = lav.fit.sam, newdata = prediction, 
                            ynames = ynames, xnames = xnames)
   SAM.t1 <- Sys.time()
-  SAM.bias <- SAM.Ypred - Ytrue
+  SAM.residuals <- SAM.Ypred - Ytrue
   SAM.diff <- difftime(SAM.t1, SAM.t0, "sec")
   SAM.RMSEp <- cbind(method = "SAM", PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
-                     RMSEp = sqrt(sum((SAM.bias)^2)/(length(ynames)*nPred)),
+                     RMSEp = sqrt(sum((SAM.residuals)^2)/(length(ynames)*nPred)),
                      runTime = SAM.diff)
   SAM.RMSEpr <- cbind(method = "SAM", PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
                       yname = ynames,
-                      RMSEpr = sqrt(colSums(SAM.bias^2)/nPred),
+                      RMSEpr = sqrt(colSums(SAM.residuals^2)/nPred),
                       runTime = SAM.diff)
   
   # Predictions using ordinary least squares regression
@@ -127,13 +127,13 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   OLS.Ypred <- do.call("cbind", OLS.Ypred.list)
   colnames(OLS.Ypred) <- ynames
   OLS.t1 <- Sys.time()
-  OLS.bias <- OLS.Ypred - Ytrue
+  OLS.residuals <- OLS.Ypred - Ytrue
   OLS.diff <- difftime(OLS.t1, OLS.t0, "sec")
   OLS.RMSEp <- cbind(method = "OLS", 
-                     RMSEp = sqrt(sum((OLS.bias)^2)/(length(ynames)*nPred)),
+                     RMSEp = sqrt(sum((OLS.residuals)^2)/(length(ynames)*nPred)),
                      runTime = OLS.diff)
   OLS.RMSEpr <- cbind(method = "OLS", yname = ynames, 
-                      RMSEpr = sqrt(colSums(OLS.bias^2)/nPred),
+                      RMSEpr = sqrt(colSums(OLS.residuals^2)/nPred),
                       runTime = OLS.diff)
   
   # Predictions using regularised SEM rule (with cross-validation)
@@ -147,7 +147,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                                   K = K, partid = partIDx,
                                   xnames = xnames, ynames = ynames)
   lavcv.t1 <- Sys.time()
-  lavcv.bias <- lavcv.Ypred - Ytrue
+  lavcv.residuals <- lavcv.Ypred - Ytrue
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
   lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                        df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
@@ -158,7 +158,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                        lav.yxSRMR = attr(lavcv.Ypred, "yxSRMR"), 
                        lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                        lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
-                       RMSEp = sqrt(sum((lavcv.bias)^2)/(length(ynames)*nPred)),
+                       RMSEp = sqrt(sum((lavcv.residuals)^2)/(length(ynames)*nPred)),
                        runTime = lavcv.diff)
   lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                         df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
@@ -172,7 +172,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                         lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                         lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                         yname = ynames,
-                        RMSEpr = sqrt(colSums(lavcv.bias^2)/nPred),
+                        RMSEpr = sqrt(colSums(lavcv.residuals^2)/nPred),
                         runTime = lavcv.diff)
   
   # Predictions using elastic net regression (with cross-validation)
@@ -182,16 +182,16 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                                 n_y = n_y,
                                 xnames = xnames, ynames = ynames)
   encv.t1 <- Sys.time()
-  encv.bias <- encv.Ypred - Ytrue
+  encv.residuals <- encv.Ypred - Ytrue
   encv.diff <- difftime(encv.t1, encv.t0, "sec")
   encv.RMSEp <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
                       en.lambda = attr(encv.Ypred, "lambda"),
-                      RMSEp = sqrt(sum((encv.bias)^2)/(length(ynames)*nPred)),
+                      RMSEp = sqrt(sum((encv.residuals)^2)/(length(ynames)*nPred)),
                       runTime = encv.diff)
   encv.RMSEpr <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
                        en.lambda = attr(encv.Ypred, "lambda"),
                        yname = ynames,
-                       RMSEpr = sqrt(colSums(encv.bias^2)/nPred),
+                       RMSEpr = sqrt(colSums(encv.residuals^2)/nPred),
                        runTime = encv.diff)
   
   # save Ytrue and Ypred for all methods
