@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 26 March 2026
+## Last updated: 27 March 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -76,7 +76,7 @@ lav.predict.y <- function(preddat, califit,
   SampStats <- lavInspect(califit, "sampstat")
   S         <- SampStats$cov
   S_xx      <- S[xnames, xnames]
-  S_yx      <- S[ynames, xnames] ## using _yx to avoid using t()
+  S_xy      <- S[xnames, ynames]
   S_yy      <- S[ynames, ynames]
   # M         <- SampStats$mean
   # M_x       <- SampStats$mean[xnames]
@@ -91,16 +91,20 @@ lav.predict.y <- function(preddat, califit,
   ImpliedStats <- lavInspect(califit, "implied")
   Sigma        <- ImpliedStats$cov
   Sigma_xx     <- Sigma[xnames, xnames]
-  Sigma_yx     <- Sigma[ynames, xnames] ## using _yx to avoid using t()
+  Sigma_xy     <- Sigma[xnames, ynames]
   Sigma_yy     <- Sigma[ynames, ynames]
   Mu           <- ImpliedStats$mean
   Mu_x         <- Mu[xnames]
   Mu_y         <- Mu[ynames]
   
   if (0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
-    Ypred <- t(Mu_y + ((1-alpha2)*Sigma_yx + alpha2*S_yx) %*% 
-                 chol2inv(chol((1-alpha1)*Sigma_xx + alpha1*S_xx)) %*% 
-                 (t(X0) - Mu_x))
+    vec_one <- rep(1, nrow(preddat))
+    Mu_x_mat <- vec_one %*% t(Mu_x)
+    Mu_y_mat <- vec_one %*% t(Mu_y)
+    
+    Ypred <- Mu_y_mat + ((X0 - Mu_x_mat) %*%
+                           chol2inv(chol((1-alpha1)*Sigma_xx + alpha1*S_xx)) %*%
+                           ((1-alpha2)*Sigma_xy + alpha2*S_xy))
   } else {
     stop("specify values between 0 and 1 for `alpha1` and `alpha2`")
   }
