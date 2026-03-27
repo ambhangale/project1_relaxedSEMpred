@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 9 October 2025
+## Last updated: 27 March 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -58,14 +58,15 @@ SRMR <- function(S, sigma.hat, M = NULL, mu.hat = NULL, include.mean = F) {
 ## output of this function for the full covariance matrix will match `lavResiduals(fit)$summary["srmr","cov"]`
 ## when `include.mean = F` and `lavResiduals(fit)$summary["srmr","total"]` when `include.mean = T`. 
 ## the function works for symmetric matrices
-## however, it will not work for non-symmetric matrices (and hence, does not work for the yx component)
+## however, it will not work for non-symmetric matrices (and hence, does not work for the xy component)
 
-# all the elements in yx are unique, so i have to compute the Frobenius norm and standardise it
-SRMR.yx <- function(S, Syx, sigmayx.hat, M = NULL, mu.hat = NULL, ynames, xnames, include.mean = F) {
-  if(is.matrix(Syx) & is.matrix(sigmayx.hat) & is.matrix(S)) {
+# all the elements in xy are unique, so i have to compute the Frobenius norm and standardise it
+SRMR.xy <- function(S, Sxy, sigmaxy.hat, M = NULL, mu.hat = NULL, xnames, ynames, include.mean = F) {
+  # if(is.matrix(Sxy) & is.matrix(sigmaxy.hat) & is.matrix(S)) {
+  if(length(ynames) > 1L) {
     # squared fitted residuals
     res1 <- lapply(ynames, function(y) 
-      lapply(xnames, function(x) (Syx[y,x]-sigmayx.hat[y,x])^2/(S[y,y]*S[x,x])))
+      lapply(xnames, function(x) (Sxy[x,y]-sigmaxy.hat[x,y])^2/(S[y,y]*S[x,x])))
     num1 <- do.call("sum", do.call("c", res1)) # numerator
     
     if (include.mean) {
@@ -73,17 +74,17 @@ SRMR.yx <- function(S, Syx, sigmayx.hat, M = NULL, mu.hat = NULL, ynames, xnames
       num2 <- do.call("sum", res2) # numerator 2 (mean structure)
       
       num <- num1 + num2
-      den <- nrow(Syx)*ncol(Syx) + length(M) # number of unique elements
+      den <- nrow(Sxy)*ncol(Sxy) + length(M) # number of unique elements
       #TODO check if `den` is actually correct in this situation
     } else {
-     num <- num1 
-     den <- nrow(Syx) * ncol(Syx) # number of unique elements
+      num <- num1 
+      den <- nrow(Sxy) * ncol(Sxy) # number of unique elements
     }
   } else {
-    ## relevant when n_y = 1L and Syx is a vector
+    ## relevant when n_y = 1L and Sxy is a vector
     var.y <- S[ynames, ynames]
     
-    res1 <- lapply(xnames, function(x) (Syx[x]-sigmayx.hat[x])^2/(var.y*S[x,x]))
+    res1 <- lapply(xnames, function(x) (Sxy[x]-sigmaxy.hat[x])^2/(var.y*S[x,x]))
     num1 <- do.call("sum", res1) # numerator
     
     if (include.mean) {
@@ -91,11 +92,11 @@ SRMR.yx <- function(S, Syx, sigmayx.hat, M = NULL, mu.hat = NULL, ynames, xnames
       num2 <- do.call("sum", res2) # numerator 2 (mean structure)
       
       num <- num1 + num2
-      den <- length(Syx) + length(M)
+      den <- length(Sxy) + length(M)
       #TODO check if `den` is actually correct in this situation
     } else {
       num <- num1
-      den <- length(Syx)
+      den <- length(Sxy)
     }
   }
   
