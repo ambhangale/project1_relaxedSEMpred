@@ -113,8 +113,8 @@ lav.predict.y <- function(preddat, califit,
     fullSRMR  <- SRMR(S = S, sigma.hat = Sigma)
     xxSRMR    <- SRMR(S = S_xx, sigma.hat = Sigma_xx)
     yySRMR    <- SRMR(S = S_yy, sigma.hat = Sigma_yy)
-    yxSRMR    <- SRMR.yx(S = S, Syx = t(S_xy), sigmayx.hat = t(Sigma_xy), 
-                         ynames = ynames, xnames = xnames)
+    yxSRMR    <- SRMR.xy(S = S, Sxy = S_xy, sigmaxy.hat = Sigma_xy, 
+                         xnames = xnames, ynames = ynames)
   } else {
     fullSRMR <- xxSRMR <- yySRMR <- yxSRMR <- NULL
   }
