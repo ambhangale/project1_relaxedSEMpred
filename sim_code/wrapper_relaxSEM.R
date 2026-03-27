@@ -81,18 +81,19 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   DeRooij.Ypred <- lavPredictY(object = lav.fit, newdata = prediction, 
                                ynames = ynames, xnames = xnames)
   DeRooij.t1 <- Sys.time()
-  DeRooij.residuals <- DeRooij.Ypred - Ytrue
+  DeRooij.residuals <- Ytrue - DeRooij.Ypred
+  DeRooij.sqresiduals <- colSums(DeRooij.residuals^2)
   DeRooij.diff <- difftime(DeRooij.t1, DeRooij.t0, "sec")
   DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
                          df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                          RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
-                         RMSEp = sqrt(sum((DeRooij.residuals)^2)/(length(ynames)*nPred)),
+                         RMSEp = sqrt(sum(DeRooij.sqresiduals)/(length(ynames)*nPred)),
                          runTime = DeRooij.diff)
   DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
                           df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                           RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                           yname = ynames,
-                          RMSEpr = sqrt(colSums(DeRooij.residuals^2)/nPred),
+                          RMSEpr = sqrt(DeRooij.sqresiduals/nPred),
                           runTime = DeRooij.diff)
   
   # Predictions using the structural after measurement approach
@@ -106,14 +107,15 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   SAM.Ypred <- lavPredictY(object = lav.fit.sam, newdata = prediction, 
                            ynames = ynames, xnames = xnames)
   SAM.t1 <- Sys.time()
-  SAM.residuals <- SAM.Ypred - Ytrue
+  SAM.residuals <- Ytrue - SAM.Ypred
+  SAM.sqresiduals <- colSums(SAM.residuals^2)
   SAM.diff <- difftime(SAM.t1, SAM.t0, "sec")
   SAM.RMSEp <- cbind(method = "SAM", PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
-                     RMSEp = sqrt(sum((SAM.residuals)^2)/(length(ynames)*nPred)),
+                     RMSEp = sqrt(sum(SAM.sqresiduals)/(length(ynames)*nPred)),
                      runTime = SAM.diff)
   SAM.RMSEpr <- cbind(method = "SAM", PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
                       yname = ynames,
-                      RMSEpr = sqrt(colSums(SAM.residuals^2)/nPred),
+                      RMSEpr = sqrt(SAM.sqresiduals/nPred),
                       runTime = SAM.diff)
   
   # Predictions using ordinary least squares regression
@@ -127,13 +129,14 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   OLS.Ypred <- do.call("cbind", OLS.Ypred.list)
   colnames(OLS.Ypred) <- ynames
   OLS.t1 <- Sys.time()
-  OLS.residuals <- OLS.Ypred - Ytrue
+  OLS.residuals <- Ytrue - OLS.Ypred
+  OLS.sqresiduals <- colSums(OLS.residuals^2)
   OLS.diff <- difftime(OLS.t1, OLS.t0, "sec")
   OLS.RMSEp <- cbind(method = "OLS", 
-                     RMSEp = sqrt(sum((OLS.residuals)^2)/(length(ynames)*nPred)),
+                     RMSEp = sqrt(sum(OLS.sqresiduals)/(length(ynames)*nPred)),
                      runTime = OLS.diff)
   OLS.RMSEpr <- cbind(method = "OLS", yname = ynames, 
-                      RMSEpr = sqrt(colSums(OLS.residuals^2)/nPred),
+                      RMSEpr = sqrt(OLS.sqresiduals/nPred),
                       runTime = OLS.diff)
   
   # Predictions using regularised SEM rule (with cross-validation)
@@ -147,7 +150,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                                   K = K, partid = partIDx,
                                   xnames = xnames, ynames = ynames)
   lavcv.t1 <- Sys.time()
-  lavcv.residuals <- lavcv.Ypred - Ytrue
+  lavcv.residuals <- Ytrue - lavcv.Ypred
+  lavcv.sqresiduals <- colSums(lavcv.residuals^2)
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
   lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                        df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
@@ -158,7 +162,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                        lav.yxSRMR = attr(lavcv.Ypred, "yxSRMR"), 
                        lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                        lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
-                       RMSEp = sqrt(sum((lavcv.residuals)^2)/(length(ynames)*nPred)),
+                       RMSEp = sqrt(sum(lavcv.sqresiduals)/(length(ynames)*nPred)),
                        runTime = lavcv.diff)
   lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                         df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
@@ -172,7 +176,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                         lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                         lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                         yname = ynames,
-                        RMSEpr = sqrt(colSums(lavcv.residuals^2)/nPred),
+                        RMSEpr = sqrt(lavcv.sqresiduals/nPred),
                         runTime = lavcv.diff)
   
   # Predictions using elastic net regression (with cross-validation)
@@ -182,16 +186,17 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                                 n_y = n_y,
                                 xnames = xnames, ynames = ynames)
   encv.t1 <- Sys.time()
-  encv.residuals <- encv.Ypred - Ytrue
+  encv.residuals <- Ytrue - encv.Ypred
+  encv.sqresiduals <- colSums(encv.residuals^2)
   encv.diff <- difftime(encv.t1, encv.t0, "sec")
   encv.RMSEp <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
                       en.lambda = attr(encv.Ypred, "lambda"),
-                      RMSEp = sqrt(sum((encv.residuals)^2)/(length(ynames)*nPred)),
+                      RMSEp = sqrt(sum(encv.sqresiduals)/(length(ynames)*nPred)),
                       runTime = encv.diff)
   encv.RMSEpr <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
                        en.lambda = attr(encv.Ypred, "lambda"),
                        yname = ynames,
-                       RMSEpr = sqrt(colSums(encv.residuals^2)/nPred),
+                       RMSEpr = sqrt(encv.sqresiduals/nPred),
                        runTime = encv.diff)
   
   # save Ytrue and Ypred for all methods
