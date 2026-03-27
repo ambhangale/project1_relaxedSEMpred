@@ -174,8 +174,6 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                         lav.yxSRMR = attr(lavcv.Ypred, "yxSRMR"), 
                         lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
                         lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
-                        lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
-                        lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
                         yname = ynames,
                         RMSEpr = sqrt(lavcv.sqresiduals/nPred),
                         runTime = lavcv.diff)
