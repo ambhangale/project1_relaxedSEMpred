@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 27 March 2026
+## Last updated: 31 March 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -36,11 +36,11 @@ SRMR <- function(S, sigma.hat, M = NULL, mu.hat = NULL, include.mean = F) {
     ## S and M will simply contain the variance and mean values, respectively
     p <- length(S)
     
-    num1 <- sqrt((S-sigma.hat)^2/(S*S)) 
+    num1 <- (S-sigma.hat)^2/(S*S) 
     
     if (include.mean) {
       if (!(length(M) == 1L & length(mu.hat) == 1L)) stop("`M` and `mu.hat` must be a numeric value if `S` and `sigma.hat` are 1x1 matrices")
-      num2 <- sqrt((M-mu.hat)^2/(S*S)) 
+      num2 <- (M-mu.hat)^2/(S*S)
       
       num <- num1 + num2
     } else {
@@ -75,7 +75,6 @@ SRMR.xy <- function(S, Sxy, sigmaxy.hat, M = NULL, mu.hat = NULL, xnames, ynames
       
       num <- num1 + num2
       den <- nrow(Sxy)*ncol(Sxy) + length(M) # number of unique elements
-      #TODO check if `den` is actually correct in this situation
     } else {
       num <- num1 
       den <- nrow(Sxy) * ncol(Sxy) # number of unique elements
@@ -93,7 +92,6 @@ SRMR.xy <- function(S, Sxy, sigmaxy.hat, M = NULL, mu.hat = NULL, xnames, ynames
       
       num <- num1 + num2
       den <- length(Sxy) + length(M)
-      #TODO check if `den` is actually correct in this situation
     } else {
       num <- num1
       den <- length(Sxy)
