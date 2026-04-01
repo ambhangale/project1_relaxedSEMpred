@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 7 January 2026
+## Last updated: 1 April 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -14,7 +14,7 @@ sum_result <- function(resList, save.files = T) {
                                    function(x) resList[[x]]$RMSEp)))
   
   makeNumeric <- c("sampID", "nCal", "nPred", "n_x", "n_eta_x", "n_y", "n_eta_y", 
-                   "beta", "r" , "RMSEp", "runTime", "npar", "df", "CFI", 
+                   "beta", "Rsq", "r" , "RMSEp", "runTime", "npar", "df", "CFI", 
                    "RMSEA", "RMSEA.lowCI", "RMSEA.upCI",
                    "lav.fullSRMR", "lav.xxSRMR", "lav.yySRMR", "lav.yxSRMR",
                    "lav.alpha1", "lav.alpha2", "en.alpha", "en.lambda")
@@ -22,7 +22,7 @@ sum_result <- function(resList, save.files = T) {
                                 function(x) as.numeric(x))
   
   RMSEp$nCal <- factor(RMSEp$nCal)
-  RMSEp$beta <- factor(RMSEp$beta, levels = c(0.3, 0.5), labels = c("weak", "strong"))
+  RMSEp$Rsq <- factor(RMSEp$Rsq, levels = c(0.07, 0.2, 0.6), labels = c("small", "medium", "large"))
   RMSEp$r <- factor(RMSEp$r, levels = c(0.3, 0.7), labels = c("weak", "strong"))
   RMSEp$n_x <- factor(RMSEp$n_x)
   RMSEp$n_y <- factor(RMSEp$n_y)
@@ -64,7 +64,7 @@ sum_result <- function(resList, save.files = T) {
                                 function(x) as.numeric(x))
   
   RMSEpr$nCal <- factor(RMSEpr$nCal)
-  RMSEpr$beta <- factor(RMSEpr$beta, levels = c(0.3, 0.5), labels = c("weak", "strong"))
+  RMSEpr$Rsq <- factor(RMSEpr$Rsq, levels = c(0.07, 0.2, 0.6), labels = c("small", "medium", "large"))
   RMSEpr$r <- factor(RMSEpr$r, levels = c(0.3, 0.7), labels = c("weak", "strong"))
   RMSEpr$n_x <- factor(RMSEpr$n_x)
   RMSEpr$n_y <- factor(RMSEpr$n_y)
@@ -101,9 +101,9 @@ sum_result <- function(resList, save.files = T) {
   lavcv.alphas <- as.data.frame(do.call("rbind",
                                         lapply(1:length(resList),
                                                function(x) resList[[x]]$lavcv.alphas)))
-  lavcv.alphas[, c(makeNumeric[1:9], paste0("alpha", 1:2))] <- apply(lavcv.alphas[, c(makeNumeric[1:9], 
+  lavcv.alphas[, c(makeNumeric[1:10], paste0("alpha", 1:2))] <- apply(lavcv.alphas[, c(makeNumeric[1:10], 
                                                                                     paste0("alpha", 1:2))],
-                                                                    2, function(x) as.numeric(x))
+                                                                    2, function(x) as.numeric(x)) 
   
   if (save.files) {
     saveRDS(RMSEp, file = paste0("RMSEp_relaxSEM", Sys.Date(), ".rds"))
