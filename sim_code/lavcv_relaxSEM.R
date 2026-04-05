@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 27 March 2026
+## Last updated: 5 April 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -71,7 +71,7 @@ fitmod <- function(dat, n_x, n_eta_x, n_y, n_eta_y, SAM = FALSE) {
 
 # prediction rule----
 lav.predict.y <- function(preddat, califit, 
-                      alpha1, alpha2, xnames, ynames, srmr = F) {
+                      gamma1, gamma2, xnames, ynames, srmr = F) {
   # extract sample statistics from fitted model object
   SampStats <- lavInspect(califit, "sampstat")
   S         <- SampStats$cov
@@ -97,16 +97,16 @@ lav.predict.y <- function(preddat, califit,
   Mu_x         <- Mu[xnames]
   Mu_y         <- Mu[ynames]
   
-  if (0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
+  if (0L <= gamma1 && gamma1 <= 1L && 0L <= gamma2 && gamma2 <= 1L) {
     vec_one <- rep(1, nrow(preddat))
     Mu_x_mat <- vec_one %*% t(Mu_x)
     Mu_y_mat <- vec_one %*% t(Mu_y)
     
     Ypred <- Mu_y_mat + ((X0 - Mu_x_mat) %*%
-                           chol2inv(chol((1-alpha1)*Sigma_xx + alpha1*S_xx)) %*%
-                           ((1-alpha2)*Sigma_xy + alpha2*S_xy))
+                           chol2inv(chol((1-gamma1)*Sigma_xx + gamma1*S_xx)) %*%
+                           ((1-gamma2)*Sigma_xy + gamma2*S_xy))
   } else {
-    stop("specify values between 0 and 1 for `alpha1` and `alpha2`")
+    stop("specify values between 0 and 1 for `gamma1` and `gamma2`")
   }
   
   if (srmr) { # currently only implemented when `include.mean = F` as mean structure is saturated 
@@ -131,14 +131,14 @@ lav.predict.y <- function(preddat, califit,
 }
 
 # fit <- fitmod(dat = calibration)
-# lav.predict.y(calibration, prediction, fit, alpha1 = 0.5, alpha2 = 0.3,
+# lav.predict.y(calibration, prediction, fit, gamma1 = 0.5, gamma2 = 0.3,
 #           xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
 
 # prediction for the K partitions----
 lav.predict.y.part <- function(dat, K, partid, 
-                               alpha1, alpha2, equal.alphas, 
+                               gamma1, gamma2, equal.gammas, 
                                n_x, n_eta_x, n_y,  n_eta_y,
                                xnames, ynames) {
   partdat <- partition(partid = partid, dat = dat, K = K) # partitioned data
@@ -147,25 +147,25 @@ lav.predict.y.part <- function(dat, K, partid,
   mat.rows <- do.call("c", 
                       lapply(1:K, function(k) 
                         paste0(k, ".", 1:nrow(partdat[[k]]$test))))
-  if (!equal.alphas) {
-    mat.cols <- apply(expand.grid(ynames, as.character(alpha1), as.character(alpha2)), 
+  if (!equal.gammas) {
+    mat.cols <- apply(expand.grid(ynames, as.character(gamma1), as.character(gamma2)), 
                       1, paste0, collapse = ",") 
     # use as.character() above to paste only 0/1 instead of 0.0 and 1.0
-    # because in the for loops, a1/a2 are 0/1 not 0.0/0.1
-    sqdevmat <- matrix(NA, nrow(dat), length(alpha1)*length(alpha2)*length(ynames),
+    # because in the for loops, g1/g2 are 0/1 not 0.0/0.1
+    sqdevmat <- matrix(NA, nrow(dat), length(gamma1)*length(gamma2)*length(ynames),
                        dimnames = list(mat.rows, mat.cols)) # matrix with squared deviations  
   } else {
     mat.cols <- apply(expand.grid(ynames, 
-                                  paste0(as.character(alpha1), ",", as.character(alpha2))), 
+                                  paste0(as.character(gamma1), ",", as.character(gamma2))), 
                       1, paste0, collapse = ",")
-    sqdevmat <- matrix(NA, nrow(dat), length(alpha1)*length(ynames),
-                       dimnames = list(mat.rows, mat.cols)) # `ncol` computed this way because only equal alphas are considered
+    sqdevmat <- matrix(NA, nrow(dat), length(gamma1)*length(ynames),
+                       dimnames = list(mat.rows, mat.cols)) # `ncol` computed this way because only equal gammas are considered
   }
   
   for (k in 1:K) {
-    for (a1 in alpha1) {
-      for (a2 in alpha2) {
-        if (equal.alphas && a1 != a2) {
+    for (g1 in gamma1) {
+      for (g2 in gamma2) {
+        if (equal.gammas && g1 != g2) {
           next
         }
         fitpart <- fitmod(dat = partdat[[k]]$train,
@@ -174,12 +174,12 @@ lav.predict.y.part <- function(dat, K, partid,
         
         predpart <- lav.predict.y(preddat = partdat[[k]]$test,
                                   califit = fitpart,
-                                  alpha1 = a1, alpha2 = a2, xnames = xnames,
+                                  gamma1 = g1, gamma2 = g2, xnames = xnames,
                                   ynames = ynames)
         
         sqdevmat[rownames(sqdevmat)[grep(pattern = paste0("^", k, "\\."), 
                                          rownames(sqdevmat))], 
-                 paste0(ynames, ",", a1,",", a2)] <- 
+                 paste0(ynames, ",", g1,",", g2)] <- 
           as.matrix((predpart$Ypred - predpart$Ytrue)^2)
       }
     }
@@ -189,106 +189,106 @@ lav.predict.y.part <- function(dat, K, partid,
 
 # t0 <- Sys.time()
 # foo <- lav.predict.y.part(dat = calibration, K = 10, partid = part.ids,
-#                       alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
+#                       gamma1 = seq(0,1,0.1), gamma2 = seq(0,1,0.1),
 #                       xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
 # diff <- difftime(t1, t0, "sec")
 
 #----
 
-# compute RMSEp(r) for each alpha1,alpha2 combination and return alpha1,2 values with min(RMSEp)----
-lav.predict.y.alpha <- function(dat, K, partid, 
-                                alpha1, alpha2, equal.alphas,
+# compute RMSEp(r) for each gamma1,gamma2 combination and return gamma1,2 values with min(RMSEp)----
+lav.predict.y.gamma <- function(dat, K, partid, 
+                                gamma1, gamma2, equal.gammas,
                                 n_x, n_eta_x, n_y,  n_eta_y,
                                 xnames, ynames) {
   sqdevmat <- lav.predict.y.part(dat = dat, K = K, 
-                                 partid = partid, alpha1 = alpha1, alpha2 = alpha2,
-                                 equal.alphas = equal.alphas,
+                                 partid = partid, gamma1 = gamma1, gamma2 = gamma2,
+                                 equal.gammas = equal.gammas,
                                  n_x = n_x, n_eta_x = n_eta_x, 
                                  n_y = n_y,  n_eta_y = n_eta_y,
                                  xnames = xnames, ynames = ynames)
   
-  RMSEp  <- if (!equal.alphas) {
-    expand.grid(alpha1 = alpha1, alpha2 = alpha2, RMSEp = NA)
+  RMSEp  <- if (!equal.gammas) {
+    expand.grid(gamma1 = gamma1, gamma2 = gamma2, RMSEp = NA)
   } else {
-    as.data.frame(cbind(alpha1 = alpha1, alpha2 = alpha2, RMSEp = NA))
+    as.data.frame(cbind(gamma1 = gamma1, gamma2 = gamma2, RMSEp = NA))
   }
   
-  # RMSEp <- matrix(NA, length(alpha1)*length(alpha2), 3,
-  #                 dimnames = list(NULL, c("alpha1", "alpha2", "RMSEp")))
+  # RMSEp <- matrix(NA, length(gamma1)*length(gamma2), 3,
+  #                 dimnames = list(NULL, c("gamma1", "gamma2", "RMSEp")))
   
   # TODO only doing RMSEp for now, but if necessary, can add RMSEpr later
   
   for (k in 1:K) {
-    for (a1 in alpha1) {
-      for (a2 in alpha2) {
-        if (equal.alphas && a1 != a2) {
+    for (g1 in gamma1) {
+      for (g2 in gamma2) {
+        if (equal.gammas && g1 != g2) {
           next
         }
-        # compute single RMSE value per alpha1-alpha2 combination
+        # compute single RMSE value per gamma1-gamma2 combination
         RMSEp.val <- 
           sum(sqdevmat[rownames(sqdevmat)[grep(pattern = paste0(k, "\\."), 
                                                rownames(sqdevmat))],
-                       paste0(ynames, ",", a1,",", a2)])/(length(grep(pattern = paste0(k, "\\."), 
+                       paste0(ynames, ",", g1,",", g2)])/(length(grep(pattern = paste0(k, "\\."), 
                                                                       rownames(sqdevmat)))*length(ynames))
         
-        RMSEp[RMSEp$alpha1 == a1 & RMSEp$alpha2 == a2, "RMSEp"] <- RMSEp.val
+        RMSEp[RMSEp$gamma1 == g1 & RMSEp$gamma2 == g2, "RMSEp"] <- RMSEp.val
       }
     }
   }
   
-  min.RMSE.val <- RMSEp[which(RMSEp$RMSEp == min(RMSEp$RMSEp)),] # minimum RMSE value and associated alpha1/2
+  min.RMSE.val <- RMSEp[which(RMSEp$RMSEp == min(RMSEp$RMSEp)),] # minimum RMSE value and associated gamma1/2
   
-  return(list(alpha1 = min.RMSE.val$alpha1, alpha2 = min.RMSE.val$alpha2))  
+  return(list(gamma1 = min.RMSE.val$gamma1, gamma2 = min.RMSE.val$gamma2))  
 }
 
-# lav.predict.y.alpha(dat = calibration, K = 10, partid = part.ids,
-#                 alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1),
+# lav.predict.y.gamma(dat = calibration, K = 10, partid = part.ids,
+#                 gamma1 = seq(0,1,0.1), gamma2 = seq(0,1,0.1),
 #                 xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
 
 # prediction rule with cross-validation----
 lav.predict.y.cv <- function(calidat, preddat, califit, CV,
-                             alpha1, alpha2, equal.alphas, 
+                             gamma1, gamma2, equal.gammas, 
                              n_x, n_eta_x, n_y,  n_eta_y,
                              K, partid, 
                              xnames, ynames) {
   
   if (CV) {
-    if (is.numeric(alpha1) && is.numeric(alpha2) && 
-        length(alpha1) > 1L && length(alpha2) > 1L && 
-        all(0L <= alpha1) && all(alpha1 <= 1L) && 
-        all(0L <= alpha2) && all(alpha2 <= 1L)) {
-      alpha.vals <- lav.predict.y.alpha(dat = calidat, K = K, partid = partid, 
-                                        alpha1 = alpha1, alpha2 = alpha2,
-                                        equal.alphas = equal.alphas,
+    if (is.numeric(gamma1) && is.numeric(gamma2) && 
+        length(gamma1) > 1L && length(gamma2) > 1L && 
+        all(0L <= gamma1) && all(gamma1 <= 1L) && 
+        all(0L <= gamma2) && all(gamma2 <= 1L)) {
+      gamma.vals <- lav.predict.y.gamma(dat = calidat, K = K, partid = partid, 
+                                        gamma1 = gamma1, gamma2 = gamma2,
+                                        equal.gammas = equal.gammas,
                                         n_x = n_x, n_eta_x = n_eta_x,
                                         n_y = n_y, n_eta_y = n_eta_y,
                                         xnames = xnames, ynames = ynames)
     } else {
       stop("specify numeric vectors with length > 1L and only containing values between 
-         0 and 1 for `alpha1` and `alpha2` when `CV = TRUE`")
+         0 and 1 for `gamma1` and `gamma2` when `CV = TRUE`")
     }
   } else {
-    if (is.numeric(alpha1) && is.numeric(alpha2) && 
-        length(alpha1) == 1L && length(alpha2) == 1L &&
-        0L <= alpha1 && alpha1 <= 1L && 0L <= alpha2 && alpha2 <= 1L) {
-      alpha.vals <- list(alpha1 = alpha1, alpha2 = alpha2)
+    if (is.numeric(gamma1) && is.numeric(gamma2) && 
+        length(gamma1) == 1L && length(gamma2) == 1L &&
+        0L <= gamma1 && gamma1 <= 1L && 0L <= gamma2 && gamma2 <= 1L) {
+      gamma.vals <- list(gamma1 = gamma1, gamma2 = gamma2)
     } else {
-      stop("specify numeric values between 0 and 1 for `alpha1` and `alpha2` when `CV = FALSE`")
+      stop("specify numeric values between 0 and 1 for `gamma1` and `gamma2` when `CV = FALSE`")
     }
   }
   
   Ypred <- lav.predict.y(preddat = preddat,
-                         califit = califit, alpha1 = alpha.vals$alpha1,
-                         alpha2 = alpha.vals$alpha2,
+                         califit = califit, gamma1 = gamma.vals$gamma1,
+                         gamma2 = gamma.vals$gamma2,
                          xnames = xnames, ynames = ynames, srmr = T)$Ypred
   colnames(Ypred) <- ynames
   
   attr(Ypred, "CV")     <- CV # was cross-validation performed?
-  attr(Ypred, "alpha1") <- alpha.vals$alpha1 # for xx part
-  attr(Ypred, "alpha2") <- alpha.vals$alpha2 # for xy part
+  attr(Ypred, "gamma1") <- gamma.vals$gamma1 # for xx part
+  attr(Ypred, "gamma2") <- gamma.vals$gamma2 # for xy part
   
   return(Ypred)
   
@@ -297,7 +297,7 @@ lav.predict.y.cv <- function(calidat, preddat, califit, CV,
 # t0 <- Sys.time()
 # bar <- lav.predict.y.cv(calidat = calibration, preddat = prediction,
 #                         califit = fit, CV = T,
-#                     alpha1 = seq(0,1,0.1), alpha2 = seq(0,1,0.1), K = 10,
+#                     gamma1 = seq(0,1,0.1), gamma2 = seq(0,1,0.1), K = 10,
 #                     partid = part.ids, xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
 # diff <- difftime(t1,t0,"sec")

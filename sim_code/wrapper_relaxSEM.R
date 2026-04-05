@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 31 March 2026
+## Last updated: 5 April 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -11,13 +11,13 @@ source("lavcv_relaxSEM.R")
 source("encv_relaxSEM.R") 
 
 # sampID = 1; nCal = 250; nPred = 250; misspecify = F; lav.CV = T;
-# lav.alpha1 = seq(0,1,0.1); lav.alpha2 = seq(0,1,0.1);
+# lav.gamma1 = seq(0,1,0.1); lav.gamma2 = seq(0,1,0.1);
 # en.alphas = seq(0,1,0.1); K = 10
 # xnames = c(paste0("x",1:3), paste0("y",1:4)); ynames = "dem65_sum"; seed = NULL
 
 wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
-                              lav.alpha1 = seq(0,1,0.1), lav.alpha2 = seq(0,1,0.1), 
-                              lav.equal.alphas = F,
+                              lav.gamma1 = seq(0,1,0.1), lav.gamma2 = seq(0,1,0.1), 
+                              lav.equal.gammas = F,
                               en.alphas = seq(0,1,0.1), K = 10, seed = NULL,
                               save.Y = F) {
   
@@ -144,8 +144,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   lavcv.t0 <- Sys.time()
   lavcv.Ypred <- lav.predict.y.cv(calidat = calibration, preddat = prediction, 
                                   califit = lav.fit, CV = lav.CV, 
-                                  alpha1 = lav.alpha1, alpha2 = lav.alpha2,
-                                  equal.alphas = lav.equal.alphas, 
+                                  gamma1 = lav.gamma1, gamma2 = lav.gamma2,
+                                  equal.gammas = lav.equal.gammas, 
                                   n_x = n_x, n_eta_x = n_eta_x,
                                   n_y = n_y, n_eta_y = n_eta_y,
                                   K = K, partid = partIDx,
@@ -161,8 +161,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                        lav.xxSRMR = attr(lavcv.Ypred, "xxSRMR"), 
                        lav.yySRMR = attr(lavcv.Ypred, "yySRMR"), 
                        lav.yxSRMR = attr(lavcv.Ypred, "yxSRMR"), 
-                       lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
-                       lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
+                       lav.gamma1 = attr(lavcv.Ypred, "gamma1"), 
+                       lav.gamma2 = attr(lavcv.Ypred, "gamma2"),
                        RMSEp = sqrt(sum(lavcv.sqresiduals)/(length(ynames)*nPred)),
                        runTime = lavcv.diff)
   lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
@@ -172,8 +172,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                         lav.xxSRMR = attr(lavcv.Ypred, "xxSRMR"), 
                         lav.yySRMR = attr(lavcv.Ypred, "yySRMR"), 
                         lav.yxSRMR = attr(lavcv.Ypred, "yxSRMR"), 
-                        lav.alpha1 = attr(lavcv.Ypred, "alpha1"), 
-                        lav.alpha2 = attr(lavcv.Ypred, "alpha2"),
+                        lav.gamma1 = attr(lavcv.Ypred, "gamma1"), 
+                        lav.gamma2 = attr(lavcv.Ypred, "gamma2"),
                         yname = ynames,
                         RMSEpr = sqrt(lavcv.sqresiduals/nPred),
                         runTime = lavcv.diff)
@@ -213,14 +213,14 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
              misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
              Ytrue, DeRooij.Ypred, SAM.Ypred, OLS.Ypred, lavcv.Ypred, encv.Ypred))
   
-  # save alpha values for lavcv
-  lavcv.alphas <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+  # save gamma values for lavcv
+  lavcv.gammas <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
                         n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                         beta = beta, Rsq = Rsq, r = r,
                         misspecify = misspecify, miss.part = miss.part, 
                         miss.strength = miss.strength,
-                        alpha1 = attr(lavcv.Ypred, "alpha1"), 
-                        alpha2 = attr(lavcv.Ypred, "alpha2"))
+                        gamma1 = attr(lavcv.Ypred, "gamma1"), 
+                        gamma2 = attr(lavcv.Ypred, "gamma2"))
   
   # save RMSEp and RMSEpr
   RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
@@ -240,7 +240,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   t1 <- Sys.time()
   diff <- difftime(t1, t0, "sec")
   
-  final <- list(RMSEp = RMSEp, RMSEpr = RMSEpr, lavcv.alphas = lavcv.alphas)
+  final <- list(RMSEp = RMSEp, RMSEpr = RMSEpr, lavcv.gammas = lavcv.gammas)
   if (save.Y) final$Y <- Y
   
   attr(final, "sampID")        <- sampID
@@ -274,8 +274,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "RMSEA.upCI")    <- RMSEA.upCI
   attr(final, "xnames")        <- xnames
   attr(final, "ynames")        <- ynames
-  attr(final, "lav.alpha1")    <- attr(lavcv.Ypred, "alpha1")
-  attr(final, "lav.alpha2")    <- attr(lavcv.Ypred, "alpha2")
+  attr(final, "lav.gamma1")    <- attr(lavcv.Ypred, "gamma1")
+  attr(final, "lav.gamma2")    <- attr(lavcv.Ypred, "gamma2")
   attr(final, "en.alpha")      <- attr(encv.Ypred, "alpha")
   attr(final, "en.lambda")     <- attr(encv.Ypred, "lambda")
   attr(final, "seed")          <- ifelse(!is.null(seed), seed, NA)
