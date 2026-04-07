@@ -15,6 +15,19 @@ source("encv_relaxSEM.R")
 # en.alphas = seq(0,1,0.1); K = 10
 # xnames = c(paste0("x",1:3), paste0("y",1:4)); ynames = "dem65_sum"; seed = NULL
 
+# function to save warnings (taken from `demo(error.catching)`)
+tryCatch.W.E <- function(expr) {
+  W <- NULL
+  w.handler <- function(w) { # warning handler
+    W <<- w
+    invokeRestart("muffleWarning")
+    }
+  list(value = withCallingHandlers(tryCatch(expr, error = function(e) e),
+                                   warning = w.handler),
+       warning = W)
+}
+
+
 wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                               lav.gamma1 = seq(0,1,0.1), lav.gamma2 = seq(0,1,0.1), 
                               lav.equal.gammas = F,
@@ -53,9 +66,11 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   # partition IDs to be used for lav.predict.y.cv and en.predict.y.cv
   partIDx <- partidx(ndat = nCal, sampID = sampID, K = K)
   
-  lav.fit <- fitmod(dat = calibration, 
+  lav.fit.list <- tryCatch.W.E(fitmod(dat = calibration, 
                     n_x = n_x, n_eta_x = n_eta_x,
-                    n_y = n_y, n_eta_y = n_eta_y) # lavaan model fitted on complete calibration set
+                    n_y = n_y, n_eta_y = n_eta_y)) # lavaan model fitted on complete calibration set
+  lav.fit <- lav.fit.list$value
+  lav.fit.warning <- ifelse(is.null(lav.fit.list$warning), "none", as.character(lav.fit.list$warning))
   
   # check if cov.lv and cov.ov are positive definite and if the model converged
   PD.lv <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.lv"))$values > 0), F, T)
@@ -91,20 +106,22 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                          df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                          RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                          RMSEp = sqrt(sum(DeRooij.sqresiduals)/(length(ynames)*nPred)),
-                         runTime = DeRooij.diff)
+                         runTime = DeRooij.diff, warning = lav.fit.warning)
   DeRooij.RMSEpr <- cbind(method = "DeRooij", converged = converged, 
                           PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
                           df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                           RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                           yname = ynames,
                           RMSEpr = sqrt(DeRooij.sqresiduals/nPred),
-                          runTime = DeRooij.diff)
+                          runTime = DeRooij.diff, warning = lav.fit.warning)
   
   # Predictions using the structural after measurement approach
   SAM.t0 <- Sys.time()
-  lav.fit.sam <- fitmod(dat = calibration, 
+  lav.fit.sam.list <- tryCatch.W.E(fitmod(dat = calibration, 
                         n_x = n_x, n_eta_x = n_eta_x,
-                        n_y = n_y, n_eta_y = n_eta_y, SAM = T)
+                        n_y = n_y, n_eta_y = n_eta_y, SAM = T))
+  lav.fit.sam <- lav.fit.sam.list$value
+  lav.fit.sam.warning <- ifelse(is.null(lav.fit.sam.list$warning), "none", as.character(lav.fit.sam.list$warning))
   PD.lv.sam <- ifelse(!all(eigen(lavInspect(lav.fit.sam, "cov.lv"))$values > 0), F, T)
   PD.ov.sam <- ifelse(!all(eigen(lavInspect(lav.fit.sam, "cov.ov"))$values > 0), F, T)
   converged.sam <- lav.fit.sam@Fit@converged
@@ -118,12 +135,12 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   SAM.RMSEp <- cbind(method = "SAM", converged = converged.sam, 
                      PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
                      RMSEp = sqrt(sum(SAM.sqresiduals)/(length(ynames)*nPred)),
-                     runTime = SAM.diff)
+                     runTime = SAM.diff, warning = lav.fit.sam.warning)
   SAM.RMSEpr <- cbind(method = "SAM", converged = converged.sam, 
                       PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
                       yname = ynames,
                       RMSEpr = sqrt(SAM.sqresiduals/nPred),
-                      runTime = SAM.diff)
+                      runTime = SAM.diff, warning = lav.fit.sam.warning)
   
   # Predictions using ordinary least squares regression
   OLS.t0 <- Sys.time()
@@ -171,7 +188,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                        lav.gamma1 = attr(lavcv.Ypred, "gamma1"), 
                        lav.gamma2 = attr(lavcv.Ypred, "gamma2"),
                        RMSEp = sqrt(sum(lavcv.sqresiduals)/(length(ynames)*nPred)),
-                       runTime = lavcv.diff)
+                       runTime = lavcv.diff, warning = lav.fit.warning)
   lavcv.RMSEpr <- cbind(method = "lavcv", converged = converged, 
                         PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                         df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
@@ -184,7 +201,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                         lav.gamma2 = attr(lavcv.Ypred, "gamma2"),
                         yname = ynames,
                         RMSEpr = sqrt(lavcv.sqresiduals/nPred),
-                        runTime = lavcv.diff)
+                        runTime = lavcv.diff, warning = lav.fit.warning)
   
   # Predictions using elastic net regression (with cross-validation)
   encv.t0 <- Sys.time()
@@ -230,7 +247,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                         converged = converged, 
                         PD.lv = PD.lv, PD.ov = PD.ov,
                         gamma1 = attr(lavcv.Ypred, "gamma1"), 
-                        gamma2 = attr(lavcv.Ypred, "gamma2"))
+                        gamma2 = attr(lavcv.Ypred, "gamma2"), 
+                    warning = lav.fit.warning)
   
   # save RMSEp and RMSEpr
   RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
@@ -273,6 +291,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "K")             <- K
   attr(final, "converged")     <- converged
   attr(final, "converged.sam") <- converged.sam
+  attr(final, "lav.fit.warning") <- lav.fit.warning
+  attr(final, "lav.fit.sam.warning") <- lav.fit.sam.warning
   attr(final, "PD.lv")         <- PD.lv
   attr(final, "PD.ov")         <- PD.ov
   attr(final, "PD.lv.sam")     <- PD.lv.sam
