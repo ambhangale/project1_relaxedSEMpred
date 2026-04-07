@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 5 April 2026
+## Last updated: 7 April 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -55,11 +55,11 @@ fitmod <- function(dat, n_x, n_eta_x, n_y, n_eta_y, SAM = FALSE) {
   mod <- paste(FL, B, collapse = " \n") # complete model
   
   fit <- if (!SAM) {
-    sem(mod = mod, dat = dat, meanstructure = T, std.lv = T, 
-        se = "none", baseline = F) # use UVI constraint
+    sem(mod = mod, dat = dat, meanstructure = T, 
+        se = "none", baseline = F) # use ULI constraint
   } else {
-    sam(mod = mod, dat = dat, meanstructure = T, std.lv = T, 
-        se = "none", baseline = F) # SAM, use UVI constraint
+    sam(mod = mod, dat = dat, meanstructure = T, 
+        se = "none", baseline = F) # SAM, use ULI constraint
   }
   
   return(fit)
