@@ -131,7 +131,7 @@ lav.predict.y <- function(preddat, califit,
 }
 
 # fit <- fitmod(dat = calibration)
-# lav.predict.y(calibration, prediction, fit, gamma1 = 0.5, gamma2 = 0.3,
+# lav.predict.y(prediction, fit, gamma1 = 0.5, gamma2 = 0.3,
 #           xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
@@ -190,6 +190,8 @@ lav.predict.y.part <- function(dat, K, partid,
 # t0 <- Sys.time()
 # foo <- lav.predict.y.part(dat = calibration, K = 10, partid = part.ids,
 #                       gamma1 = seq(0,1,0.1), gamma2 = seq(0,1,0.1),
+#                       equal.gammas = F, 
+#                       n_x = 27, n_eta_x = 3, n_y = 9, n_eta_y = 1,
 #                       xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
 # diff <- difftime(t1, t0, "sec")
@@ -244,6 +246,8 @@ lav.predict.y.gamma <- function(dat, K, partid,
 
 # lav.predict.y.gamma(dat = calibration, K = 10, partid = part.ids,
 #                 gamma1 = seq(0,1,0.1), gamma2 = seq(0,1,0.1),
+#                 equal.gammas = F,
+#                 n_x = 27, n_eta_x = 3, n_y = 9, n_eta_y = 1,
 #                 xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 
 #----
@@ -297,7 +301,10 @@ lav.predict.y.cv <- function(calidat, preddat, califit, CV,
 # t0 <- Sys.time()
 # bar <- lav.predict.y.cv(calidat = calibration, preddat = prediction,
 #                         califit = fit, CV = T,
-#                     gamma1 = seq(0,1,0.1), gamma2 = seq(0,1,0.1), K = 10,
+#                     gamma1 = seq(0,1,0.1), gamma2 = seq(0,1,0.1), 
+#                     equal.gammas = F,
+#                     n_x = 27, n_eta_x = 3, n_y = 9, n_eta_y = 1,
+#                     K = 10,
 #                     partid = part.ids, xnames = paste0("x", 4:7), ynames = paste0("x", 1:3))
 # t1 <- Sys.time()
 # diff <- difftime(t1,t0,"sec")

@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 8 October 2025
+## Last updated: 7 April 2026
 ## Fixes and improvements: 4 April 2025 (Julian D. Karch)
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
@@ -11,7 +11,7 @@
 
 source("datagen_relaxSEM.R")
 
-# sig <- genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T,
+# sig <- genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, Rsq = 0.6, misspecify = T,
 #                  miss.part = "both:load", miss.strength = "weak")
 # dat <- gendat(sampID = 1, nCal = 250, covmat = sig)
 # calibration <- dat$calibration; prediction <- dat$prediction

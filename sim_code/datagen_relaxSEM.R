@@ -1,9 +1,9 @@
 ## Aditi M. Bhangale
-## Last updated: 27 March 2026
+## Last updated: 7 April 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
-### data generation file -- create data from scratch -- following Yves' approach
+### data generation file
 
 # getwd()
 # setwd("/Users/Aditi_2/Desktop/Universiteit Leiden/Projects/project_1_relaxedSEMpred/sim_code")
@@ -18,10 +18,6 @@ allSeeds <- seedCreator(nReps = 5e3, streamsPerRep = 2, seed = 10824)
 # possible to run sampIDs 1:5000. adjust nReps if we want to go higher.
 # 2 streams. stream 1 to be used for data generation and stream 2 to be used for partitioning
 #----
-
-# n_x = 24; n_eta_x = 3; n_y = 9; n_eta_y = 1
-# beta = 0.3; lambda = 0.7; psi.xx = 0.2; r = 0.3
-# miss.strength = "strong"
 
 # misspecification types----
 xxrescov <- function(n_x, n_eta_x, THETA, THETA.star, miss.strength) {
@@ -356,40 +352,40 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
 
 # test function
 ## correctly specified
-# genCovmat(n_x = 4, n_eta_x = 1, n_y = 1, misspecify = F)
-# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = F)
-# genCovmat(n_x = 24, n_eta_x = 3, n_y = 4, misspecify = F)
+# genCovmat(n_x = 4, n_eta_x = 1, n_y = 1, Rsq = 0.6, misspecify = F)
+# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, Rsq = 0.6, misspecify = F)
+# genCovmat(n_x = 24, n_eta_x = 3, n_y = 4, Rsq = 0.6, misspecify = F)
 
 ## "xx:rescov"
-# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = T, 
+# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, Rsq = 0.6, misspecify = T, 
 #           miss.part = "xx:rescov", miss.strength = "strong")
-# genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T, 
+# genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, Rsq = 0.6, misspecify = T, 
 #           miss.part = "xx:rescov", miss.strength = "weak")
 
 ## "xx:crossload"
-# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = T, 
+# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, Rsq = 0.6, misspecify = T, 
 #           miss.part = "xx:crossload", miss.strength = "strong")
-# genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T, 
+# genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, Rsq = 0.6, misspecify = T, 
 #           miss.part = "xx:crossload", miss.strength = "weak")
 
 ## "xy:direct"
-# genCovmat(n_x = 4, n_eta_x = 1, n_y = 1, misspecify = T, 
+# genCovmat(n_x = 4, n_eta_x = 1, n_y = 1, Rsq = 0.6, misspecify = T, 
 #           miss.part = "xy:direct", miss.strength = "strong")
-# genCovmat(n_x = 12, n_eta_x = 3, n_y = 1, misspecify = T, 
+# genCovmat(n_x = 12, n_eta_x = 3, n_y = 1, Rsq = 0.6, misspecify = T, 
 #           miss.part = "xy:direct", miss.strength = "strong")
-# genCovmat(n_x = 24, n_eta_x = 3, n_y = 4, misspecify = T, 
+# genCovmat(n_x = 24, n_eta_x = 3, n_y = 4, Rsq = 0.6, misspecify = T, 
 #           miss.part = "xy:direct", miss.strength = "weak")
 
 ## "both:cov"
-# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = T, 
+# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, Rsq = 0.6, misspecify = T, 
 #           miss.part = "both:cov", miss.strength = "strong")
-# genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T, 
+# genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, Rsq = 0.6, misspecify = T, 
 #           miss.part = "both:cov", miss.strength = "weak")
 
 # "both:load"
-# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, misspecify = T, 
+# genCovmat(n_x = 24, n_eta_x = 3, n_y = 1, Rsq = 0.6, misspecify = T, 
 #           miss.part = "both:load", miss.strength = "strong")
-# genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T,
+# genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, Rsq = 0.6, misspecify = T,
 #           miss.part = "both:load", miss.strength = "weak")
 
 #----
@@ -439,7 +435,7 @@ gendat <- function(sampID = NULL, nCal, nPred, covmat, seed = NULL) {
   
 }
 
-# sig <- genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, misspecify = T,
+# sig <- genCovmat(n_x = 12, n_eta_x = 3, n_y = 4, Rsq = 0.6, misspecify = T,
 #                  miss.part = "both:load", miss.strength = "weak")
 # dat <- gendat(sampID = 1, nCal = 250, covmat = sig)
 

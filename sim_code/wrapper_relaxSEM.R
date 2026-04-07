@@ -10,11 +10,6 @@
 source("lavcv_relaxSEM.R")
 source("encv_relaxSEM.R") 
 
-# sampID = 1; nCal = 250; nPred = 250; misspecify = F; lav.CV = T;
-# lav.gamma1 = seq(0,1,0.1); lav.gamma2 = seq(0,1,0.1);
-# en.alphas = seq(0,1,0.1); K = 10
-# xnames = c(paste0("x",1:3), paste0("y",1:4)); ynames = "dem65_sum"; seed = NULL
-
 # function to save warnings (taken from `demo(error.catching)`)
 tryCatch.W.E <- function(expr) {
   W <- NULL
@@ -27,7 +22,7 @@ tryCatch.W.E <- function(expr) {
        warning = W)
 }
 
-
+# wrapper function
 wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                               lav.gamma1 = seq(0,1,0.1), lav.gamma2 = seq(0,1,0.1), 
                               lav.equal.gammas = F,
@@ -316,5 +311,5 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   return(final) 
 }
 
-# foo <- wrapper.predict.y(sampID = 1, nCal = 250, nPred = 250, misspecify = F)
-# bar <- wrapper.predict.y(sampID = 1, nCal = 250, nPred = 250, misspecify = T)
+# foo <- wrapper.predict.y(sampID = 1, nCal = 250, nPred = 250, covmat = cm, misspecify = F)
+# bar <- wrapper.predict.y(sampID = 1, nCal = 250, nPred = 250, covmat = cm, misspecify = T)
