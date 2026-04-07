@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 5 April 2026
+## Last updated: 7 April 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -57,15 +57,16 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                     n_x = n_x, n_eta_x = n_eta_x,
                     n_y = n_y, n_eta_y = n_eta_y) # lavaan model fitted on complete calibration set
   
-  # check if cov.lv and cov.ov are positive definite
+  # check if cov.lv and cov.ov are positive definite and if the model converged
   PD.lv <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.lv"))$values > 0), F, T)
   PD.ov <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.ov"))$values > 0), F, T)
+  converged <- lav.fit@Fit@converged
   
   # save number of estimated parameters 
   npar <- lav.fit@Fit@npar
   
   # check whether test for exact fit was rejected or not
-  if (lav.fit@Fit@converged) {
+  if (converged) {
     fit.measures <- fitMeasures(lav.fit)
     exact.fit    <- ifelse(fit.measures["pvalue"] < .05, "reject", "fail_to_reject")
     df           <- fit.measures["df"]
@@ -85,12 +86,14 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   DeRooij.residuals <- Ytrue - DeRooij.Ypred
   DeRooij.sqresiduals <- colSums(DeRooij.residuals^2)
   DeRooij.diff <- difftime(DeRooij.t1, DeRooij.t0, "sec")
-  DeRooij.RMSEp <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
+  DeRooij.RMSEp <- cbind(method = "DeRooij", converged = converged,
+                         PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
                          df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                          RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                          RMSEp = sqrt(sum(DeRooij.sqresiduals)/(length(ynames)*nPred)),
                          runTime = DeRooij.diff)
-  DeRooij.RMSEpr <- cbind(method = "DeRooij", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
+  DeRooij.RMSEpr <- cbind(method = "DeRooij", converged = converged, 
+                          PD.lv = PD.lv, PD.ov = PD.ov, npar = npar, 
                           df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                           RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                           yname = ynames,
@@ -104,6 +107,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                         n_y = n_y, n_eta_y = n_eta_y, SAM = T)
   PD.lv.sam <- ifelse(!all(eigen(lavInspect(lav.fit.sam, "cov.lv"))$values > 0), F, T)
   PD.ov.sam <- ifelse(!all(eigen(lavInspect(lav.fit.sam, "cov.ov"))$values > 0), F, T)
+  converged.sam <- lav.fit.sam@Fit@converged
   
   SAM.Ypred <- lavPredictY(object = lav.fit.sam, newdata = prediction, 
                            ynames = ynames, xnames = xnames)
@@ -111,10 +115,12 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   SAM.residuals <- Ytrue - SAM.Ypred
   SAM.sqresiduals <- colSums(SAM.residuals^2)
   SAM.diff <- difftime(SAM.t1, SAM.t0, "sec")
-  SAM.RMSEp <- cbind(method = "SAM", PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
+  SAM.RMSEp <- cbind(method = "SAM", converged = converged.sam, 
+                     PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
                      RMSEp = sqrt(sum(SAM.sqresiduals)/(length(ynames)*nPred)),
                      runTime = SAM.diff)
-  SAM.RMSEpr <- cbind(method = "SAM", PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
+  SAM.RMSEpr <- cbind(method = "SAM", converged = converged.sam, 
+                      PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
                       yname = ynames,
                       RMSEpr = sqrt(SAM.sqresiduals/nPred),
                       runTime = SAM.diff)
@@ -154,7 +160,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   lavcv.residuals <- Ytrue - lavcv.Ypred
   lavcv.sqresiduals <- colSums(lavcv.residuals^2)
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
-  lavcv.RMSEp <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
+  lavcv.RMSEp <- cbind(method = "lavcv", converged = converged, 
+                       PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                        df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                        RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                        lav.fullSRMR = attr(lavcv.Ypred, "fullSRMR"),
@@ -165,7 +172,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                        lav.gamma2 = attr(lavcv.Ypred, "gamma2"),
                        RMSEp = sqrt(sum(lavcv.sqresiduals)/(length(ynames)*nPred)),
                        runTime = lavcv.diff)
-  lavcv.RMSEpr <- cbind(method = "lavcv", PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
+  lavcv.RMSEpr <- cbind(method = "lavcv", converged = converged, 
+                        PD.lv = PD.lv, PD.ov = PD.ov, npar = npar,
                         df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                         RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                         lav.fullSRMR = attr(lavcv.Ypred, "fullSRMR"),
@@ -261,6 +269,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "miss.strength") <- miss.strength
   attr(final, "lav.CV")        <- lav.CV
   attr(final, "K")             <- K
+  attr(final, "converged")     <- converged
+  attr(final, "converged.sam") <- converged.sam
   attr(final, "PD.lv")         <- PD.lv
   attr(final, "PD.ov")         <- PD.ov
   attr(final, "PD.lv.sam")     <- PD.lv.sam
