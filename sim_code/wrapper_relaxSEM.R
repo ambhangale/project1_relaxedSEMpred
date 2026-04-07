@@ -222,11 +222,13 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
              Ytrue, DeRooij.Ypred, SAM.Ypred, OLS.Ypred, lavcv.Ypred, encv.Ypred))
   
   # save gamma values for lavcv
-  lavcv.gammas <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
+  lavcv.gammas <- c(sampID = sampID, nCal = nCal, nPred = nPred, 
                         n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                         beta = beta, Rsq = Rsq, r = r,
                         misspecify = misspecify, miss.part = miss.part, 
                         miss.strength = miss.strength,
+                        converged = converged, 
+                        PD.lv = PD.lv, PD.ov = PD.ov,
                         gamma1 = attr(lavcv.Ypred, "gamma1"), 
                         gamma2 = attr(lavcv.Ypred, "gamma2"))
   
