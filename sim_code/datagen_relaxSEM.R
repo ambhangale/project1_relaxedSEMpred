@@ -180,7 +180,7 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
   
   # recompute PHI
   Iden.misB.inv <- solve(diag(nrow = nrow(mis.B)) - mis.B)
-  PHI <- Iden.misB.inv %*% mis.PSI %*% t(Iden.misB.inv)
+  mis.PHI <- Iden.misB.inv %*% mis.PSI %*% t(Iden.misB.inv)
   
   return(list(mis.LAMBDA = mis.LAMBDA, mis.THETA = THETA, 
               mis.PSI = mis.PSI, mis.B = mis.B, mis.PHI = mis.PHI))
