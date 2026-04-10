@@ -71,7 +71,9 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   PD.lv <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.lv"))$values > 0), F, T)
   PD.ov <- ifelse(!all(eigen(lavInspect(lav.fit, "cov.ov"))$values > 0), F, T)
   converged <- lav.fit@Fit@converged
-  heywood <- any(diag(lavInspect(lav.fit, "est")$psi) <= 0)
+  lav.fit.est <- lavInspect(lav.fit, "est")
+  heywood.psi <- any(diag(lav.fit.est$psi) < 0)
+  heywood.theta <- any(diag(lav.fit.est$theta) < 0)
   
   # save number of estimated parameters 
   npar <- lav.fit@Fit@npar
@@ -99,14 +101,16 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   DeRooij.diff <- difftime(DeRooij.t1, DeRooij.t0, "sec")
   DeRooij.RMSEp <- cbind(method = "DeRooij", converged = converged,
                          PD.lv = PD.lv, PD.ov = PD.ov, 
-                         heywood = heywood, npar = npar, 
+                         heywood.psi = heywood.psi, heywood.theta = heywood.theta,
+                         npar = npar, 
                          df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                          RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                          RMSEp = sqrt(sum(DeRooij.sqresiduals)/(length(ynames)*nPred)),
                          runTime = DeRooij.diff, warning = lav.fit.warning)
   DeRooij.RMSEpr <- cbind(method = "DeRooij", converged = converged, 
                           PD.lv = PD.lv, PD.ov = PD.ov, 
-                          heywood = heywood, npar = npar, 
+                          heywood.psi = heywood.psi, heywood.theta = heywood.theta,
+                          npar = npar, 
                           df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                           RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                           yname = ynames,
@@ -123,7 +127,9 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   PD.lv.sam <- ifelse(!all(eigen(lavInspect(lav.fit.sam, "cov.lv"))$values > 0), F, T)
   PD.ov.sam <- ifelse(!all(eigen(lavInspect(lav.fit.sam, "cov.ov"))$values > 0), F, T)
   converged.sam <- lav.fit.sam@Fit@converged
-  heywood.sam <- any(diag(lavInspect(lav.fit.sam, "est")$psi) <= 0)
+  lav.fit.sam.est <- lavInspect(lav.fit.sam, "est")
+  heywood.psi.sam <- any(diag(lav.fit.sam.est$psi) < 0)
+  heywood.theta.sam <- any(diag(lav.fit.sam.est$theta) < 0)
   
   SAM.Ypred <- lavPredictY(object = lav.fit.sam, newdata = prediction, 
                            ynames = ynames, xnames = xnames)
@@ -133,12 +139,12 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   SAM.diff <- difftime(SAM.t1, SAM.t0, "sec")
   SAM.RMSEp <- cbind(method = "SAM", converged = converged.sam, 
                      PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
-                     heywood = heywood.sam,
+                     heywood.psi = heywood.psi.sam, heywood.theta = heywood.theta.sam,
                      RMSEp = sqrt(sum(SAM.sqresiduals)/(length(ynames)*nPred)),
                      runTime = SAM.diff, warning = lav.fit.sam.warning)
   SAM.RMSEpr <- cbind(method = "SAM", converged = converged.sam, 
                       PD.lv = PD.lv.sam, PD.ov = PD.ov.sam,
-                      heywood = heywood.sam,
+                      heywood.psi = heywood.psi.sam, heywood.theta = heywood.theta.sam,
                       yname = ynames,
                       RMSEpr = sqrt(SAM.sqresiduals/nPred),
                       runTime = SAM.diff, warning = lav.fit.sam.warning)
@@ -180,7 +186,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   lavcv.diff <- difftime(lavcv.t1, lavcv.t0, "sec")
   lavcv.RMSEp <- cbind(method = "lavcv", converged = converged, 
                        PD.lv = PD.lv, PD.ov = PD.ov, 
-                       heywood = heywood, npar = npar,
+                       heywood.psi = heywood.psi, heywood.theta = heywood.theta, 
+                       npar = npar,
                        df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                        RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                        lav.fullSRMR = attr(lavcv.Ypred, "fullSRMR"),
@@ -193,7 +200,8 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                        runTime = lavcv.diff, warning = lav.fit.warning)
   lavcv.RMSEpr <- cbind(method = "lavcv", converged = converged, 
                         PD.lv = PD.lv, PD.ov = PD.ov, 
-                        heywood = heywood, npar = npar,
+                        heywood.psi = heywood.psi, heywood.theta = heywood.theta, 
+                        npar = npar,
                         df = df, exact.fit = exact.fit, CFI = CFI, RMSEA = RMSEA,
                         RMSEA.lowCI = RMSEA.lowCI, RMSEA.upCI = RMSEA.upCI,
                         lav.fullSRMR = attr(lavcv.Ypred, "fullSRMR"),
@@ -302,10 +310,12 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "lav.fit.sam.warning") <- lav.fit.sam.warning
   attr(final, "PD.lv")         <- PD.lv
   attr(final, "PD.ov")         <- PD.ov
-  attr(final, "heywood")       <- heywood
+  attr(final, "heywood.psi")   <- heywood.psi
+  attr(final, "heywood.theta") <- heywood.theta
   attr(final, "PD.lv.sam")     <- PD.lv.sam
   attr(final, "PD.ov.sam")     <- PD.ov.sam
-  attr(final, "heywood.sam")   <- heywood.sam
+  attr(final, "heywood.psi.sam") <- heywood.psi.sam
+  attr(final, "heywood.theta.sam") <- heywood.theta.sam
   attr(final, "exact.fit")     <- exact.fit
   attr(final, "npar")          <- npar
   attr(final, "df")            <- df
