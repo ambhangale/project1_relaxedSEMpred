@@ -179,8 +179,8 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
   }
   
   # recompute PHI
-  Iden <- diag(1, nrow = nrow(mis.B))
-  mis.PHI <- solve(Iden - mis.B) %*% mis.PSI %*% t(solve(Iden - mis.B))
+  Iden.misB.inv <- solve(diag(nrow = nrow(mis.B)) - mis.B)
+  PHI <- Iden.misB.inv %*% mis.PSI %*% t(Iden.misB.inv)
   
   return(list(mis.LAMBDA = mis.LAMBDA, mis.THETA = THETA, 
               mis.PSI = mis.PSI, mis.B = mis.B, mis.PHI = mis.PHI))
@@ -273,7 +273,6 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   ## fix residual indicator variance to (1-r)*obs.var if y is a single-indicator factor 
   THETA <- diag(THETA.star, nrow = n_x + n_y)
   dimnames(THETA) <- list(obsnames, obsnames)
-  
   
   # introduce misspecification
   if(misspecify == T) {
