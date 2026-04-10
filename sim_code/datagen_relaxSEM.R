@@ -269,10 +269,11 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   # THETA; residual variances of indicators
   THETA.dash <- diag(LAMBDA%*%PHI%*%t(LAMBDA))
   THETA.star <- THETA.dash*(1/r - 1)
+  if(n_y == 1L) THETA.star["y1"] <- (1-r)*obs.var
+  ## fix residual indicator variance to (1-r)*obs.var if y is a single-indicator factor 
   THETA <- diag(THETA.star, nrow = n_x + n_y)
   dimnames(THETA) <- list(obsnames, obsnames)
-  if(n_y == 1L) THETA["y1", "y1"] <- (1-r)*obs.var
-  ## fix residual indicator variance to (1-r)*obs.var if y is a single-indicator factor 
+  
   
   # introduce misspecification
   if(misspecify == T) {
