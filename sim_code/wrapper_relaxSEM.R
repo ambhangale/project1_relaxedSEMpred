@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 7 April 2026
+## Last updated: 10 April 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -41,7 +41,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   n_eta_x <- covmat.attr$n_eta_x
   n_y <- covmat.attr$n_y
   n_eta_y <- covmat.attr$n_eta_y
-  beta <- covmat.attr$beta
+  beta.val <- covmat.attr$beta.val
   Rsq <- covmat.attr$Rsq
   r <- covmat.attr$r
   
@@ -236,7 +236,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   # save gamma values for lavcv
   lavcv.gammas <- c(sampID = sampID, nCal = nCal, nPred = nPred, 
                         n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
-                        beta = beta, Rsq = Rsq, r = r,
+                        beta.val = beta.val, Rsq = Rsq, r = r,
                         misspecify = misspecify, miss.part = miss.part, 
                         miss.strength = miss.strength,
                         converged = converged, 
@@ -248,14 +248,14 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   # save RMSEp and RMSEpr
   RMSEp <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
                  n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
-                 beta = beta, Rsq = Rsq, r = r,
+                 beta.val = beta.val, Rsq = Rsq, r = r,
                  misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                  Reduce(function(x,y) merge(x, y, all = T), 
                         list (DeRooij.RMSEp, SAM.RMSEp, OLS.RMSEp, lavcv.RMSEp, encv.RMSEp)))
   
   RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
                   n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
-                  beta = beta, Rsq = Rsq, r = r,
+                  beta.val = beta.val, Rsq = Rsq, r = r,
                   misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                   Reduce(function(x,y) merge(x, y, all = T), 
                          list (DeRooij.RMSEpr, SAM.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
@@ -273,7 +273,7 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "n_eta_x")       <- n_eta_x
   attr(final, "n_y")           <- n_y
   attr(final, "n_eta_y")       <- n_eta_y
-  attr(final, "beta")          <- beta
+  attr(final, "beta.val")          <- beta.val
   attr(final, "Rsq")           <- Rsq
   attr(final, "r")             <- r
   attr(final, "lambda")        <- covmat.attr$lambda

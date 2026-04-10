@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 7 April 2026
+## Last updated: 10 April 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -77,9 +77,9 @@ xxcrossload <- function(n_x, n_eta_x, lambda, LAMBDA, miss.strength) {
 }
 
 xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA, 
-                     beta, r, obs.var, miss.strength, lvnames, obsnames) {
+                     beta.val, r, obs.var, miss.strength, lvnames, obsnames) {
 
-  mis.B.val <- ifelse(miss.strength == "weak", 0.5*beta, 0.9*beta) # structural coefficient for direct effects
+  mis.B.val <- ifelse(miss.strength == "weak", 0.5*beta.val, 0.9*beta.val) # structural coefficient for direct effects
   
   if (n_eta_x == 1L) {
     DE <- if (n_x == 4L) 1 else c(1,8)
@@ -190,7 +190,7 @@ xydirect <- function(n_x, n_eta_x, n_y, n_eta_y, LAMBDA, B, PSI, THETA,
 
 # generate random covariance matrices----
 genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L, 
-                      beta = NULL, Rsq = NULL, psi.xx = 0.2, 
+                      beta.val = NULL, Rsq = NULL, psi.xx = 0.2, 
                       lambda = 0.7, r = 0.3, obs.var = 1,
                       misspecify, miss.part = NULL, miss.strength = NULL) { 
   
@@ -206,16 +206,16 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   # check if each factor has 4 or 8 indicators, otherwise warning
   if (!(n_x/n_eta_x == 4L || n_x/n_eta_x == 8L)) warning("all misspecification calculations only implemented for n_x/n_eta_x == 4L | 8L for now")
   
-  # check if beta or Rsq provided. if not, stop. 
-  if (is.null(beta) && is.null(Rsq)) stop("provide a value for either `beta` or `Rsq`")
+  # check if beta.val or Rsq provided. if not, stop. 
+  if (is.null(beta.val) && is.null(Rsq)) stop("provide a value for either `beta.val` or `Rsq`")
   # if both are provided, ensure that they correspond to the same 'strength'
-  if(!is.null(beta) && !is.null(Rsq)) warning("ensure the values provided correspond to the equivalent strength of the structural model")
+  if(!is.null(beta.val) && !is.null(Rsq)) warning("ensure the values provided correspond to the equivalent strength of the structural model")
   
-  # if beta or Rsq provided, use it to calculate the other
-  if(!is.null(beta) && is.null(Rsq)) Rsq <- ifelse(n_eta_x == 1L, beta^2, 
-                                                   n_eta_x*beta^2 + 2*n_eta_x*beta^2*psi.xx)
-  if(is.null(beta) && !is.null(Rsq)) beta <- ifelse(n_eta_x == 1L, sqrt(Rsq), 
-                                                    sqrt(Rsq/(n_eta_x*(1 + 2*psi.xx)))) # consider only positive beta values for now
+  # if beta.val or Rsq provided, use it to calculate the other
+  if(!is.null(beta.val) && is.null(Rsq)) Rsq <- ifelse(n_eta_x == 1L, beta.val^2, 
+                                                   n_eta_x*beta.val^2 + 2*n_eta_x*beta.val^2*psi.xx)
+  if(is.null(beta.val) && !is.null(Rsq)) beta.val <- ifelse(n_eta_x == 1L, sqrt(Rsq), 
+                                                    sqrt(Rsq/(n_eta_x*(1 + 2*psi.xx)))) # consider only positive beta.val values for now
   
   obsnames <- c(paste0("x", 1:n_x), paste0("y", 1:n_y)) # indicator labels
   lvnames <- c(paste0("eta_x", 1:n_eta_x), paste0("eta_y", 1:n_eta_y)) # factor labels
@@ -224,7 +224,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   B <- matrix(0, nrow = n_eta_x + n_eta_y, 
               ncol = n_eta_x + n_eta_y, 
               dimnames = list(lvnames, lvnames)) # rows are outcomes, columns are predictors
-  B[lvnames[grep("_y", lvnames)], lvnames[grep("_x", lvnames)]] <- beta
+  B[lvnames[grep("_y", lvnames)], lvnames[grep("_x", lvnames)]] <- beta.val
   
   # PSI; factor covariance matrix, not accounting for structural relations
   PSI <- diag(1, nrow = n_eta_x + n_eta_y)
@@ -291,7 +291,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
       } else if (miss.part == "xy:direct") {
         direct.vals <- xydirect(n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                                 LAMBDA = LAMBDA, B = B, PSI = PSI, 
-                                THETA = THETA, beta = beta, r = r, obs.var = obs.var,
+                                THETA = THETA, beta.val = beta.val, r = r, obs.var = obs.var,
                                 miss.strength = miss.strength,
                                 lvnames = lvnames, obsnames = obsnames) 
         LAMBDA <- direct.vals$mis.LAMBDA
@@ -302,7 +302,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
                           THETA.star = THETA.star, miss.strength = miss.strength)
         direct.vals <- xydirect(n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                                 LAMBDA = LAMBDA, B = B, PSI = PSI, 
-                                THETA = THETA, beta = beta, r = r, obs.var = obs.var, 
+                                THETA = THETA, beta.val = beta.val, r = r, obs.var = obs.var, 
                                 miss.strength = miss.strength,
                                 lvnames = lvnames, obsnames = obsnames)
         LAMBDA <- direct.vals$mis.LAMBDA
@@ -314,7 +314,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
                               LAMBDA = LAMBDA, miss.strength = miss.strength)
         direct.vals <- xydirect(n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                                 LAMBDA = LAMBDA, B = B, PSI = PSI, 
-                                THETA = THETA, beta = beta, r = r, obs.var = obs.var, 
+                                THETA = THETA, beta.val = beta.val, r = r, obs.var = obs.var, 
                                 miss.strength = miss.strength,
                                 lvnames = lvnames, obsnames = obsnames) 
         LAMBDA <- direct.vals$mis.LAMBDA
@@ -337,7 +337,7 @@ genCovmat <- function(n_x, n_eta_x, n_y,  n_eta_y = 1L,
   attr(SIGMA.pop, "n_eta_x") <- n_eta_x
   attr(SIGMA.pop, "n_y") <- n_y
   attr(SIGMA.pop, "n_eta_y") <- n_eta_y
-  attr(SIGMA.pop, "beta") <- beta
+  attr(SIGMA.pop, "beta.val") <- beta.val
   attr(SIGMA.pop, "Rsq") <- Rsq
   attr(SIGMA.pop, "lambda") <- lambda
   attr(SIGMA.pop, "psi.xx") <- psi.xx
