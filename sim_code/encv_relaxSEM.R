@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 30 October 2025
+## Last updated: 21 May 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -11,7 +11,8 @@ library(glmnet) # to perform elastic net regression
 source("part_relaxSEM.R")
 
 # prediction with an elastic net regresison model with cross-validation----
-en.predict.y.cv <- function(calidat, preddat, alphas, partid, n_y, xnames, ynames) {
+en.predict.y.cv <- function(calidat, preddat, alphas, partid, n_y, xnames, ynames,
+                            use1SE) {
 
   cv.errors <- rep(NA, length(alphas)) 
   
@@ -32,12 +33,14 @@ en.predict.y.cv <- function(calidat, preddat, alphas, partid, n_y, xnames, yname
   
   min.alpha <- alphas[which.min(cv.errors)] # alpha value with minimum cross-validated error
   
-  lambda <- cv.glmnet(x = as.matrix(calidat[, xnames]),
+  lambda.vals <- cv.glmnet(x = as.matrix(calidat[, xnames]),
                       y = as.matrix(calidat[, ynames]), 
                       foldid = partid,
                       family = ifelse(n_y == 1L, "gaussian", "mgaussian"), 
                       alpha = min.alpha, 
-                      standardize = T, standardize.response = F)$lambda.min # minimum/optimal tuning parameter (lambda) value
+                      standardize = T, standardize.response = F)
+  
+  lambda <- ifelse(use1SE, lambda.vals$lambda.1se, lambda.vals$lambda.min)
   
   out <- glmnet(x = as.matrix(calidat[, xnames]),
                 y = as.matrix(calidat[, ynames]),
