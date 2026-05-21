@@ -1,5 +1,5 @@
 ## Aditi M. Bhangale
-## Last updated: 10 April 2026
+## Last updated: 21 May 2026
 
 # Creating a function that applies the RDA-like constraints on the SEM prediction rule
 # relaxed SEM
@@ -214,25 +214,45 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                         RMSEpr = sqrt(lavcv.sqresiduals/nPred),
                         runTime = lavcv.diff, warning = lav.fit.warning)
   
-  # Predictions using elastic net regression (with cross-validation)
-  encv.t0 <- Sys.time()
-  encv.Ypred <- en.predict.y.cv(calidat = calibration, preddat = prediction,
+  # Predictions using elastic net regression (1se rule for lambda)
+  encv_1se.t0 <- Sys.time()
+  encv_1se.Ypred <- en.predict.y.cv(calidat = calibration, preddat = prediction,
+                                    alphas = en.alphas, partid = partIDx, 
+                                    n_y = n_y,
+                                    xnames = xnames, ynames = ynames, use1SE = T)
+  encv_1se.t1 <- Sys.time()
+  encv_1se.residuals <- Ytrue - encv_1se.Ypred
+  encv_1se.sqresiduals <- colSums(encv_1se.residuals^2)
+  encv_1se.diff <- difftime(encv_1se.t1, encv_1se.t0, "sec")
+  encv_1se.RMSEp <- cbind(method = "encv_1se", en.alpha = attr(encv_1se.Ypred, "alpha"), 
+                          en.lambda = attr(encv_1se.Ypred, "lambda"),
+                          RMSEp = sqrt(sum(encv_1se.sqresiduals)/(length(ynames)*nPred)),
+                          runTime = encv_1se.diff)
+  encv_1se.RMSEpr <- cbind(method = "encv_1se", en.alpha = attr(encv_1se.Ypred, "alpha"), 
+                           en.lambda = attr(encv_1se.Ypred, "lambda"),
+                           yname = ynames,
+                           RMSEpr = sqrt(encv_1se.sqresiduals/nPred),
+                           runTime = encv_1se.diff)
+  
+  # Predictions using elastic net regression (minimum lambda used)
+  encv_min.t0 <- Sys.time()
+  encv_min.Ypred <- en.predict.y.cv(calidat = calibration, preddat = prediction,
                                 alphas = en.alphas, partid = partIDx, 
                                 n_y = n_y,
-                                xnames = xnames, ynames = ynames)
-  encv.t1 <- Sys.time()
-  encv.residuals <- Ytrue - encv.Ypred
-  encv.sqresiduals <- colSums(encv.residuals^2)
-  encv.diff <- difftime(encv.t1, encv.t0, "sec")
-  encv.RMSEp <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
-                      en.lambda = attr(encv.Ypred, "lambda"),
-                      RMSEp = sqrt(sum(encv.sqresiduals)/(length(ynames)*nPred)),
-                      runTime = encv.diff)
-  encv.RMSEpr <- cbind(method = "encv", en.alpha = attr(encv.Ypred, "alpha"), 
-                       en.lambda = attr(encv.Ypred, "lambda"),
+                                xnames = xnames, ynames = ynames, use1SE = F)
+  encv_min.t1 <- Sys.time()
+  encv_min.residuals <- Ytrue - encv_min.Ypred
+  encv_min.sqresiduals <- colSums(encv_min.residuals^2)
+  encv_min.diff <- difftime(encv_min.t1, encv_min.t0, "sec")
+  encv_min.RMSEp <- cbind(method = "encv_min", en.alpha = attr(encv_min.Ypred, "alpha"), 
+                      en.lambda = attr(encv_min.Ypred, "lambda"),
+                      RMSEp = sqrt(sum(encv_min.sqresiduals)/(length(ynames)*nPred)),
+                      runTime = encv_min.diff)
+  encv_min.RMSEpr <- cbind(method = "encv_min", en.alpha = attr(encv_min.Ypred, "alpha"), 
+                       en.lambda = attr(encv_min.Ypred, "lambda"),
                        yname = ynames,
-                       RMSEpr = sqrt(encv.sqresiduals/nPred),
-                       runTime = encv.diff)
+                       RMSEpr = sqrt(encv_min.sqresiduals/nPred),
+                       runTime = encv_min.diff)
   
   # save Ytrue and Ypred for all methods
   if (n_y == 1L){
@@ -244,10 +264,12 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   colnames(SAM.Ypred) <- paste0("SAM.", colnames(SAM.Ypred))
   colnames(OLS.Ypred) <- paste0("OLS.", colnames(OLS.Ypred))
   colnames(lavcv.Ypred) <- paste0("lavcv.", colnames(lavcv.Ypred))
-  colnames(encv.Ypred) <- paste0("encv.", colnames(encv.Ypred)) 
+  colnames(encv_1se.Ypred) <- paste0("encv_1se.", colnames(encv_1se.Ypred)) 
+  colnames(encv_min.Ypred) <- paste0("encv_min.", colnames(encv_min.Ypred)) 
   Y <- as.data.frame(cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
              misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
-             Ytrue, DeRooij.Ypred, SAM.Ypred, OLS.Ypred, lavcv.Ypred, encv.Ypred))
+             Ytrue, DeRooij.Ypred, SAM.Ypred, OLS.Ypred, lavcv.Ypred, 
+             encv_1se.Ypred, encv_min.Ypred))
   
   # save gamma values for lavcv
   lavcv.gammas <- c(sampID = sampID, nCal = nCal, nPred = nPred, 
@@ -271,14 +293,16 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
                  beta.val = beta.val, Rsq = Rsq, r = r,
                  misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                  Reduce(function(x,y) merge(x, y, all = T), 
-                        list (DeRooij.RMSEp, SAM.RMSEp, OLS.RMSEp, lavcv.RMSEp, encv.RMSEp)))
+                        list (DeRooij.RMSEp, SAM.RMSEp, OLS.RMSEp, lavcv.RMSEp, 
+                              encv_1se.RMSEp, encv_min.RMSEp)))
   
   RMSEpr <- cbind(sampID = sampID, nCal = nCal, nPred = nPred, 
                   n_x = n_x, n_eta_x = n_eta_x, n_y = n_y, n_eta_y = n_eta_y, 
                   beta.val = beta.val, Rsq = Rsq, r = r,
                   misspecify = misspecify, miss.part = miss.part, miss.strength = miss.strength,
                   Reduce(function(x,y) merge(x, y, all = T), 
-                         list (DeRooij.RMSEpr, SAM.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, encv.RMSEpr)))
+                         list (DeRooij.RMSEpr, SAM.RMSEpr, OLS.RMSEpr, lavcv.RMSEpr, 
+                               encv_1se.RMSEpr, encv_min.RMSEpr)))
   
   t1 <- Sys.time()
   diff <- difftime(t1, t0, "sec")
@@ -327,8 +351,9 @@ wrapper.predict.y <- function(sampID, nCal, nPred = 1e4, covmat, lav.CV = TRUE,
   attr(final, "ynames")        <- ynames
   attr(final, "lav.gamma1")    <- attr(lavcv.Ypred, "gamma1")
   attr(final, "lav.gamma2")    <- attr(lavcv.Ypred, "gamma2")
-  attr(final, "en.alpha")      <- attr(encv.Ypred, "alpha")
-  attr(final, "en.lambda")     <- attr(encv.Ypred, "lambda")
+  attr(final, "en.alpha")      <- attr(encv_min.Ypred, "alpha")
+  attr(final, "en.lambda.min") <- attr(encv_min.Ypred, "lambda")
+  attr(final, "en.lambda.1se") <- attr(encv_1se.Ypred, "lambda")
   attr(final, "seed")          <- ifelse(!is.null(seed), seed, NA)
   attr(final, "runtime")       <- diff
   
